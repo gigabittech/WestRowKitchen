@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NavigationHeader from "@/components/navigation-header";
 import CartSidebar from "@/components/ui/cart-sidebar";
+import Footer from "@/components/footer";
 import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant, MenuCategory, MenuItem } from "@shared/schema";
@@ -125,8 +126,8 @@ export default function RestaurantPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <title>{restaurant.name} - West Row Kitchen</title>
-      <meta name="description" content={`Order from ${restaurant.name}. ${restaurant.description || `${restaurant.cuisine} cuisine with delivery and pickup options.`}`} />
+      <title>{restaurant?.name} - West Row Kitchen</title>
+      <meta name="description" content={`Order from ${restaurant?.name}. ${restaurant?.description || `${restaurant?.cuisine} cuisine with delivery and pickup options.`}`} />
       
       <NavigationHeader 
         isCartOpen={isCartOpen}
@@ -155,13 +156,13 @@ export default function RestaurantPage() {
           
           <div className="space-y-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{restaurant.name}</h1>
-              <p className="text-gray-600 mb-4">{restaurant.description}</p>
+              <h1 className="text-3xl font-bold mb-2">{restaurant?.name}</h1>
+              <p className="text-gray-600 mb-4">{restaurant?.description}</p>
               <div className="flex items-center space-x-4 text-sm">
                 <div className="flex items-center">
                   <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                  <span className="font-semibold">{restaurant.rating}</span>
-                  <span className="text-gray-500 ml-1">({restaurant.reviewCount}+ reviews)</span>
+                  <span className="font-semibold">{restaurant?.rating}</span>
+                  <span className="text-gray-500 ml-1">({restaurant?.reviewCount}+ reviews)</span>
                 </div>
               </div>
             </div>
@@ -169,16 +170,16 @@ export default function RestaurantPage() {
             <div className="space-y-2">
               <div className="flex items-center text-sm">
                 <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                <span>{restaurant.deliveryTime}</span>
+                <span>{restaurant?.deliveryTime}</span>
               </div>
               <div className="flex items-center text-sm">
                 <DollarSign className="w-4 h-4 mr-2 text-gray-400" />
-                <span>${restaurant.deliveryFee} delivery fee</span>
+                <span>${restaurant?.deliveryFee} delivery fee</span>
               </div>
             </div>
             
-            <Badge variant={restaurant.isOpen ? "default" : "destructive"} className="text-sm">
-              {restaurant.isOpen ? "OPEN" : "CLOSED"}
+            <Badge variant={restaurant?.isOpen ? "default" : "destructive"} className="text-sm">
+              {restaurant?.isOpen ? "OPEN" : "CLOSED"}
             </Badge>
           </div>
         </div>
@@ -256,6 +257,8 @@ export default function RestaurantPage() {
           </Card>
         )}
       </section>
+
+      <Footer />
 
       <CartSidebar 
         isOpen={isCartOpen}

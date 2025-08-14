@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import NavigationHeader from "@/components/navigation-header";
+import Footer from "@/components/footer";
 import { Clock, Star, MapPin, Search } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
@@ -182,6 +183,8 @@ export default function Restaurants() {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }

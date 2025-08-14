@@ -9,6 +9,7 @@ import NavigationHeader from "@/components/navigation-header";
 import RestaurantCard from "@/components/restaurant-card";
 import CategoryFilter from "@/components/category-filter";
 import CartSidebar from "@/components/ui/cart-sidebar";
+import Footer from "@/components/footer";
 import { 
   MapPin, 
   Search, 
@@ -251,60 +252,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-secondary text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div className="col-span-2 lg:col-span-1">
-              <div className="text-2xl font-bold mb-4 flex items-center">
-                <Utensils className="mr-2" />
-                West Row Kitchen
-              </div>
-              <p className="text-gray-300 mb-4">Connecting you with the best local restaurants for fast, fresh delivery.</p>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="flex items-center">
-                  <MapPin className="mr-2 w-4 h-4" />
-                  <span>123 West Row Street, Los Angeles, CA 90210</span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-gray-300">
-                <li><Link href="/" className="hover:text-primary transition-colors">Browse Restaurants</Link></li>
-                <li><button onClick={() => window.location.href = '/api/login'} className="hover:text-primary transition-colors">Sign In</button></li>
-                <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact Support</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">FAQs</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-300">
-                <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/refund" className="hover:text-primary transition-colors">Refund Policy</Link></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-600 pt-6 text-center">
-            <div className="text-sm text-gray-300">
-              © 2025 West Row Kitchen. All rights reserved.
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       <CartSidebar 
         isOpen={isCartOpen}

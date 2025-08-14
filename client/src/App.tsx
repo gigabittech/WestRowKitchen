@@ -16,6 +16,9 @@ import Orders from "@/pages/orders";
 import Terms from "@/pages/legal/terms";
 import Privacy from "@/pages/legal/privacy";
 import Refund from "@/pages/legal/refund";
+import Help from "@/pages/help";
+import Contact from "@/pages/contact";
+import FAQ from "@/pages/faq";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +33,9 @@ function Router() {
           <Route path="/terms" component={Terms} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/refund" component={Refund} />
+          <Route path="/help" component={Help} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/faq" component={FAQ} />
         </>
       ) : (
         <>
@@ -43,6 +49,9 @@ function Router() {
           <Route path="/terms" component={Terms} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/refund" component={Refund} />
+          <Route path="/help" component={Help} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/faq" component={FAQ} />
         </>
       )}
       <Route component={NotFound} />
