@@ -32,6 +32,8 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/restaurants" component={Restaurants} />
           <Route path="/restaurant/:slug" component={Restaurant} />
+          <Route path="/checkout" component={Checkout} />
+          <Route path="/stripe-checkout" component={lazy(() => import("@/pages/stripe-checkout"))} />
           <Route path="/terms" component={Terms} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/refund" component={Refund} />
