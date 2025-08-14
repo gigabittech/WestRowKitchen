@@ -25,7 +25,7 @@ import { z } from "zod";
 let stripe: Stripe | null = null;
 try {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_4eC39HqLyjWDarjtT1zdp7dc", {
-    apiVersion: "2025-06-30.basil",
+    apiVersion: "2020-08-27",
   });
 } catch (error) {
   console.log("Stripe not configured, payment functionality disabled");

@@ -10,7 +10,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 // Use test Stripe public key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_TYooMQauvdEDq54NiTphI7jx");
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_4eC39HqLyjWDarjtT1zdp7dc");
 
 const CheckoutForm = ({ total }: { total: number }) => {
   const stripe = useStripe();

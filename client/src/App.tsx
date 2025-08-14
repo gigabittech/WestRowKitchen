@@ -4,7 +4,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
-import { lazy } from "react";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Restaurant from "@/pages/restaurant";
@@ -12,6 +11,7 @@ import Restaurants from "@/pages/restaurants";
 import AuthPage from "@/pages/auth-page";
 import Admin from "@/pages/admin";
 import Checkout from "@/pages/checkout";
+import StripeCheckout from "@/pages/stripe-checkout";
 import Orders from "@/pages/orders";
 import Terms from "@/pages/legal/terms";
 import Privacy from "@/pages/legal/privacy";
@@ -33,7 +33,7 @@ function Router() {
           <Route path="/restaurants" component={Restaurants} />
           <Route path="/restaurant/:slug" component={Restaurant} />
           <Route path="/checkout" component={Checkout} />
-          <Route path="/stripe-checkout" component={lazy(() => import("@/pages/stripe-checkout"))} />
+          <Route path="/stripe-checkout" component={StripeCheckout} />
           <Route path="/terms" component={Terms} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/refund" component={Refund} />
@@ -48,7 +48,7 @@ function Router() {
           <Route path="/restaurant/:slug" component={Restaurant} />
           <Route path="/admin" component={Admin} />
           <Route path="/checkout" component={Checkout} />
-          <Route path="/stripe-checkout" component={lazy(() => import("@/pages/stripe-checkout"))} />
+          <Route path="/stripe-checkout" component={StripeCheckout} />
           <Route path="/orders" component={Orders} />
           <Route path="/terms" component={Terms} />
           <Route path="/privacy" component={Privacy} />
