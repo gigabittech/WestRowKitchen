@@ -60,7 +60,6 @@ export default function Landing() {
   });
 
   const featuredRestaurants = restaurants.slice(0, 6);
-  const popularRestaurants = restaurants.slice(0, 4);
 
   const categories = [
     { name: "American", icon: "🍔" },
@@ -192,33 +191,6 @@ export default function Landing() {
             <Button className="btn-primary px-8 py-3 rounded-full font-semibold">
               View All Restaurants
             </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Popular Categories */}
-      <section className="py-12 bg-neutral">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-8">Most Popular Restaurants</h2>
-          <p className="text-center text-gray-600 mb-12">Customer favorites and top-rated spots</p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularRestaurants.map((restaurant: Restaurant) => (
-              <Card key={restaurant.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                <div className="h-32 bg-gradient-to-r from-orange-400 to-red-500 rounded-t-xl flex items-center justify-center">
-                  <Utensils className="text-white text-4xl" />
-                </div>
-                <CardContent className="p-6 text-center">
-                  <h4 className="font-bold text-lg mb-2">{restaurant.name}</h4>
-                  <p className="text-gray-600 text-sm mb-2">{restaurant.cuisine}</p>
-                  <div className="flex items-center justify-center space-x-1 text-sm">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="font-semibold">{restaurant.rating}</span>
-                    <span className="text-gray-500">({restaurant.reviewCount}+)</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </div>
       </section>
