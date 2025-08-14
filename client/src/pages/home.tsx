@@ -18,7 +18,17 @@ export default function Home() {
 
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
-    queryKey: ["/api/restaurants", selectedCuisine],
+    queryKey: ["/api/restaurants", selectedCuisine === "ALL" ? "" : selectedCuisine],
+    queryFn: async () => {
+      const params = selectedCuisine !== "ALL" ? `?cuisine=${selectedCuisine}` : "";
+      const response = await fetch(`/api/restaurants${params}`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch restaurants');
+      }
+      return response.json();
+    }
   });
 
   // Fetch recent orders
@@ -28,9 +38,9 @@ export default function Home() {
 
   const categories = [
     { name: "American", icon: "🍔" },
-    { name: "Asian", icon: "🍜" },
-    { name: "Mexican", icon: "🌮" },
+    { name: "Vietnamese", icon: "🍜" },
     { name: "Italian", icon: "🍕" },
+    { name: "Mexican", icon: "🌮" },
     { name: "Healthy", icon: "🥗" },
     { name: "Breakfast", icon: "🥞" },
     { name: "Desserts", icon: "🍰" },
