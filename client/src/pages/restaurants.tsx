@@ -1,0 +1,169 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import NavigationHeader from "@/components/navigation-header";
+import { Clock, Star, MapPin, Search } from "lucide-react";
+import { Link } from "wouter";
+
+// Import restaurant logos
+import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
+import PappisPizzaLogo from "@assets/Pappi's Pizza Logo_1755170145362.png";
+import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png";
+
+const logoMap: Record<string, string> = {
+  "My Lai Kitchen": MyLaiLogo,
+  "Pappi's Pizza": PappisPizzaLogo,
+  "Cheeky's Burgers": CheekysBurgersLogo,
+};
+
+export default function Restaurants() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCuisine, setSelectedCuisine] = useState("ALL");
+
+  const { data: restaurants = [], isLoading } = useQuery({
+    queryKey: ["/api/restaurants"],
+  });
+
+  const filteredRestaurants = restaurants.filter((restaurant: any) =>
+    restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const cuisineTypes = ["ALL", "Vietnamese", "Italian", "American", "Mexican", "Chinese", "Thai"];
+
+  return (
+    <div className="min-h-screen bg-background">
+      <title>All Restaurants - West Row Kitchen</title>
+      
+      <NavigationHeader 
+        isCartOpen={false}
+        setIsCartOpen={() => {}}
+        cartItemCount={0}
+      />
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-4">All Restaurants</h1>
+          <p className="text-gray-600 mb-6">Discover amazing local flavors from our partner restaurants</p>
+          
+          {/* Search and Filter */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search restaurants, cuisines, or dishes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Cuisine Filter */}
+            <div className="flex gap-2 overflow-x-auto">
+              {cuisineTypes.map((cuisine) => (
+                <Button
+                  key={cuisine}
+                  variant={selectedCuisine === cuisine ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCuisine(cuisine)}
+                  className="whitespace-nowrap"
+                >
+                  {cuisine}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="h-64 animate-pulse">
+                <CardContent className="p-0">
+                  <div className="h-32 bg-gray-200 rounded-t-lg"></div>
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredRestaurants.map((restaurant: any) => (
+              <Link key={restaurant.id} href={`/restaurant/${restaurant.id}`}>
+                <Card className="group hover:shadow-lg transition-all duration-200 cursor-pointer">
+                  <CardContent className="p-0">
+                    <div className="relative">
+                      <div className="h-48 bg-gradient-to-br from-orange-100 to-orange-200 rounded-t-lg flex items-center justify-center overflow-hidden">
+                        {logoMap[restaurant.name] ? (
+                          <img 
+                            src={logoMap[restaurant.name]} 
+                            alt={restaurant.name}
+                            className="w-32 h-32 object-contain"
+                          />
+                        ) : (
+                          <div className="w-32 h-32 bg-gray-300 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-500 text-lg font-semibold">
+                              {restaurant.name.substring(0, 2)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <Badge 
+                        className="absolute top-3 left-3 bg-green-500 hover:bg-green-600"
+                      >
+                        OPEN
+                      </Badge>
+                    </div>
+                    
+                    <div className="p-4">
+                      <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">
+                        {restaurant.name}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-2">{restaurant.cuisine}</p>
+                      <p className="text-gray-500 text-xs mb-3">{restaurant.description}</p>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                            <span className="font-medium">{restaurant.rating}</span>
+                            <span className="text-gray-500 ml-1">({restaurant.reviewCount || 156}+)</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-gray-500">
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 mr-1" />
+                            <span>{restaurant.deliveryTime || "25-35"} min</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span>Min. order: ${restaurant.minimumOrder || "15.00"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {filteredRestaurants.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">No restaurants found</h3>
+            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

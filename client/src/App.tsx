@@ -8,6 +8,8 @@ import { lazy } from "react";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Restaurant from "@/pages/restaurant";
+import Restaurants from "@/pages/restaurants";
+import AuthPage from "@/pages/auth-page";
 import Admin from "@/pages/admin";
 import Checkout from "@/pages/checkout";
 import Orders from "@/pages/orders";
@@ -24,6 +26,7 @@ function Router() {
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
+          <Route path="/auth" component={AuthPage} />
           <Route path="/terms" component={Terms} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/refund" component={Refund} />
@@ -31,6 +34,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/restaurants" component={Restaurants} />
           <Route path="/restaurant/:id" component={Restaurant} />
           <Route path="/admin" component={Admin} />
           <Route path="/checkout" component={Checkout} />

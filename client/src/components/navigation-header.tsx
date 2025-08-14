@@ -126,7 +126,13 @@ export default function NavigationHeader({
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      fetch('/api/logout', { method: 'POST', credentials: 'include' })
+                        .then(() => window.location.href = '/');
+                    }}
+                    className="text-red-600 cursor-pointer"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
@@ -134,7 +140,7 @@ export default function NavigationHeader({
               </DropdownMenu>
             ) : (
               <Button 
-                onClick={() => window.location.href = '/api/login'}
+                onClick={() => window.location.href = '/auth'}
                 className="btn-primary"
               >
                 Sign In

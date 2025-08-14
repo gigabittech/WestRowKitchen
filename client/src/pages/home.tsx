@@ -196,6 +196,13 @@ export default function Home() {
               ))}
             </div>
           )}
+          
+          {/* View All Restaurants Button */}
+          <div className="text-center mt-8">
+            <Button size="lg" asChild>
+              <a href="/restaurants">View All Restaurants</a>
+            </Button>
+          </div>
         </div>
       </section>
 
