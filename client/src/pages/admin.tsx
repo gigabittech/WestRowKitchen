@@ -63,13 +63,31 @@ export default function Admin() {
 
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
-    queryKey: ["/api/restaurants"],
+    queryKey: ["admin-restaurants"],
+    queryFn: async () => {
+      const response = await fetch("/api/restaurants", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch restaurants');
+      }
+      return response.json();
+    },
     enabled: !!user?.isAdmin,
   });
 
   // Fetch orders for selected restaurant
   const { data: orders = [] } = useQuery({
-    queryKey: ["/api/restaurants", selectedRestaurant, "orders"],
+    queryKey: ["restaurant-orders", selectedRestaurant],
+    queryFn: async () => {
+      const response = await fetch(`/api/restaurants/${selectedRestaurant}/orders`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch orders');
+      }
+      return response.json();
+    },
     enabled: !!selectedRestaurant && !!user?.isAdmin,
   });
 

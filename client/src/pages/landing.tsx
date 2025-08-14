@@ -30,13 +30,32 @@ export default function Landing() {
 
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
-    queryKey: ["/api/restaurants", selectedCuisine],
+    queryKey: ["landing-restaurants", selectedCuisine],
+    queryFn: async () => {
+      const params = selectedCuisine !== "ALL" ? `?cuisine=${selectedCuisine}` : "";
+      const response = await fetch(`/api/restaurants${params}`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch restaurants');
+      }
+      return response.json();
+    },
     retry: false,
   });
 
   // Fetch promotions
   const { data: promotions = [] } = useQuery<Promotion[]>({
-    queryKey: ["/api/promotions"],
+    queryKey: ["promotions"],
+    queryFn: async () => {
+      const response = await fetch("/api/promotions", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch promotions');
+      }
+      return response.json();
+    },
     retry: false,
   });
 
