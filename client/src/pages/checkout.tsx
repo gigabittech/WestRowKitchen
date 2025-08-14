@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -11,10 +11,12 @@ import { Textarea } from "@/components/ui/textarea";
 import NavigationHeader from "@/components/navigation-header";
 import { ArrowLeft, CreditCard, MapPin, Clock } from "lucide-react";
 import { Link } from "wouter";
+import { useLocation } from "wouter";
 
 export default function Checkout() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [orderForm, setOrderForm] = useState({
     deliveryAddress: "",
     deliveryInstructions: "",
@@ -255,13 +257,27 @@ export default function Checkout() {
                   <Clock className="w-4 h-4 mr-2" />
                   <span>Estimated delivery: 25-35 minutes</span>
                 </div>
-                <Button 
-                  onClick={handlePlaceOrder}
-                  className="w-full btn-primary py-3 text-lg"
-                  disabled={placeOrderMutation.isPending}
-                >
-                  {placeOrderMutation.isPending ? "Placing Order..." : "Place Order"}
-                </Button>
+                {orderForm.paymentMethod === "card" ? (
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => setLocation("/stripe-checkout")}
+                      className="w-full btn-primary py-3 text-lg"
+                    >
+                      Pay with Card - ${total.toFixed(2)}
+                    </Button>
+                    <p className="text-xs text-gray-500 text-center">
+                      Secure payment processing by Stripe
+                    </p>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handlePlaceOrder}
+                    className="w-full btn-primary py-3 text-lg"
+                    disabled={placeOrderMutation.isPending}
+                  >
+                    {placeOrderMutation.isPending ? "Placing Order..." : `Place Order - ${total.toFixed(2)} (Cash on Delivery)`}
+                  </Button>
+                )}
                 <p className="text-xs text-gray-500 text-center mt-2">
                   By placing this order, you agree to our Terms of Service and Privacy Policy.
                 </p>

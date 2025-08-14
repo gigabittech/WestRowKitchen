@@ -13,12 +13,14 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
-// Initialize Stripe if keys are available
+// Initialize Stripe with test keys for now
 let stripe: Stripe | null = null;
-if (process.env.STRIPE_SECRET_KEY) {
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+try {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_4eC39HqLyjWDarjtT1zdp7dc", {
     apiVersion: "2025-06-30.basil",
   });
+} catch (error) {
+  console.log("Stripe not configured, payment functionality disabled");
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {

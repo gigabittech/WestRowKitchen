@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { lazy } from "react";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Restaurant from "@/pages/restaurant";
@@ -33,6 +34,7 @@ function Router() {
           <Route path="/restaurant/:id" component={Restaurant} />
           <Route path="/admin" component={Admin} />
           <Route path="/checkout" component={Checkout} />
+          <Route path="/stripe-checkout" component={lazy(() => import("@/pages/stripe-checkout"))} />
           <Route path="/orders" component={Orders} />
           <Route path="/terms" component={Terms} />
           <Route path="/privacy" component={Privacy} />
