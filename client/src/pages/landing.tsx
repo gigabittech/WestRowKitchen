@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import NavigationHeader from "@/components/navigation-header";
 import RestaurantCard from "@/components/restaurant-card";
-import CategoryFilter from "@/components/category-filter";
+
 import CartSidebar from "@/components/ui/cart-sidebar";
 import Footer from "@/components/footer";
 import { 
@@ -62,16 +62,7 @@ export default function Landing() {
 
   const featuredRestaurants = restaurants.slice(0, 6);
 
-  const categories = [
-    { name: "American", icon: "🍔" },
-    { name: "Asian", icon: "🍜" },
-    { name: "Mexican", icon: "🌮" },
-    { name: "Italian", icon: "🍕" },
-    { name: "Healthy", icon: "🥗" },
-    { name: "Breakfast", icon: "🥞" },
-    { name: "Desserts", icon: "🍰" },
-    { name: "Drinks", icon: "🥤" },
-  ];
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,7 +80,7 @@ export default function Landing() {
       <section className="relative py-16 overflow-hidden bg-gradient-to-br from-primary/5 via-secondary/10 to-accent/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-black mb-4">
               Fresh Food, Delivered Fast
             </h1>
             <p className="text-xl text-gray-600 mb-8">
@@ -100,15 +91,15 @@ export default function Landing() {
             <div className="flex justify-center items-center space-x-6 mb-8">
               <Card className="shadow-lg border-2 border-primary/20 hover:border-primary/40 transition-colors">
                 <CardContent className="pt-4 pb-4 px-8">
-                  <div className="text-sm text-primary font-medium">🚚 Delivery</div>
-                  <div className="font-bold text-secondary">ASAP (25-40 min)</div>
+                  <div className="text-sm text-gray-600 font-medium">🚚 Delivery</div>
+                  <div className="font-bold text-black">ASAP (25-40 min)</div>
                 </CardContent>
               </Card>
               <div className="text-gray-400">•</div>
               <Card className="shadow-lg border-2 border-secondary/20 hover:border-secondary/40 transition-colors">
                 <CardContent className="pt-4 pb-4 px-8">
-                  <div className="text-sm text-secondary font-medium">🏃 Pickup</div>
-                  <div className="font-bold text-accent">ASAP (15-20 min)</div>
+                  <div className="text-sm text-gray-600 font-medium">🏃 Pickup</div>
+                  <div className="font-bold text-black">ASAP (15-20 min)</div>
                 </CardContent>
               </Card>
             </div>
@@ -155,13 +146,6 @@ export default function Landing() {
         </section>
       )}
 
-      {/* Category Filter */}
-      <CategoryFilter 
-        categories={categories}
-        selectedCuisine={selectedCuisine}
-        onCuisineChange={setSelectedCuisine}
-      />
-
       {/* Featured Restaurants */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -189,7 +173,7 @@ export default function Landing() {
           )}
           
           <div className="text-center mt-12">
-            <Button className="btn-primary px-8 py-3 rounded-full font-semibold">
+            <Button className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full font-semibold">
               View All Restaurants
             </Button>
           </div>

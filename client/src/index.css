@@ -4,13 +4,13 @@
 
 :root {
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(213, 15%, 18%);
+  --foreground: hsl(0, 0%, 9%);
   --muted: hsl(60, 4.8%, 95.9%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --muted-foreground: hsl(0, 0%, 45%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(213, 15%, 18%);
+  --popover-foreground: hsl(0, 0%, 9%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(213, 15%, 18%);
+  --card-foreground: hsl(0, 0%, 9%);
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
   --primary: hsl(142, 71%, 45%);

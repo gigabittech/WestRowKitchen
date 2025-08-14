@@ -142,7 +142,7 @@ export default function Restaurants() {
                     </div>
                     
                     <div className="p-4">
-                      <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">
+                      <h3 className="font-bold text-lg mb-1 text-black group-hover:text-primary transition-colors">
                         {restaurant.name}
                       </h3>
                       <p className="text-gray-600 text-sm mb-2">{restaurant.cuisine}</p>

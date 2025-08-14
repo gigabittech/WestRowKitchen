@@ -43,7 +43,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
         
         <CardContent className="p-6">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="text-xl font-bold font-playfair text-secondary">{restaurant.name}</h3>
+            <h3 className="text-xl font-bold font-playfair text-black">{restaurant.name}</h3>
             <div className="flex items-center space-x-1">
               <Star className="w-4 h-4 text-yellow-400 fill-current" />
               <span className="font-semibold">{restaurant.rating}</span>
@@ -51,7 +51,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
             </div>
           </div>
           
-          <p className="text-gray-600 text-sm mb-3">{restaurant.cuisine}</p>
+          <p className="text-gray-500 text-sm mb-3">{restaurant.cuisine}</p>
           
           {restaurant.description && (
             <p className="text-gray-500 text-xs mb-3 line-clamp-2">{restaurant.description}</p>

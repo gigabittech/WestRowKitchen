@@ -54,7 +54,7 @@ export default function NavigationHeader({
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center cursor-pointer">
-              <div className="text-2xl font-bold text-primary flex items-center">
+              <div className="text-2xl font-bold text-black flex items-center">
                 <Utensils className="mr-2" />
                 <span className="hidden sm:inline">West Row Kitchen</span>
                 <span className="sm:hidden">WRK</span>
