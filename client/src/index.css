@@ -13,11 +13,11 @@
   --card-foreground: hsl(213, 15%, 18%);
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(16, 100%, 61%);
+  --primary: hsl(142, 71%, 45%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(213, 15%, 18%);
+  --secondary: hsl(142, 69%, 58%);
   --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(142, 71%, 45%);
+  --accent: hsl(142, 76%, 36%);
   --accent-foreground: hsl(0, 0%, 100%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
@@ -28,6 +28,8 @@
   --neutral: hsl(60, 4.8%, 97%);
   --warning: hsl(38, 92%, 50%);
   --success: hsl(142, 71%, 45%);
+  --primary-light: hsl(142, 69%, 58%);
+  --primary-dark: hsl(142, 76%, 36%);
 }
 
 .dark {
@@ -41,11 +43,11 @@
   --card-foreground: hsl(0, 0%, 98%);
   --border: hsl(240, 3.7%, 15.9%);
   --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(16, 100%, 61%);
+  --primary: hsl(142, 71%, 45%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(142, 71%, 45%);
+  --secondary: hsl(142, 69%, 58%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(142, 76%, 36%);
   --accent-foreground: hsl(0, 0%, 98%);
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(0, 0%, 98%);
@@ -73,16 +75,26 @@
     @apply transition-all duration-300 ease-in-out;
   }
   
-  .restaurant-card:hover {
-    @apply transform -translate-y-1 shadow-xl;
+  .gradient-primary {
+    @apply bg-gradient-to-r from-primary to-secondary;
   }
   
-  .cart-sidebar {
-    @apply transform translate-x-full transition-transform duration-300 ease-in-out;
+  .gradient-hero {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.1) 50%, rgba(21, 128, 61, 0.05) 100%);
   }
   
-  .cart-sidebar.open {
-    @apply transform translate-x-0;
+  .btn-gradient {
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-gradient:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+  
+  .card-enhanced {
+    @apply shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border-0;
   }
   
   .btn-primary {
@@ -109,20 +121,24 @@
     @apply opacity-90;
   }
   
-  .gradient-primary {
-    @apply bg-gradient-to-r from-primary to-accent;
-  }
-  
-  .gradient-hero {
-    @apply bg-gradient-to-r from-blue-50 to-indigo-50;
-  }
-  
   .text-neutral {
     color: hsl(var(--neutral));
   }
   
   .bg-neutral {
     background-color: hsl(var(--neutral));
+  }
+  
+  .restaurant-card:hover {
+    @apply transform -translate-y-1 shadow-xl;
+  }
+  
+  .cart-sidebar {
+    @apply transform translate-x-full transition-transform duration-300 ease-in-out;
+  }
+  
+  .cart-sidebar.open {
+    @apply transform translate-x-0;
   }
 }
 

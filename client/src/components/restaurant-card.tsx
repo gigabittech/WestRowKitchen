@@ -18,7 +18,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
   return (
     <Link href={`/restaurant/${createSlug(restaurant.name)}`}>
-      <Card className="restaurant-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 cursor-pointer hover:shadow-xl transition-all duration-300">
+      <Card className="restaurant-card bg-white rounded-2xl shadow-lg overflow-hidden border-0 cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
         <div className="relative bg-white">
           <div className="w-full h-48 flex items-center justify-center bg-gray-50">
             <img 
@@ -34,7 +34,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           <div className="absolute top-4 right-4">
             <Badge 
               variant={restaurant.isOpen ? "default" : "destructive"}
-              className={restaurant.isOpen ? "bg-accent text-white" : ""}
+              className={restaurant.isOpen ? "bg-primary hover:bg-primary/90 text-white shadow-md" : ""}
             >
               {restaurant.isOpen ? "OPEN" : "CLOSED"}
             </Badge>

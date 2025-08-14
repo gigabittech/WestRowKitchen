@@ -116,10 +116,10 @@ export default function Restaurants() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRestaurants.map((restaurant: Restaurant) => (
               <Link key={restaurant.id} href={`/restaurant/${createSlug(restaurant.name)}`}>
-                <Card className="group hover:shadow-lg transition-all duration-200 cursor-pointer">
+                <Card className="group hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border-0 shadow-md">
                   <CardContent className="p-0">
                     <div className="relative">
-                      <div className="h-48 bg-gradient-to-br from-orange-100 to-orange-200 rounded-t-lg flex items-center justify-center overflow-hidden">
+                      <div className="h-48 bg-gradient-to-br from-primary/10 to-secondary/20 rounded-t-lg flex items-center justify-center overflow-hidden">
                         {logoMap[restaurant.name] ? (
                           <img 
                             src={logoMap[restaurant.name]} 
@@ -135,7 +135,7 @@ export default function Restaurants() {
                         )}
                       </div>
                       <Badge 
-                        className="absolute top-3 left-3 bg-green-500 hover:bg-green-600"
+                        className="absolute top-3 left-3 bg-primary hover:bg-primary/90 shadow-md"
                       >
                         OPEN
                       </Badge>

@@ -86,11 +86,11 @@ export default function Landing() {
       />
 
       {/* Hero Section */}
-      <section className="gradient-hero py-12">
+      <section className="relative py-16 overflow-hidden bg-gradient-to-br from-primary/5 via-secondary/10 to-accent/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-secondary mb-4">
-              Delicious food delivered to your door
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-4">
+              Fresh Food, Delivered Fast
             </h1>
             <p className="text-xl text-gray-600 mb-8">
               Order from your favorite local restaurants with fast delivery
@@ -98,17 +98,17 @@ export default function Landing() {
             
             {/* Delivery Options */}
             <div className="flex justify-center items-center space-x-6 mb-8">
-              <Card className="shadow-sm">
-                <CardContent className="pt-3 pb-3 px-6">
-                  <div className="text-sm text-gray-500">Delivery</div>
-                  <div className="font-semibold">ASAP (25-40 min)</div>
+              <Card className="shadow-lg border-2 border-primary/20 hover:border-primary/40 transition-colors">
+                <CardContent className="pt-4 pb-4 px-8">
+                  <div className="text-sm text-primary font-medium">🚚 Delivery</div>
+                  <div className="font-bold text-secondary">ASAP (25-40 min)</div>
                 </CardContent>
               </Card>
-              <div className="text-gray-400">|</div>
-              <Card className="shadow-sm">
-                <CardContent className="pt-3 pb-3 px-6">
-                  <div className="text-sm text-gray-500">Pickup</div>
-                  <div className="font-semibold">ASAP (15-20 min)</div>
+              <div className="text-gray-400">•</div>
+              <Card className="shadow-lg border-2 border-secondary/20 hover:border-secondary/40 transition-colors">
+                <CardContent className="pt-4 pb-4 px-8">
+                  <div className="text-sm text-secondary font-medium">🏃 Pickup</div>
+                  <div className="font-bold text-accent">ASAP (15-20 min)</div>
                 </CardContent>
               </Card>
             </div>
@@ -120,7 +120,7 @@ export default function Landing() {
       {promotions.length > 0 && (
         <section className="py-8 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="gradient-primary rounded-xl p-6 text-white mb-8">
+            <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 text-white mb-8 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-2xl font-bold mb-2 flex items-center">
