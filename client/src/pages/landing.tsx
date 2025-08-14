@@ -81,10 +81,11 @@ export default function Landing() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-6xl font-bold text-black mb-6 leading-tight">
-              Fresh Food,<br />Delivered Fast
+              Craving Something<br />
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Delicious?</span>
             </h1>
             <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
-              Order from your favorite local restaurants with fast delivery right to your door
+              From local favorites to hidden gems, get the food you love delivered hot and fresh to your door
             </p>
             
             {/* Delivery Options */}
