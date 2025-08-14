@@ -10,31 +10,26 @@ interface RestaurantCardProps {
 }
 
 export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
-  const getRandomImage = () => {
-    const restaurantImages = [
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&w=400&h=250&fit=crop",
-      "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?ixlib=rb-4.0.3&w=400&h=250&fit=crop",
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&w=400&h=250&fit=crop",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?ixlib=rb-4.0.3&w=400&h=250&fit=crop",
-      "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?ixlib=rb-4.0.3&w=400&h=250&fit=crop",
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&w=400&h=250&fit=crop"
-    ];
-    return restaurantImages[Math.floor(Math.random() * restaurantImages.length)];
+  const getDefaultImage = () => {
+    // Fallback image if restaurant logo fails to load
+    return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&w=400&h=250&fit=crop";
   };
 
   return (
     <Link href={`/restaurant/${restaurant.id}`}>
       <Card className="restaurant-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 cursor-pointer hover:shadow-xl transition-all duration-300">
-        <div className="relative">
-          <img 
-            src={restaurant.image || getRandomImage()} 
-            alt={restaurant.name}
-            className="w-full h-48 object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = getRandomImage();
-            }}
-          />
+        <div className="relative bg-white">
+          <div className="w-full h-48 flex items-center justify-center bg-gray-50">
+            <img 
+              src={restaurant.image || getDefaultImage()} 
+              alt={restaurant.name}
+              className="max-w-full max-h-full object-contain p-4"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = getDefaultImage();
+              }}
+            />
+          </div>
           <div className="absolute top-4 right-4">
             <Badge 
               variant={restaurant.isOpen ? "default" : "destructive"}
