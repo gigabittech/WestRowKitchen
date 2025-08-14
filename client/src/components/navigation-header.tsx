@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "@/hooks/useLocation";
+import { useSearch } from "@/hooks/useSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import LocationPicker from "@/components/location-picker";
 import { 
   MapPin, 
   Search, 
@@ -27,22 +30,21 @@ interface NavigationHeaderProps {
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   cartItemCount: number;
-  onSearch?: (query: string) => void;
 }
 
 export default function NavigationHeader({ 
   isCartOpen, 
   setIsCartOpen, 
-  cartItemCount,
-  onSearch 
+  cartItemCount
 }: NavigationHeaderProps) {
   const { user, isAuthenticated } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { location, updateLocation } = useLocation();
+  const { searchQuery, setSearchQuery, performSearch } = useSearch();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch?.(searchQuery);
+    performSearch(searchQuery);
   };
 
   return (
@@ -61,10 +63,10 @@ export default function NavigationHeader({
           </Link>
           
           {/* Location Selector */}
-          <div className="hidden md:flex items-center bg-neutral rounded-lg px-4 py-2 border border-gray-200">
-            <MapPin className="text-primary mr-2 w-4 h-4" />
-            <span className="text-sm font-medium">123 West Row St, Los Angeles, CA</span>
-          </div>
+          <LocationPicker 
+            currentLocation={location}
+            onLocationChange={updateLocation}
+          />
           
           {/* Search Bar */}
           <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
@@ -179,7 +181,7 @@ export default function NavigationHeader({
             <div className="space-y-2">
               <div className="flex items-center px-4 py-2 text-sm">
                 <MapPin className="text-primary mr-2 w-4 h-4" />
-                <span>123 West Row St, LA</span>
+                <span className="truncate">{location}</span>
               </div>
               {isAuthenticated && user && (
                 <>

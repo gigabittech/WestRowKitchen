@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import NavigationHeader from "@/components/navigation-header";
@@ -100,21 +101,29 @@ export default function Home() {
       <section className="py-6 bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-4">
-            <Button variant="outline" className="flex items-center space-x-2">
-              <Clock className="w-4 h-4" />
-              <span>Reorder</span>
+            <Button variant="outline" className="flex items-center space-x-2" asChild>
+              <Link href="/orders">
+                <Clock className="w-4 h-4" />
+                <span>Reorder</span>
+              </Link>
             </Button>
-            <Button variant="outline" className="flex items-center space-x-2">
-              <Star className="w-4 h-4" />
-              <span>Favorites</span>
+            <Button variant="outline" className="flex items-center space-x-2" asChild>
+              <Link href="/restaurants?filter=favorites">
+                <Star className="w-4 h-4" />
+                <span>Favorites</span>
+              </Link>
             </Button>
-            <Button variant="outline" className="flex items-center space-x-2">
-              <TrendingUp className="w-4 h-4" />
-              <span>Trending</span>
+            <Button variant="outline" className="flex items-center space-x-2" asChild>
+              <Link href="/restaurants?filter=trending">
+                <TrendingUp className="w-4 h-4" />
+                <span>Trending</span>
+              </Link>
             </Button>
-            <Button variant="outline" className="flex items-center space-x-2">
-              <ShoppingBag className="w-4 h-4" />
-              <span>Order History</span>
+            <Button variant="outline" className="flex items-center space-x-2" asChild>
+              <Link href="/orders">
+                <ShoppingBag className="w-4 h-4" />
+                <span>Order History</span>
+              </Link>
             </Button>
           </div>
         </div>
@@ -127,22 +136,24 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-6">Recent Orders</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentOrders.slice(0, 3).map((order: Order) => (
-                <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-semibold">Order #{order.id.slice(-8)}</div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(order.createdAt!).toLocaleDateString()}
+                <Link key={order.id} href="/orders">
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-semibold">Order #{order.id.slice(-8)}</div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(order.createdAt!).toLocaleDateString()}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-sm text-gray-600 mb-2">
-                      Status: <span className="capitalize font-medium">{order.status}</span>
-                    </div>
-                    <div className="text-lg font-bold text-primary">
-                      ${parseFloat(order.totalAmount).toFixed(2)}
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="text-sm text-gray-600 mb-2">
+                        Status: <span className="capitalize font-medium">{order.status}</span>
+                      </div>
+                      <div className="text-lg font-bold text-primary">
+                        ${parseFloat(order.totalAmount).toFixed(2)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           </div>
@@ -200,7 +211,7 @@ export default function Home() {
           {/* View All Restaurants Button */}
           <div className="text-center mt-8">
             <Button size="lg" asChild>
-              <a href="/restaurants">View All Restaurants</a>
+              <Link href="/restaurants">View All Restaurants</Link>
             </Button>
           </div>
         </div>

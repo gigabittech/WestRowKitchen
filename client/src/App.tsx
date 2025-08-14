@@ -35,7 +35,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/restaurants" component={Restaurants} />
-          <Route path="/restaurant/:id" component={Restaurant} />
+          <Route path="/restaurant/:slug" component={Restaurant} />
           <Route path="/admin" component={Admin} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/stripe-checkout" component={lazy(() => import("@/pages/stripe-checkout"))} />

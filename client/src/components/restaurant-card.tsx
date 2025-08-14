@@ -4,6 +4,16 @@ import { Star, Clock, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
 
+// Create SEO-friendly slug from restaurant name
+function createSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')        // Replace spaces with hyphens
+    .replace(/-+/g, '-')         // Replace multiple hyphens with single
+    .trim();
+}
+
 interface RestaurantCardProps {
   restaurant: Restaurant;
   onAddToCart?: (item: any) => void;
@@ -16,7 +26,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   };
 
   return (
-    <Link href={`/restaurant/${restaurant.id}`}>
+    <Link href={`/restaurant/${createSlug(restaurant.name)}`}>
       <Card className="restaurant-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 cursor-pointer hover:shadow-xl transition-all duration-300">
         <div className="relative bg-white">
           <div className="w-full h-48 flex items-center justify-center bg-gray-50">

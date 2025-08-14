@@ -11,31 +11,41 @@ import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant, MenuCategory, MenuItem } from "@shared/schema";
 
+// Convert slug back to name for searching
+function slugToName(slug: string): string {
+  return slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export default function RestaurantPage() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<any[]>([]);
 
-  // Fetch restaurant details
-  const { data: restaurant, isLoading: restaurantLoading } = useQuery({
-    queryKey: ["restaurant", id],
-    queryFn: async () => {
-      const response = await fetch(`/api/restaurants/${id}`, {
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch restaurant');
-      }
-      return response.json();
-    },
-    enabled: !!id,
+  // Fetch all restaurants and find by slug
+  const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
+    queryKey: ["/api/restaurants"],
   });
+
+  const restaurant = restaurants.find(r => {
+    const restaurantSlug = r.name
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+    return restaurantSlug === slug;
+  });
+
+  const restaurantLoading = restaurantsLoading;
 
   // Fetch menu categories
   const { data: categories = [] } = useQuery({
-    queryKey: ["restaurant-categories", id],
+    queryKey: ["restaurant-categories", restaurant?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/restaurants/${id}/categories`, {
+      const response = await fetch(`/api/restaurants/${restaurant?.id}/categories`, {
         credentials: "include",
       });
       if (!response.ok) {
@@ -43,14 +53,14 @@ export default function RestaurantPage() {
       }
       return response.json();
     },
-    enabled: !!id,
+    enabled: !!restaurant?.id,
   });
 
   // Fetch menu items
   const { data: menuItems = [] } = useQuery({
-    queryKey: ["restaurant-menu", id],
+    queryKey: ["restaurant-menu", restaurant?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/restaurants/${id}/menu`, {
+      const response = await fetch(`/api/restaurants/${restaurant?.id}/menu`, {
         credentials: "include",
       });
       if (!response.ok) {
@@ -58,7 +68,7 @@ export default function RestaurantPage() {
       }
       return response.json();
     },
-    enabled: !!id,
+    enabled: !!restaurant?.id,
   });
 
   const addToCart = (item: MenuItem) => {

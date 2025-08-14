@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NavigationHeader from "@/components/navigation-header";
 import { Clock, Star, MapPin, Search } from "lucide-react";
 import { Link } from "wouter";
+import type { Restaurant } from "@shared/schema";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -20,18 +21,44 @@ const logoMap: Record<string, string> = {
   "Cheeky's Burgers": CheekysBurgersLogo,
 };
 
+// Create SEO-friendly slug from restaurant name
+function createSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')        // Replace spaces with hyphens
+    .replace(/-+/g, '-')         // Replace multiple hyphens with single
+    .trim();
+}
+
 export default function Restaurants() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState("ALL");
+  const [location] = useLocation();
 
-  const { data: restaurants = [], isLoading } = useQuery({
+  // Get search parameter from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    }
+  }, [location]);
+
+  const { data: restaurants = [], isLoading } = useQuery<Restaurant[]>({
     queryKey: ["/api/restaurants"],
   });
 
-  const filteredRestaurants = restaurants.filter((restaurant: any) =>
-    restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRestaurants = restaurants.filter((restaurant: Restaurant) => {
+    const matchesSearch = searchTerm === "" || 
+      restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (restaurant.description && restaurant.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCuisine = selectedCuisine === "ALL" || restaurant.cuisine === selectedCuisine;
+    
+    return matchesSearch && matchesCuisine;
+  });
 
   const cuisineTypes = ["ALL", "Vietnamese", "Italian", "American", "Mexican", "Chinese", "Thai"];
 
@@ -95,8 +122,8 @@ export default function Restaurants() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRestaurants.map((restaurant: any) => (
-              <Link key={restaurant.id} href={`/restaurant/${restaurant.id}`}>
+            {filteredRestaurants.map((restaurant: Restaurant) => (
+              <Link key={restaurant.id} href={`/restaurant/${createSlug(restaurant.name)}`}>
                 <Card className="group hover:shadow-lg transition-all duration-200 cursor-pointer">
                   <CardContent className="p-0">
                     <div className="relative">
