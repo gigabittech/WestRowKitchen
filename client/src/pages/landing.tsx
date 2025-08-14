@@ -77,29 +77,29 @@ export default function Landing() {
       />
 
       {/* Hero Section */}
-      <section className="relative py-16 overflow-hidden bg-gradient-to-br from-primary/5 via-secondary/10 to-accent/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="gradient-hero relative py-20 overflow-hidden">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-black mb-4">
-              Fresh Food, Delivered Fast
+            <h1 className="text-4xl md:text-6xl font-bold text-black mb-6 leading-tight">
+              Fresh Food,<br />Delivered Fast
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
-              Order from your favorite local restaurants with fast delivery
+            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+              Order from your favorite local restaurants with fast delivery right to your door
             </p>
             
             {/* Delivery Options */}
-            <div className="flex justify-center items-center space-x-6 mb-8">
-              <Card className="shadow-lg border-2 border-primary/20 hover:border-primary/40 transition-colors">
-                <CardContent className="pt-4 pb-4 px-8">
-                  <div className="text-sm text-gray-600 font-medium">🚚 Delivery</div>
-                  <div className="font-bold text-black">ASAP (25-40 min)</div>
+            <div className="flex justify-center items-center space-x-8 mb-12">
+              <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                <CardContent className="pt-6 pb-6 px-10">
+                  <div className="text-sm text-primary font-semibold mb-1">🚚 Delivery</div>
+                  <div className="font-bold text-black text-lg">ASAP (25-40 min)</div>
                 </CardContent>
               </Card>
-              <div className="text-gray-400">•</div>
-              <Card className="shadow-lg border-2 border-secondary/20 hover:border-secondary/40 transition-colors">
-                <CardContent className="pt-4 pb-4 px-8">
-                  <div className="text-sm text-gray-600 font-medium">🏃 Pickup</div>
-                  <div className="font-bold text-black">ASAP (15-20 min)</div>
+              <div className="w-4 h-4 bg-primary rounded-full opacity-30"></div>
+              <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                <CardContent className="pt-6 pb-6 px-10">
+                  <div className="text-sm text-secondary font-semibold mb-1">🏃 Pickup</div>
+                  <div className="font-bold text-black text-lg">ASAP (15-20 min)</div>
                 </CardContent>
               </Card>
             </div>
