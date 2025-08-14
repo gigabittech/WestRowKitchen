@@ -10,14 +10,7 @@ import CartSidebar from "@/components/ui/cart-sidebar";
 import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant, MenuCategory, MenuItem } from "@shared/schema";
-
-// Convert slug back to name for searching
-function slugToName(slug: string): string {
-  return slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { slugMatches } from "@/utils/slug";
 
 export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -29,15 +22,7 @@ export default function RestaurantPage() {
     queryKey: ["/api/restaurants"],
   });
 
-  const restaurant = restaurants.find(r => {
-    const restaurantSlug = r.name
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
-    return restaurantSlug === slug;
-  });
+  const restaurant = restaurants.find(r => slugMatches(slug || '', r.name));
 
   const restaurantLoading = restaurantsLoading;
 
@@ -117,15 +102,22 @@ export default function RestaurantPage() {
     );
   }
 
-  if (!restaurant) {
+  if (!restaurantLoading && !restaurant) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="p-8 text-center">
+        <Card className="p-8 text-center max-w-md">
           <h2 className="text-2xl font-bold mb-4">Restaurant Not Found</h2>
-          <p className="text-gray-600 mb-4">The restaurant you're looking for doesn't exist.</p>
-          <Link href="/">
-            <Button>Back to Restaurants</Button>
-          </Link>
+          <p className="text-gray-600 mb-4">
+            {slug ? `We couldn't find a restaurant matching "${slug.replace(/-/g, ' ')}"` : 'The restaurant you\'re looking for doesn\'t exist.'}
+          </p>
+          <div className="space-y-2">
+            <Button asChild className="w-full">
+              <Link href="/restaurants">Browse All Restaurants</Link>
+            </Button>
+            <Button variant="outline" asChild className="w-full">
+              <Link href="/">Back to Home</Link>
+            </Button>
+          </div>
         </Card>
       </div>
     );

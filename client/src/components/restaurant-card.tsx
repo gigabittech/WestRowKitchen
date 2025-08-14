@@ -3,16 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Clock, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
-
-// Create SEO-friendly slug from restaurant name
-function createSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, '') // Remove special characters
-    .replace(/\s+/g, '-')        // Replace spaces with hyphens
-    .replace(/-+/g, '-')         // Replace multiple hyphens with single
-    .trim();
-}
+import { createSlug } from "@/utils/slug";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;

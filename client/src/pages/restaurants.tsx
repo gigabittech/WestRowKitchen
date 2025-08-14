@@ -9,6 +9,7 @@ import NavigationHeader from "@/components/navigation-header";
 import { Clock, Star, MapPin, Search } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
+import { createSlug } from "@/utils/slug";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -20,16 +21,6 @@ const logoMap: Record<string, string> = {
   "Pappi's Pizza": PappisPizzaLogo,
   "Cheeky's Burgers": CheekysBurgersLogo,
 };
-
-// Create SEO-friendly slug from restaurant name
-function createSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, '') // Remove special characters
-    .replace(/\s+/g, '-')        // Replace spaces with hyphens
-    .replace(/-+/g, '-')         // Replace multiple hyphens with single
-    .trim();
-}
 
 export default function Restaurants() {
   const [searchTerm, setSearchTerm] = useState("");
