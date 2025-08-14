@@ -192,17 +192,17 @@ export default function RestaurantPage() {
         <h2 className="text-2xl font-bold mb-6">Menu</h2>
         
         {categories.length > 0 ? (
-          <Tabs defaultValue={categories[0]?.id} className="w-full">
-            <TabsList className="grid w-full grid-cols-auto-fit mb-8">
+          <Tabs defaultValue={categories[0]?.id?.toString()} className="w-full">
+            <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))` }}>
               {categories.map((category: MenuCategory) => (
-                <TabsTrigger key={category.id} value={category.id}>
+                <TabsTrigger key={category.id} value={category.id?.toString()} className="text-sm">
                   {category.name}
                 </TabsTrigger>
               ))}
             </TabsList>
             
             {categories.map((category: MenuCategory) => (
-              <TabsContent key={category.id} value={category.id}>
+              <TabsContent key={category.id} value={category.id?.toString()}>
                 <div className="grid md:grid-cols-2 gap-6">
                   {menuItems
                     .filter((item: MenuItem) => item.categoryId === category.id)
