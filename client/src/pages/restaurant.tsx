@@ -18,6 +18,8 @@ export default function RestaurantPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<any[]>([]);
 
+
+
   // Fetch all restaurants and find by slug
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
     queryKey: ["/api/restaurants"],
