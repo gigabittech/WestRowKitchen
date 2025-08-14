@@ -300,7 +300,7 @@ export default function Landing() {
           
           <div className="border-t border-gray-600 pt-6 text-center">
             <div className="text-sm text-gray-300">
-              © 2024 West Row Kitchen. All rights reserved.
+              © 2025 West Row Kitchen. All rights reserved.
             </div>
           </div>
         </div>
