@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Search, MapPin, Utensils, Clock, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,6 @@ interface SearchDropdownProps {
 
 export default function SearchDropdown({ query, isVisible, onClose, onItemClick }: SearchDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [, navigate] = useLocation();
   
   // Fetch all restaurants for search
   const { data: restaurants = [], isLoading } = useQuery<Restaurant[]>({
@@ -108,22 +107,20 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                   const restaurantUrl = `/restaurant/${restaurantSlug}`;
                   
                   return (
-                    <div
+                    <Link 
                       key={restaurant.id}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center space-x-3 border-b border-gray-50 last:border-b-0"
-                      data-testid={`search-result-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Clicked on restaurant:', restaurant.name);
-                        console.log('Navigating to:', restaurantUrl);
-                        onItemClick();
-                        // Small delay to ensure dropdown closes first
-                        setTimeout(() => {
-                          navigate(restaurantUrl);
-                        }, 100);
-                      }}
+                      href={restaurantUrl}
+                      className="block"
                     >
+                      <div
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center space-x-3 border-b border-gray-50 last:border-b-0"
+                        data-testid={`search-result-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}`}
+                        onClick={(e) => {
+                          console.log('Clicked on restaurant:', restaurant.name);
+                          console.log('Navigating to:', restaurantUrl);
+                          onItemClick();
+                        }}
+                      >
                       <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {logoMap[restaurant.name] ? (
                           <img 
@@ -157,7 +154,8 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                           {restaurant.isOpen ? "Open" : "Closed"}
                         </Badge>
                       </div>
-                    </div>
+                      </div>
+                    </Link>
                   );
                 })}
               </div>
