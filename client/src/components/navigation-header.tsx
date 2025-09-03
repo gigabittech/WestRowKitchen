@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import LocationPicker from "@/components/location-picker";
+import SearchDropdown from "@/components/search-dropdown";
 import { 
   MapPin, 
   Search, 
@@ -41,6 +42,7 @@ export default function NavigationHeader({
   const { location, updateLocation } = useLocation();
   const { searchQuery, setSearchQuery, performSearch } = useSearch();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,17 +74,28 @@ export default function NavigationHeader({
           
           {/* Search Bar */}
           <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
-            <form onSubmit={handleSearch} className="relative w-full">
+            <div className="relative w-full">
               <Input 
                 type="text" 
                 placeholder="Search restaurants, cuisines, or dishes..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchDropdownOpen(true)}
                 className="w-full pl-10 pr-4 py-2"
                 data-testid="input-search-desktop"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            </form>
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              
+              <SearchDropdown
+                query={searchQuery}
+                isVisible={isSearchDropdownOpen}
+                onClose={() => setIsSearchDropdownOpen(false)}
+                onItemClick={() => {
+                  setIsSearchDropdownOpen(false);
+                  setSearchQuery("");
+                }}
+              />
+            </div>
           </div>
           
           {/* User Actions */}
@@ -166,17 +179,29 @@ export default function NavigationHeader({
 
         {/* Mobile Search */}
         <div className="lg:hidden pb-4">
-          <form onSubmit={handleSearch} className="relative">
+          <div className="relative">
             <Input 
               type="text" 
               placeholder="Search restaurants..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchDropdownOpen(true)}
               className="w-full pl-10 pr-4"
               data-testid="input-search-mobile"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          </form>
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            
+            <SearchDropdown
+              query={searchQuery}
+              isVisible={isSearchDropdownOpen}
+              onClose={() => setIsSearchDropdownOpen(false)}
+              onItemClick={() => {
+                setIsSearchDropdownOpen(false);
+                setSearchQuery("");
+                setIsMobileMenuOpen(false);
+              }}
+            />
+          </div>
         </div>
 
         {/* Mobile Menu */}
