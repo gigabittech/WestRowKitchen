@@ -27,17 +27,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface NavigationHeaderProps {
-  isCartOpen: boolean;
-  setIsCartOpen: (open: boolean) => void;
-  cartItemCount: number;
-}
+import CartIcon from "@/components/cart-icon";
 
-export default function NavigationHeader({ 
-  isCartOpen, 
-  setIsCartOpen, 
-  cartItemCount
-}: NavigationHeaderProps) {
+export default function NavigationHeader() {
   const { user, isAuthenticated } = useAuth();
   const { location, updateLocation } = useLocation();
   const { searchQuery, setSearchQuery, performSearch } = useSearch();
@@ -101,19 +93,7 @@ export default function NavigationHeader({
           {/* User Actions */}
           <div className="flex items-center space-x-4">
             {/* Cart Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsCartOpen(!isCartOpen)}
-              className="relative p-2"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {cartItemCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center p-0">
-                  {cartItemCount}
-                </Badge>
-              )}
-            </Button>
+            <CartIcon />
             
             {/* User Menu */}
             {isAuthenticated && user ? (

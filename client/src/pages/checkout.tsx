@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,7 @@ export default function Checkout() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { cartItems, updateQuantity, removeFromCart, cartItemCount, cartTotal } = useCart();
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { cartItems, updateQuantity, removeFromCart, cartItemCount, cartTotal, isCartOpen, setIsCartOpen } = useCart();
   const [orderForm, setOrderForm] = useState({
     deliveryAddress: "",
     deliveryInstructions: "",
@@ -103,11 +102,7 @@ export default function Checkout() {
     <div className="min-h-screen bg-background">
       <title>Checkout - West Row Kitchen</title>
       
-      <NavigationHeader 
-        isCartOpen={isCartOpen}
-        setIsCartOpen={setIsCartOpen}
-        cartItemCount={cartItemCount}
-      />
+      <NavigationHeader />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link href="/">
@@ -272,13 +267,7 @@ export default function Checkout() {
         </div>
       </div>
       
-      <CartSidebar
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={updateQuantity}
-        onRemoveItem={removeFromCart}
-      />
+      {/* Cart sidebar now handled globally by UniversalCartSidebar */}
     </div>
   );
 }

@@ -5,21 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import NavigationHeader from "@/components/navigation-header";
-import CartSidebar from "@/components/ui/cart-sidebar";
+
 import Footer from "@/components/footer";
 import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus, Heart, Share2, Utensils } from "lucide-react";
 import type { Restaurant, MenuItem } from "@shared/schema";
 import { slugMatches } from "@/utils/slug";
 import { getFoodImage } from "@/utils/food-images";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/contexts/CartContext";
 import { FoodDetailSkeleton } from "@/components/skeleton-loader";
 
 export default function FoodItemDetailPage() {
   const { restaurantSlug, itemId } = useParams<{ restaurantSlug: string; itemId: string }>();
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isFavorited, setIsFavorited] = useState(false);
-  const { cartItems, addToCart, updateQuantity, removeFromCart, cartItemCount } = useCart();
+  const { cartItems, addToCart, updateQuantity, removeFromCart, cartItemCount, isCartOpen, setIsCartOpen } = useCart();
 
   // Fetch all restaurants to find the one by slug
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
@@ -47,7 +46,7 @@ export default function FoodItemDetailPage() {
   const handleAddToCart = (item: MenuItem, qty: number) => {
     // Add items one by one to match the quantity
     for (let i = 0; i < qty; i++) {
-      addToCart(item);
+      addToCart(item, restaurant?.name);
     }
   };
 
@@ -82,11 +81,7 @@ export default function FoodItemDetailPage() {
       <title>{foodItem.name} - {restaurant.name} - West Row Kitchen</title>
       <meta name="description" content={`Order ${foodItem.name} from ${restaurant.name}. ${foodItem.description || 'Delicious food delivered fresh to your door.'}`} />
       
-      <NavigationHeader 
-        isCartOpen={isCartOpen}
-        setIsCartOpen={setIsCartOpen}
-        cartItemCount={cartItemCount}
-      />
+      <NavigationHeader />
 
       {/* Back Button */}
       <div className="max-w-4xl mx-auto px-4 pt-4">
@@ -290,17 +285,7 @@ export default function FoodItemDetailPage() {
 
       <Footer />
 
-      <CartSidebar 
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={(id, qty) => {
-          updateQuantity(id, qty);
-        }}
-        onRemoveItem={(id) => {
-          removeFromCart(id);
-        }}
-      />
+      {/* Cart sidebar now handled globally by UniversalCartSidebar */}
     </div>
   );
 }

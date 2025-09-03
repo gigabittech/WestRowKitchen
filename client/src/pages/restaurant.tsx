@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import NavigationHeader from "@/components/navigation-header";
-import CartSidebar from "@/components/ui/cart-sidebar";
+
 import Footer from "@/components/footer";
 import {
   ArrowLeft,
@@ -19,7 +19,7 @@ import {
 import { Link } from "wouter";
 import type { Restaurant, MenuCategory, MenuItem } from "@shared/schema";
 import { slugMatches, createSlug } from "@/utils/slug";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/contexts/CartContext";
 import { getFoodImage } from "@/utils/food-images";
 import { MenuItemCardSkeleton } from "@/components/skeleton-loader";
 
@@ -30,9 +30,8 @@ import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png"
 
 export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { cartItems, addToCart, updateQuantity, removeFromCart, cartItemCount } = useCart();
+  const { cartItems, addToCart, updateQuantity, removeFromCart, cartItemCount, isCartOpen, setIsCartOpen } = useCart();
 
   // Restaurant logo mapping
   const logoMap: Record<string, string> = {
@@ -152,11 +151,7 @@ export default function RestaurantPage() {
   return (
     <div className="min-h-screen bg-background">
 
-      <NavigationHeader
-        isCartOpen={isCartOpen}
-        setIsCartOpen={setIsCartOpen}
-        cartItemCount={cartItems.length}
-      />
+      <NavigationHeader />
 
       {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 pt-4">
@@ -390,7 +385,7 @@ export default function RestaurantPage() {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  addToCart(item);
+                                  addToCart(item, restaurant?.name);
                                 }}
                                 size="lg"
                                 className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 z-10 relative"
@@ -437,17 +432,7 @@ export default function RestaurantPage() {
 
       <Footer />
 
-      <CartSidebar
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={(id, quantity) => {
-          updateQuantity(id, quantity);
-        }}
-        onRemoveItem={(id) => {
-          removeFromCart(id);
-        }}
-      />
+      {/* Cart sidebar now handled globally by UniversalCartSidebar */}
     </div>
   );
 }

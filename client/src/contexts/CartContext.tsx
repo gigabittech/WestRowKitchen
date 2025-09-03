@@ -8,49 +8,67 @@ export interface CartItem {
   price: number;
   quantity: number;
   restaurantId: string;
+  restaurantName?: string;
   image?: string;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (item: MenuItem) => void;
+  addToCart: (item: MenuItem, restaurantName?: string) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   cartTotal: number;
   cartItemCount: number;
+  isCartOpen: boolean;
+  setIsCartOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
 
+const CART_STORAGE_KEY = 'west-row-kitchen-cart';
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('west-row-kitchen-cart');
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Failed to parse cart from localStorage:', error);
+    try {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
       }
+    } catch (error) {
+      console.error('Failed to parse cart from localStorage:', error);
+      localStorage.removeItem(CART_STORAGE_KEY);
+    } finally {
+      setIsInitialized(true);
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to localStorage whenever it changes (but only after initialization)
   useEffect(() => {
-    localStorage.setItem('west-row-kitchen-cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (isInitialized) {
+      try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+      } catch (error) {
+        console.error('Failed to save cart to localStorage:', error);
+      }
+    }
+  }, [cartItems, isInitialized]);
 
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItem, restaurantName?: string) => {
     const foodImage = getFoodImage(item.name);
     const cartItem: CartItem = {
       id: item.id,
       name: item.name,
-      price: parseFloat(item.price),
+      price: parseFloat(item.price.toString()),
       quantity: 1,
       restaurantId: item.restaurantId,
+      restaurantName,
       image: foodImage || item.image || undefined,
     };
 
@@ -106,6 +124,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         cartTotal,
         cartItemCount,
+        isCartOpen,
+        setIsCartOpen,
       }}
     >
       {children}

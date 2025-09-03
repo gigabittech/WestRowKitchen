@@ -8,18 +8,17 @@ import NavigationHeader from "@/components/navigation-header";
 import RestaurantCard from "@/components/restaurant-card";
 import CategoryFilter from "@/components/category-filter";
 import CartSidebar from "@/components/ui/cart-sidebar";
-import CartDebug from "@/components/cart-debug";
+
 import Footer from "@/components/footer";
 import { ShoppingBag, Clock, Star, TrendingUp } from "lucide-react";
 import type { Restaurant, Order } from "@shared/schema";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
 
 export default function Home() {
   const { user } = useAuth();
   const [selectedCuisine, setSelectedCuisine] = useState<string>("ALL");
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const { cartItems, updateQuantity, removeFromCart, cartItemCount } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, cartItemCount, isCartOpen, setIsCartOpen } = useCart();
 
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
@@ -65,11 +64,7 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <title>Welcome Home - West Row Kitchen</title>
       
-      <NavigationHeader 
-        isCartOpen={isCartOpen}
-        setIsCartOpen={setIsCartOpen}
-        cartItemCount={cartItemCount}
-      />
+      <NavigationHeader />
 
       {/* Welcome Hero */}
       <section className="gradient-hero py-8">
@@ -222,18 +217,7 @@ export default function Home() {
 
       <Footer />
 
-      <CartSidebar 
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={(id, quantity) => {
-          updateQuantity(id, quantity);
-        }}
-        onRemoveItem={(id) => {
-          removeFromCart(id);
-        }}
-      />
-      <CartDebug />
+      {/* Cart sidebar now handled globally by UniversalCartSidebar */}
     </div>
   );
 }

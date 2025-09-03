@@ -12,7 +12,7 @@ import { Clock, Star, MapPin, Search } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
 
 // Import restaurant logos
@@ -30,8 +30,7 @@ export default function Restaurants() {
   const [selectedCuisine, setSelectedCuisine] = useState("ALL");
   const [location] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const { cartItems, updateQuantity, removeFromCart, cartItemCount } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, cartItemCount, isCartOpen, setIsCartOpen } = useCart();
 
   // Get search parameter from URL
   useEffect(() => {
@@ -65,11 +64,7 @@ export default function Restaurants() {
     <div className="min-h-screen bg-background">
       <title>All Restaurants - West Row Kitchen</title>
       
-      <NavigationHeader 
-        isCartOpen={isCartOpen}
-        setIsCartOpen={setIsCartOpen}
-        cartItemCount={cartItemCount}
-      />
+      <NavigationHeader />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
@@ -202,13 +197,7 @@ export default function Restaurants() {
 
       <Footer />
       
-      <CartSidebar
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={updateQuantity}
-        onRemoveItem={removeFromCart}
-      />
+      {/* Cart sidebar now handled globally by UniversalCartSidebar */}
     </div>
   );
 }

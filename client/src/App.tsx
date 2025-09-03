@@ -22,7 +22,8 @@ import Help from "@/pages/help";
 import Contact from "@/pages/contact";
 import FAQ from "@/pages/faq";
 import NotFound from "@/pages/not-found";
-import { CartProvider } from "@/hooks/useCart";
+import { CartProvider } from "@/contexts/CartContext";
+import UniversalCartSidebar from "@/components/universal-cart-sidebar";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -74,6 +75,7 @@ function App() {
       <TooltipProvider>
         <CartProvider>
           <Router />
+          <UniversalCartSidebar />
           <Toaster />
         </CartProvider>
       </TooltipProvider>
