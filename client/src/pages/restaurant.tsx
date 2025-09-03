@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,19 @@ export default function RestaurantPage() {
   const restaurant = restaurants.find((r) => slugMatches(slug || "", r.name));
 
   const restaurantLoading = restaurantsLoading;
+
+  // Update document title and meta when restaurant loads
+  useEffect(() => {
+    if (restaurant) {
+      document.title = `${restaurant.name} - West Row Kitchen`;
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', 
+          `Order from ${restaurant.name}. ${restaurant.description || `${restaurant.cuisine} cuisine with delivery and pickup options.`}`
+        );
+      }
+    }
+  }, [restaurant]);
 
   // Fetch menu categories
   const { data: categories = [] } = useQuery({
@@ -151,11 +164,6 @@ export default function RestaurantPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <title>{restaurant?.name} - West Row Kitchen</title>
-      <meta
-        name="description"
-        content={`Order from ${restaurant?.name}. ${restaurant?.description || `${restaurant?.cuisine} cuisine with delivery and pickup options.`}`}
-      />
 
       <NavigationHeader
         isCartOpen={isCartOpen}
