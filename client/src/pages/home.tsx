@@ -8,6 +8,7 @@ import NavigationHeader from "@/components/navigation-header";
 import RestaurantCard from "@/components/restaurant-card";
 import CategoryFilter from "@/components/category-filter";
 import CartSidebar from "@/components/ui/cart-sidebar";
+import CartDebug from "@/components/cart-debug";
 import Footer from "@/components/footer";
 import { ShoppingBag, Clock, Star, TrendingUp } from "lucide-react";
 import type { Restaurant, Order } from "@shared/schema";
@@ -232,6 +233,7 @@ export default function Home() {
           removeFromCart(id);
         }}
       />
+      <CartDebug />
     </div>
   );
 }
