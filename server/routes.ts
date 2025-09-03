@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
+import { sendOrderConfirmationEmail, sendOrderStatusEmail, testEmailConnection } from "./email";
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req: any, res: any, next: any) => {
@@ -25,7 +26,7 @@ import { z } from "zod";
 let stripe: Stripe | null = null;
 try {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_4eC39HqLyjWDarjtT1zdp7dc", {
-    apiVersion: "2020-08-27",
+    apiVersion: "2023-10-16",
   });
 } catch (error) {
   console.log("Stripe not configured, payment functionality disabled");
@@ -34,6 +35,9 @@ try {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Test email connection on startup
+  testEmailConnection();
 
   // Auth routes are now handled in auth.ts
 
@@ -252,6 +256,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         items.map(item => ({ ...item, orderId: order.id }))
       );
 
+      // Send order confirmation email
+      try {
+        const user = await storage.getUser(userId);
+        const restaurant = await storage.getRestaurant(orderData.restaurantId);
+        
+        if (user && restaurant) {
+          const orderWithItems = {
+            ...order,
+            items: orderItems,
+            subtotal: orderItems.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0),
+            deliveryFee: 2.99,
+            serviceFee: 0,
+            tax: 0,
+            total: orderItems.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0) + 2.99
+          };
+          
+          await sendOrderConfirmationEmail(orderWithItems, restaurant, user);
+        }
+      } catch (emailError) {
+        console.error('Failed to send order confirmation email:', emailError);
+      }
+
       res.status(201).json({ order, items: orderItems });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -301,6 +327,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { status } = z.object({ status: z.string() }).parse(req.body);
       const order = await storage.updateOrderStatus(req.params.id, status);
+      
+      // Send order status update email
+      try {
+        if (order) {
+          const orderUser = await storage.getUser(order.userId);
+          const restaurant = await storage.getRestaurant(order.restaurantId);
+          
+          if (orderUser && restaurant) {
+            await sendOrderStatusEmail(order, restaurant, orderUser, status);
+          }
+        }
+      } catch (emailError) {
+        console.error('Failed to send order status email:', emailError);
+      }
+      
       res.json(order);
     } catch (error) {
       if (error instanceof z.ZodError) {

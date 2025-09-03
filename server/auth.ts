@@ -7,6 +7,7 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
+import { sendWelcomeEmail } from "./email";
 
 declare global {
   namespace Express {
@@ -102,6 +103,13 @@ export function setupAuth(app: Express) {
         email,
         password: await hashPassword(password),
       });
+
+      // Send welcome email (don't block registration if email fails)
+      try {
+        await sendWelcomeEmail(user);
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+      }
 
       req.login(user, (err) => {
         if (err) return next(err);
