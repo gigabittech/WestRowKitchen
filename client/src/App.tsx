@@ -21,6 +21,7 @@ import Help from "@/pages/help";
 import Contact from "@/pages/contact";
 import FAQ from "@/pages/faq";
 import NotFound from "@/pages/not-found";
+import { CartProvider } from "@/hooks/useCart";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -70,8 +71,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <CartProvider>
+          <Router />
+          <Toaster />
+        </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

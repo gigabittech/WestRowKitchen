@@ -19,6 +19,7 @@ import {
 import { Link } from "wouter";
 import type { Restaurant, MenuCategory, MenuItem } from "@shared/schema";
 import { slugMatches, createSlug } from "@/utils/slug";
+import { useCart } from "@/hooks/useCart";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -28,8 +29,8 @@ import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png"
 export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const { cartItems, addToCart, cartItemCount } = useCart();
 
   // Restaurant logo mapping
   const logoMap: Record<string, string> = {
@@ -95,34 +96,13 @@ export default function RestaurantPage() {
     enabled: !!restaurant?.id,
   });
 
-  const addToCart = (item: MenuItem) => {
-    const cartItem = {
-      id: item.id,
-      name: item.name,
-      price: parseFloat(item.price),
-      quantity: 1,
-      restaurantId: item.restaurantId,
-      image: item.image,
-    };
-
-    setCartItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
-        );
-      }
-      return [...prev, cartItem];
-    });
-  };
-
   if (restaurantLoading) {
     return (
       <div className="min-h-screen bg-background">
         <NavigationHeader
           isCartOpen={isCartOpen}
           setIsCartOpen={setIsCartOpen}
-          cartItemCount={cartItems.length}
+          cartItemCount={cartItemCount}
         />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="animate-pulse">
@@ -349,64 +329,76 @@ export default function RestaurantPage() {
                 .map((item: MenuItem) => (
                   <Card
                     key={item.id}
-                    className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+                    className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                   >
-                    <Link
-                      href={`/restaurant/${createSlug(restaurant?.name || "")}/item/${item.id}`}
-                    >
-                      <CardContent className="p-0">
-                        <div className="p-8 relative">
-                          {/* Item Image Placeholder */}
+                    <CardContent className="p-0">
+                      <div className="p-8 relative">
+                        {/* Item Image Placeholder - Clickable for details */}
+                        <Link
+                          href={`/restaurant/${createSlug(restaurant?.name || "")}/item/${item.id}`}
+                          className="cursor-pointer"
+                        >
                           <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                             <Utensils className="w-10 h-10 text-primary" />
                           </div>
+                        </Link>
 
-                          <div className="space-y-4">
-                            <div>
+                        <div className="space-y-4">
+                          <div>
+                            {/* Title clickable for details */}
+                            <Link
+                              href={`/restaurant/${createSlug(restaurant?.name || "")}/item/${item.id}`}
+                              className="cursor-pointer"
+                            >
                               <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
                                 {item.name}
                               </h3>
-                              <p className="text-gray-600 leading-relaxed text-base line-clamp-3">
-                                {item.description}
+                            </Link>
+                            <p className="text-gray-600 leading-relaxed text-base line-clamp-3">
+                              {item.description}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                            <div className="space-y-1">
+                              <span className="text-3xl font-bold text-gray-900">
+                                ${parseFloat(item.price).toFixed(2)}
+                              </span>
+                              <p className="text-sm text-gray-500">
+                                per item
                               </p>
                             </div>
 
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                              <div className="space-y-1">
-                                <span className="text-3xl font-bold text-gray-900">
-                                  ${parseFloat(item.price).toFixed(2)}
-                                </span>
-                                <p className="text-sm text-gray-500">
-                                  per item
-                                </p>
-                              </div>
-
-                              {item.isAvailable ? (
-                                <Button
-                                  onClick={() => addToCart(item)}
-                                  size="lg"
-                                  className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                                >
-                                  <Plus className="w-5 h-5 mr-2" />
-                                  Add to Cart
-                                </Button>
-                              ) : (
-                                <Badge
-                                  variant="secondary"
-                                  className="px-4 py-2"
-                                >
-                                  Unavailable
-                                </Badge>
-                              )}
-                            </div>
+                            {item.isAvailable ? (
+                              <Button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  addToCart(item);
+                                }}
+                                size="lg"
+                                className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 z-10 relative"
+                                data-testid={`button-add-to-cart-${item.id}`}
+                              >
+                                <Plus className="w-5 h-5 mr-2" />
+                                Add to Cart
+                              </Button>
+                            ) : (
+                              <Badge
+                                variant="secondary"
+                                className="px-4 py-2"
+                              >
+                                Unavailable
+                              </Badge>
+                            )}
                           </div>
-
-                          {/* Decorative Elements */}
-                          <div className="absolute top-4 right-4 w-2 h-2 bg-primary/20 rounded-full"></div>
-                          <div className="absolute top-8 right-8 w-1 h-1 bg-primary/30 rounded-full"></div>
                         </div>
-                      </CardContent>
-                    </Link>
+
+                        {/* Decorative Elements */}
+                        <div className="absolute top-4 right-4 w-2 h-2 bg-primary/20 rounded-full"></div>
+                        <div className="absolute top-8 right-8 w-1 h-1 bg-primary/30 rounded-full"></div>
+                      </div>
+                    </CardContent>
                   </Card>
                 ))}
             </div>
