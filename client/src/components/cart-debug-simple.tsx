@@ -10,10 +10,10 @@ export default function CartDebugSimple() {
       <p className="text-sm">Items: {cartItems.length}</p>
       <div className="mt-1 max-h-20 overflow-y-auto">
         {cartItems.map((item, i) => (
-          <div key={i} className="text-xs flex items-center space-x-2">
-            <span>{item.name.substring(0, 15)}...</span>
+          <div key={i} className="text-xs flex items-center space-x-1">
+            <span>{item.name.substring(0, 12)}...</span>
             <span>Qty: {item.quantity}</span>
-            {item.image && <span className="text-green-600">🖼️</span>}
+            {item.image ? <span className="text-green-600">🖼️</span> : <span className="text-red-600">❌</span>}
           </div>
         ))}
       </div>

@@ -15,6 +15,7 @@ import type { Restaurant, Order } from "@shared/schema";
 import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
 import CartDebugSimple from "@/components/cart-debug-simple";
+import ImageTest from "@/components/image-test";
 
 export default function Home() {
   const { user } = useAuth();
@@ -220,6 +221,7 @@ export default function Home() {
 
       {/* Cart sidebar now handled globally by UniversalCartSidebar */}
       <CartDebugSimple />
+      <ImageTest />
     </div>
   );
 }

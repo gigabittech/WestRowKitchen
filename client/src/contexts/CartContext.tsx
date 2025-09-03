@@ -39,7 +39,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const savedCart = localStorage.getItem(CART_STORAGE_KEY);
       if (savedCart) {
         const parsedCart = JSON.parse(savedCart);
-        setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
+        if (Array.isArray(parsedCart)) {
+          // Restore images for items loaded from localStorage
+          const cartWithImages = parsedCart.map(item => ({
+            ...item,
+            image: item.image || getFoodImage(item.name) || undefined
+          }));
+          setCartItems(cartWithImages);
+        }
       }
     } catch (error) {
       console.error('Failed to parse cart from localStorage:', error);
@@ -76,7 +83,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
         return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.id === item.id ? { 
+            ...i, 
+            quantity: i.quantity + 1,
+            image: i.image || foodImage || undefined  // Ensure image is preserved/updated
+          } : i
         );
       }
       return [...prev, cartItem];
