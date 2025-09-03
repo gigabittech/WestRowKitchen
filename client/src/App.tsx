@@ -8,6 +8,7 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Restaurant from "@/pages/restaurant";
 import Restaurants from "@/pages/restaurants";
+import FoodItemDetail from "@/pages/food-item-detail";
 import AuthPage from "@/pages/auth-page";
 import Admin from "@/pages/admin";
 import Checkout from "@/pages/checkout";
@@ -31,6 +32,7 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/restaurants" component={Restaurants} />
+          <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
           <Route path="/restaurant/:slug" component={Restaurant} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/stripe-checkout" component={StripeCheckout} />
@@ -45,6 +47,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/restaurants" component={Restaurants} />
+          <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
           <Route path="/restaurant/:slug" component={Restaurant} />
           <Route path="/admin" component={Admin} />
           <Route path="/checkout" component={Checkout} />

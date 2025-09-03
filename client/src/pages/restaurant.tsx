@@ -11,7 +11,7 @@ import Footer from "@/components/footer";
 import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus, Utensils } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant, MenuCategory, MenuItem } from "@shared/schema";
-import { slugMatches } from "@/utils/slug";
+import { slugMatches, createSlug } from "@/utils/slug";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -281,9 +281,10 @@ export default function RestaurantPage() {
                   {menuItems
                     .filter((item: MenuItem) => item.categoryId === category.id)
                     .map((item: MenuItem) => (
-                      <Card key={item.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                        <CardContent className="p-0">
-                          <div className="p-8 relative">
+                      <Card key={item.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+                        <Link href={`/restaurant/${createSlug(restaurant?.name || '')}/item/${item.id}`}>
+                          <CardContent className="p-0">
+                            <div className="p-8 relative">
                             {/* Item Image Placeholder */}
                             <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                               <Utensils className="w-10 h-10 text-primary" />
@@ -327,8 +328,9 @@ export default function RestaurantPage() {
                             {/* Decorative Elements */}
                             <div className="absolute top-4 right-4 w-2 h-2 bg-primary/20 rounded-full"></div>
                             <div className="absolute top-8 right-8 w-1 h-1 bg-primary/30 rounded-full"></div>
-                          </div>
-                        </CardContent>
+                            </div>
+                          </CardContent>
+                        </Link>
                       </Card>
                     ))}
                 </div>
