@@ -159,108 +159,174 @@ export default function RestaurantPage() {
         </Link>
       </div>
 
-      {/* Restaurant Header */}
-      <section className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <div className="h-64 bg-gradient-to-r from-orange-400 to-red-500 rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
+      {/* Modern Restaurant Hero Section */}
+      <section className="relative">
+        {/* Hero Background */}
+        <div className="h-80 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          
+          {/* Restaurant Logo Overlay */}
+          <div className="absolute top-6 left-6 z-10">
+            <div className="w-24 h-24 bg-white rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden border-4 border-white/20">
               {restaurant && logoMap[restaurant.name] ? (
                 <img 
                   src={logoMap[restaurant.name]} 
                   alt={restaurant.name}
-                  className="w-32 h-32 object-contain drop-shadow-lg"
+                  className="w-16 h-16 object-contain"
                 />
               ) : (
-                <Utensils className="w-16 h-16 text-white" />
+                <Utensils className="w-8 h-8 text-gray-600" />
               )}
             </div>
           </div>
-          
-          <div className="space-y-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{restaurant?.name}</h1>
-              <p className="text-gray-600 mb-4">{restaurant?.description}</p>
-              <div className="flex items-center space-x-4 text-sm">
-                <div className="flex items-center">
+
+          {/* Content Container */}
+          <div className="relative z-10 h-full max-w-7xl mx-auto px-4 flex items-end pb-8">
+            <div className="text-white space-y-4 max-w-2xl">
+              <div className="flex items-center space-x-3 mb-2">
+                <Badge 
+                  variant={restaurant?.isOpen ? "default" : "destructive"} 
+                  className={`text-sm font-medium px-3 py-1 ${
+                    restaurant?.isOpen 
+                      ? 'bg-green-500 hover:bg-green-600 text-white' 
+                      : 'bg-red-500 hover:bg-red-600 text-white'
+                  }`}
+                >
+                  {restaurant?.isOpen ? "OPEN NOW" : "CLOSED"}
+                </Badge>
+                <div className="flex items-center bg-black/30 backdrop-blur-sm rounded-full px-3 py-1">
                   <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                  <span className="font-semibold">{restaurant?.rating}</span>
-                  <span className="text-gray-500 ml-1">({restaurant?.reviewCount}+ reviews)</span>
+                  <span className="font-semibold text-sm">{restaurant?.rating}</span>
+                  <span className="text-white/80 ml-1 text-sm">({restaurant?.reviewCount}+ reviews)</span>
+                </div>
+              </div>
+              
+              <h1 className="text-5xl font-bold leading-tight">{restaurant?.name}</h1>
+              <p className="text-xl text-white/90 leading-relaxed">{restaurant?.description}</p>
+              
+              <div className="flex items-center space-x-6 text-white/80">
+                <div className="flex items-center">
+                  <Clock className="w-5 h-5 mr-2" />
+                  <span className="font-medium">{restaurant?.deliveryTime}</span>
+                </div>
+                <div className="flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2" />
+                  <span className="font-medium">${restaurant?.deliveryFee} delivery fee</span>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Modern Info Cards */}
+        <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-20">
+          <div className="grid md:grid-cols-3 gap-4 mb-12">
+            <Card className="bg-white/95 backdrop-blur-sm shadow-xl border-0">
+              <CardContent className="p-6 text-center">
+                <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
+                <h3 className="font-semibold text-lg mb-1">Delivery Time</h3>
+                <p className="text-gray-600">{restaurant?.deliveryTime}</p>
+              </CardContent>
+            </Card>
             
-            <div className="space-y-2">
-              <div className="flex items-center text-sm">
-                <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                <span>{restaurant?.deliveryTime}</span>
-              </div>
-              <div className="flex items-center text-sm">
-                <DollarSign className="w-4 h-4 mr-2 text-gray-400" />
-                <span>${restaurant?.deliveryFee} delivery fee</span>
-              </div>
-            </div>
+            <Card className="bg-white/95 backdrop-blur-sm shadow-xl border-0">
+              <CardContent className="p-6 text-center">
+                <Star className="w-8 h-8 text-yellow-500 mx-auto mb-3 fill-current" />
+                <h3 className="font-semibold text-lg mb-1">Rating</h3>
+                <p className="text-gray-600">{restaurant?.rating} ({restaurant?.reviewCount}+ reviews)</p>
+              </CardContent>
+            </Card>
             
-            <Badge variant={restaurant?.isOpen ? "default" : "destructive"} className="text-sm">
-              {restaurant?.isOpen ? "OPEN" : "CLOSED"}
-            </Badge>
+            <Card className="bg-white/95 backdrop-blur-sm shadow-xl border-0">
+              <CardContent className="p-6 text-center">
+                <DollarSign className="w-8 h-8 text-green-500 mx-auto mb-3" />
+                <h3 className="font-semibold text-lg mb-1">Delivery Fee</h3>
+                <p className="text-gray-600">${restaurant?.deliveryFee}</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* Menu */}
-      <section className="max-w-7xl mx-auto px-4 pb-12">
-        <h2 className="text-2xl font-bold mb-6">Menu</h2>
+      {/* Modern Menu Section */}
+      <section className="max-w-7xl mx-auto px-4 pb-16">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Menu</h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Discover our carefully crafted dishes, made with the finest ingredients and delivered fresh to your door.
+          </p>
+        </div>
         
         {categories.length > 0 ? (
           <Tabs defaultValue={categories[0]?.id?.toString()} className="w-full">
-            <TabsList className="grid w-full mb-8" style={{ gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))` }}>
-              {categories.map((category: MenuCategory) => (
-                <TabsTrigger key={category.id} value={category.id?.toString()} className="text-sm">
-                  {category.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            {/* Modern Tab Navigation */}
+            <div className="flex justify-center mb-12">
+              <TabsList className="bg-gray-100 p-1 rounded-2xl shadow-lg">
+                {categories.map((category: MenuCategory) => (
+                  <TabsTrigger 
+                    key={category.id} 
+                    value={category.id?.toString()} 
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-xl px-6 py-3 font-medium transition-all duration-200 text-sm"
+                  >
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
             
             {categories.map((category: MenuCategory) => (
               <TabsContent key={category.id} value={category.id?.toString()}>
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-8">
                   {menuItems
                     .filter((item: MenuItem) => item.categoryId === category.id)
                     .map((item: MenuItem) => (
-                      <Card key={item.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
-                              <p className="text-gray-600 text-sm mb-3">{item.description}</p>
-                              <div className="text-xl font-bold text-primary">
-                                ${parseFloat(item.price).toFixed(2)}
+                      <Card key={item.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                        <CardContent className="p-0">
+                          <div className="p-8 relative">
+                            {/* Item Image Placeholder */}
+                            <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                              <Utensils className="w-10 h-10 text-primary" />
+                            </div>
+                            
+                            <div className="space-y-4">
+                              <div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
+                                  {item.name}
+                                </h3>
+                                <p className="text-gray-600 leading-relaxed text-base line-clamp-3">
+                                  {item.description}
+                                </p>
+                              </div>
+                              
+                              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                <div className="space-y-1">
+                                  <span className="text-3xl font-bold text-gray-900">
+                                    ${parseFloat(item.price).toFixed(2)}
+                                  </span>
+                                  <p className="text-sm text-gray-500">per item</p>
+                                </div>
+                                
+                                {item.isAvailable ? (
+                                  <Button
+                                    onClick={() => addToCart(item)}
+                                    size="lg"
+                                    className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                                  >
+                                    <Plus className="w-5 h-5 mr-2" />
+                                    Add to Cart
+                                  </Button>
+                                ) : (
+                                  <Badge variant="secondary" className="px-4 py-2">
+                                    Unavailable
+                                  </Badge>
+                                )}
                               </div>
                             </div>
-                            {item.image && (
-                              <div className="w-20 h-20 bg-gray-200 rounded-lg ml-4 flex-shrink-0">
-                                <div className="w-full h-full flex items-center justify-center text-2xl">
-                                  🍽️
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <Badge variant={item.isAvailable ? "default" : "secondary"}>
-                              {item.isAvailable ? "Available" : "Unavailable"}
-                            </Badge>
                             
-                            {item.isAvailable && (
-                              <Button 
-                                onClick={() => addToCart(item)}
-                                size="sm"
-                                className="btn-primary"
-                              >
-                                <Plus className="w-4 h-4 mr-1" />
-                                Add to Cart
-                              </Button>
-                            )}
+                            {/* Decorative Elements */}
+                            <div className="absolute top-4 right-4 w-2 h-2 bg-primary/20 rounded-full"></div>
+                            <div className="absolute top-8 right-8 w-1 h-1 bg-primary/30 rounded-full"></div>
                           </div>
                         </CardContent>
                       </Card>
@@ -270,11 +336,13 @@ export default function RestaurantPage() {
             ))}
           </Tabs>
         ) : (
-          <Card className="p-12 text-center">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-xl font-semibold mb-2">Menu Coming Soon</h3>
-            <p className="text-gray-600">
-              This restaurant is updating their menu. Please check back later.
+          <Card className="p-16 text-center border-0 shadow-xl bg-gradient-to-br from-gray-50 to-white">
+            <div className="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-8">
+              <Utensils className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">Menu Coming Soon</h3>
+            <p className="text-xl text-gray-600 max-w-md mx-auto leading-relaxed">
+              This restaurant is carefully crafting their menu. Please check back later for delicious options.
             </p>
           </Card>
         )}
