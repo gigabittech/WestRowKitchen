@@ -262,25 +262,40 @@ export default function RestaurantPage() {
           <Tabs defaultValue={categories[0]?.id?.toString()} className="w-full">
             {/* Modern Tab Navigation */}
             <div className="flex justify-center mb-12">
-              <TabsList className="bg-gray-100 p-1 rounded-2xl shadow-lg">
-                {categories.map((category: MenuCategory) => (
-                  <TabsTrigger 
-                    key={category.id} 
-                    value={category.id?.toString()} 
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-xl px-6 py-3 font-medium transition-all duration-200 text-sm"
-                  >
-                    {category.name}
-                  </TabsTrigger>
-                ))}
+              <TabsList className="bg-gray-100 p-1 rounded-2xl shadow-lg overflow-x-auto">
+                {categories.map((category: MenuCategory) => {
+                  const categoryItems = menuItems.filter((item: MenuItem) => item.categoryId === category.id);
+                  return (
+                    <TabsTrigger 
+                      key={category.id} 
+                      value={category.id?.toString()} 
+                      className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-xl px-6 py-3 font-medium transition-all duration-200 text-sm whitespace-nowrap flex-shrink-0"
+                    >
+                      <span>{category.name}</span>
+                      <Badge variant="secondary" className="ml-2 text-xs">
+                        {categoryItems.length}
+                      </Badge>
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
             </div>
             
-            {categories.map((category: MenuCategory) => (
-              <TabsContent key={category.id} value={category.id?.toString()}>
-                <div className="grid md:grid-cols-2 gap-8">
-                  {menuItems
-                    .filter((item: MenuItem) => item.categoryId === category.id)
-                    .map((item: MenuItem) => (
+            {categories.map((category: MenuCategory) => {
+              const categoryItems = menuItems.filter((item: MenuItem) => item.categoryId === category.id);
+              return (
+                <TabsContent key={category.id} value={category.id?.toString()}>
+                  <div className="mb-8">
+                    <div className="text-center mb-8">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{category.name}</h3>
+                      <p className="text-gray-600">
+                        {categoryItems.length} {categoryItems.length === 1 ? 'item' : 'items'} available
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {categoryItems.map((item: MenuItem) => (
                       <Card key={item.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
                         <Link href={`/restaurant/${createSlug(restaurant?.name || '')}/item/${item.id}`}>
                           <CardContent className="p-0">
@@ -333,9 +348,10 @@ export default function RestaurantPage() {
                         </Link>
                       </Card>
                     ))}
-                </div>
-              </TabsContent>
-            ))}
+                  </div>
+                </TabsContent>
+              );
+            })}
           </Tabs>
         ) : (
           <Card className="p-16 text-center border-0 shadow-xl bg-gradient-to-br from-gray-50 to-white">
