@@ -102,10 +102,10 @@ export default function LocationPicker({ currentLocation, onLocationChange }: Lo
       <PopoverTrigger asChild>
         <Button 
           variant="ghost" 
-          className="hidden md:flex items-center bg-neutral rounded-lg px-4 py-2 border border-gray-200 hover:bg-gray-50 max-w-xs"
+          className="hidden md:flex items-center bg-gray-50 rounded-lg px-4 py-2 border border-gray-200 hover:bg-gray-100 hover:border-gray-300 transition-colors max-w-xs group"
         >
-          <MapPin className="text-primary mr-2 w-4 h-4 flex-shrink-0" />
-          <span className="text-sm font-medium truncate">{currentLocation}</span>
+          <MapPin className="text-green-600 mr-2 w-4 h-4 flex-shrink-0 group-hover:text-green-700" />
+          <span className="text-sm font-medium text-gray-700 truncate group-hover:text-gray-900">{currentLocation}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="start">
