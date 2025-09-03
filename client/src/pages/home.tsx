@@ -11,12 +11,13 @@ import CartSidebar from "@/components/ui/cart-sidebar";
 import Footer from "@/components/footer";
 import { ShoppingBag, Clock, Star, TrendingUp } from "lucide-react";
 import type { Restaurant, Order } from "@shared/schema";
+import { useCart } from "@/hooks/useCart";
 
 export default function Home() {
   const { user } = useAuth();
   const [selectedCuisine, setSelectedCuisine] = useState<string>("ALL");
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const { cartItems, updateQuantity, removeFromCart, cartItemCount } = useCart();
 
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
@@ -65,7 +66,7 @@ export default function Home() {
       <NavigationHeader 
         isCartOpen={isCartOpen}
         setIsCartOpen={setIsCartOpen}
-        cartItemCount={cartItems.length}
+        cartItemCount={cartItemCount}
       />
 
       {/* Welcome Hero */}
@@ -203,7 +204,6 @@ export default function Home() {
                 <RestaurantCard 
                   key={restaurant.id} 
                   restaurant={restaurant}
-                  onAddToCart={(item) => setCartItems(prev => [...prev, item])}
                 />
               ))}
             </div>
@@ -225,12 +225,10 @@ export default function Home() {
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
         onUpdateQuantity={(id, quantity) => {
-          setCartItems(prev => prev.map(item => 
-            item.id === id ? { ...item, quantity } : item
-          ));
+          updateQuantity(id, quantity);
         }}
         onRemoveItem={(id) => {
-          setCartItems(prev => prev.filter(item => item.id !== id));
+          removeFromCart(id);
         }}
       />
     </div>

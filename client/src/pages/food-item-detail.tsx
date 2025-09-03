@@ -11,13 +11,14 @@ import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus, Heart, Share2, Utensil
 import type { Restaurant, MenuItem } from "@shared/schema";
 import { slugMatches } from "@/utils/slug";
 import { getFoodImage } from "@/utils/food-images";
+import { useCart } from "@/hooks/useCart";
 
 export default function FoodItemDetailPage() {
   const { restaurantSlug, itemId } = useParams<{ restaurantSlug: string; itemId: string }>();
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<any[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [isFavorited, setIsFavorited] = useState(false);
+  const { cartItems, addToCart, updateQuantity, removeFromCart, cartItemCount } = useCart();
 
   // Fetch all restaurants to find the one by slug
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
@@ -42,27 +43,11 @@ export default function FoodItemDetailPage() {
   const foodItem = menuItems.find((item: MenuItem) => item.id === itemId);
   const isLoading = restaurantsLoading || menuLoading;
 
-  const addToCart = (item: MenuItem, qty: number) => {
-    const cartItem = {
-      id: item.id,
-      name: item.name,
-      price: parseFloat(item.price),
-      quantity: qty,
-      restaurantId: item.restaurantId,
-      image: item.image,
-    };
-
-    setCartItems(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) {
-        return prev.map(i => 
-          i.id === item.id 
-            ? { ...i, quantity: i.quantity + qty }
-            : i
-        );
-      }
-      return [...prev, cartItem];
-    });
+  const handleAddToCart = (item: MenuItem, qty: number) => {
+    // Add items one by one to match the quantity
+    for (let i = 0; i < qty; i++) {
+      addToCart(item);
+    }
   };
 
   if (isLoading) {
@@ -71,7 +56,7 @@ export default function FoodItemDetailPage() {
         <NavigationHeader 
           isCartOpen={isCartOpen}
           setIsCartOpen={setIsCartOpen}
-          cartItemCount={cartItems.length}
+          cartItemCount={cartItemCount}
         />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-6">
@@ -115,7 +100,7 @@ export default function FoodItemDetailPage() {
       <NavigationHeader 
         isCartOpen={isCartOpen}
         setIsCartOpen={setIsCartOpen}
-        cartItemCount={cartItems.length}
+        cartItemCount={cartItemCount}
       />
 
       {/* Back Button */}
@@ -240,9 +225,10 @@ export default function FoodItemDetailPage() {
                 </div>
 
                 <Button
-                  onClick={() => addToCart(foodItem, quantity)}
+                  onClick={() => handleAddToCart(foodItem, quantity)}
                   size="lg"
                   className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  data-testid={`button-add-to-cart-${foodItem.id}`}
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Add {quantity} to Cart - ${(parseFloat(foodItem.price) * quantity).toFixed(2)}
@@ -323,13 +309,11 @@ export default function FoodItemDetailPage() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
-        onUpdateQuantity={(id, quantity) => {
-          setCartItems(prev => prev.map(item => 
-            item.id === id ? { ...item, quantity } : item
-          ));
+        onUpdateQuantity={(id, qty) => {
+          updateQuantity(id, qty);
         }}
         onRemoveItem={(id) => {
-          setCartItems(prev => prev.filter(item => item.id !== id));
+          removeFromCart(id);
         }}
       />
     </div>

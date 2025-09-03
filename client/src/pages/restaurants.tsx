@@ -11,6 +11,7 @@ import { Clock, Star, MapPin, Search } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
+import { useCart } from "@/hooks/useCart";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -27,6 +28,8 @@ export default function Restaurants() {
   const [selectedCuisine, setSelectedCuisine] = useState("ALL");
   const [location] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { cartItems, updateQuantity, removeFromCart, cartItemCount } = useCart();
 
   // Get search parameter from URL
   useEffect(() => {
@@ -61,9 +64,9 @@ export default function Restaurants() {
       <title>All Restaurants - West Row Kitchen</title>
       
       <NavigationHeader 
-        isCartOpen={false}
-        setIsCartOpen={() => {}}
-        cartItemCount={0}
+        isCartOpen={isCartOpen}
+        setIsCartOpen={setIsCartOpen}
+        cartItemCount={cartItemCount}
       />
 
       <div className="max-w-7xl mx-auto px-4 py-8">

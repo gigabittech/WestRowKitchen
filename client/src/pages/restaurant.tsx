@@ -31,7 +31,7 @@ export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { cartItems, addToCart, cartItemCount } = useCart();
+  const { cartItems, addToCart, updateQuantity, removeFromCart, cartItemCount } = useCart();
 
   // Restaurant logo mapping
   const logoMap: Record<string, string> = {
@@ -436,12 +436,10 @@ export default function RestaurantPage() {
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
         onUpdateQuantity={(id, quantity) => {
-          // Cart management is handled by useCart hook
-          console.log('Update quantity:', id, quantity);
+          updateQuantity(id, quantity);
         }}
         onRemoveItem={(id) => {
-          // Cart management is handled by useCart hook
-          console.log('Remove item:', id);
+          removeFromCart(id);
         }}
       />
     </div>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { MenuItem } from '@shared/schema';
+import { getFoodImage } from '@/utils/food-images';
 
 export interface CartItem {
   id: string;
@@ -43,13 +44,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [cartItems]);
 
   const addToCart = (item: MenuItem) => {
+    const foodImage = getFoodImage(item.name);
     const cartItem: CartItem = {
       id: item.id,
       name: item.name,
       price: parseFloat(item.price),
       quantity: 1,
       restaurantId: item.restaurantId,
-      image: item.image,
+      image: foodImage || item.image || undefined,
     };
 
     setCartItems((prev) => {
