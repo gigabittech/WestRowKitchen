@@ -9,6 +9,7 @@ import CartSidebar from "@/components/ui/cart-sidebar";
 import Footer from "@/components/footer";
 import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus, Heart, Share2, Utensils } from "lucide-react";
 import type { Restaurant, MenuItem } from "@shared/schema";
+import { slugMatches } from "@/utils/slug";
 
 export default function FoodItemDetailPage() {
   const { restaurantSlug, itemId } = useParams<{ restaurantSlug: string; itemId: string }>();
@@ -22,9 +23,7 @@ export default function FoodItemDetailPage() {
     queryKey: ["/api/restaurants"],
   });
 
-  const restaurant = restaurants.find(r => 
-    r.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-') === restaurantSlug
-  );
+  const restaurant = restaurants.find(r => slugMatches(restaurantSlug || '', r.name));
 
   // Fetch menu items for the restaurant
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
@@ -85,7 +84,7 @@ export default function FoodItemDetailPage() {
     );
   }
 
-  if (!restaurant || !foodItem) {
+  if (!isLoading && (!restaurant || !foodItem)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center max-w-md">
