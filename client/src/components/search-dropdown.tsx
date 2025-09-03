@@ -7,6 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import type { Restaurant } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
 
+// Import restaurant logos
+import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
+import PappisPizzaLogo from "@assets/Pappi's Pizza Logo_1755170145362.png";
+import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png";
+
+const logoMap: Record<string, string> = {
+  "My Lai Kitchen": MyLaiLogo,
+  "Pappi's Pizza": PappisPizzaLogo,
+  "Cheeky's Burgers": CheekysBurgersLogo,
+};
+
 interface SearchDropdownProps {
   query: string;
   isVisible: boolean;
@@ -59,18 +70,19 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
 
   if (!isVisible) return null;
 
-  console.log('Search Dropdown Debug:', { 
-    query, 
-    queryLength: query.length, 
-    restaurantsCount: restaurants.length, 
-    filteredCount: filteredResults.length,
-    isLoading 
-  });
+  // Debug logging - remove in production
+  // console.log('Search Dropdown Debug:', { 
+  //   query, 
+  //   queryLength: query.length, 
+  //   restaurantsCount: restaurants.length, 
+  //   filteredCount: filteredResults.length,
+  //   isLoading 
+  // });
 
   return (
     <div 
       ref={dropdownRef}
-      className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto"
+      className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50"
       data-testid="search-dropdown"
     >
       {query.length >= 2 ? (
@@ -89,7 +101,7 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                   Results for "{query}"
                 </p>
               </div>
-              <div className="py-2">
+              <div className="max-h-80 overflow-y-auto">
                 {filteredResults.map((restaurant: Restaurant) => (
                   <Link 
                     key={restaurant.id} 
@@ -97,16 +109,24 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                     onClick={onItemClick}
                   >
                     <div 
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center space-x-3"
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center space-x-3 border-b border-gray-50 last:border-b-0"
                       data-testid={`search-result-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}`}
                     >
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Utensils className="w-6 h-6 text-gray-400" />
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {logoMap[restaurant.name] ? (
+                          <img 
+                            src={logoMap[restaurant.name]} 
+                            alt={restaurant.name}
+                            className="w-10 h-10 object-contain"
+                          />
+                        ) : (
+                          <Utensils className="w-6 h-6 text-gray-400" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-gray-900 truncate">{restaurant.name}</h4>
                         <div className="flex items-center space-x-3 text-sm text-gray-500">
-                          <span>{restaurant.cuisine}</span>
+                          <span className="truncate">{restaurant.cuisine}</span>
                           <div className="flex items-center">
                             <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
                             <span>{restaurant.rating}</span>
@@ -117,20 +137,23 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                           </div>
                         </div>
                       </div>
-                      <Badge 
-                        variant={restaurant.isOpen ? "default" : "secondary"}
-                        className={restaurant.isOpen ? "bg-green-100 text-green-800" : ""}
-                      >
-                        {restaurant.isOpen ? "Open" : "Closed"}
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge 
+                          variant={restaurant.isOpen ? "default" : "secondary"}
+                          className={restaurant.isOpen ? "bg-green-100 text-green-800 text-xs" : "text-xs"}
+                        >
+                          {restaurant.isOpen ? "Open" : "Closed"}
+                        </Badge>
+                      </div>
                     </div>
                   </Link>
                 ))}
               </div>
-              <div className="px-4 py-3 border-t border-gray-100">
+              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
                 <Link href={`/restaurants?search=${encodeURIComponent(query)}`} onClick={onItemClick}>
-                  <div className="text-sm text-primary hover:text-primary/80 cursor-pointer font-medium">
-                    View all results for "{query}" →
+                  <div className="text-sm text-primary hover:text-primary/80 cursor-pointer font-medium flex items-center justify-between">
+                    <span>View all results for "{query}"</span>
+                    <span>→</span>
                   </div>
                 </Link>
               </div>
@@ -140,9 +163,7 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
               <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
               <p className="text-gray-500 text-sm">No restaurants found for "{query}"</p>
               <p className="text-gray-400 text-xs mt-1">Try searching for a different cuisine or restaurant name</p>
-              <div className="mt-3 text-xs text-gray-400">
-                Total restaurants: {restaurants.length}
-              </div>
+
             </div>
           )}
         </div>
