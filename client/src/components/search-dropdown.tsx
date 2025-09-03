@@ -18,9 +18,9 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Fetch all restaurants for search
-  const { data: restaurants = [] } = useQuery<Restaurant[]>({
+  const { data: restaurants = [], isLoading } = useQuery<Restaurant[]>({
     queryKey: ["/api/restaurants"],
-    enabled: isVisible && query.length > 0,
+    enabled: isVisible,
   });
 
   // Filter results based on search query
@@ -59,6 +59,14 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
 
   if (!isVisible) return null;
 
+  console.log('Search Dropdown Debug:', { 
+    query, 
+    queryLength: query.length, 
+    restaurantsCount: restaurants.length, 
+    filteredCount: filteredResults.length,
+    isLoading 
+  });
+
   return (
     <div 
       ref={dropdownRef}
@@ -68,7 +76,12 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
       {query.length >= 2 ? (
         // Search Results
         <div>
-          {filteredResults.length > 0 ? (
+          {isLoading ? (
+            <div className="px-4 py-6 text-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-gray-500 text-sm">Searching...</p>
+            </div>
+          ) : filteredResults.length > 0 ? (
             <>
               <div className="px-4 py-2 border-b border-gray-100">
                 <p className="text-sm text-gray-600 flex items-center">
@@ -127,6 +140,9 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
               <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
               <p className="text-gray-500 text-sm">No restaurants found for "{query}"</p>
               <p className="text-gray-400 text-xs mt-1">Try searching for a different cuisine or restaurant name</p>
+              <div className="mt-3 text-xs text-gray-400">
+                Total restaurants: {restaurants.length}
+              </div>
             </div>
           )}
         </div>

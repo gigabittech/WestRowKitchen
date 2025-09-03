@@ -54,7 +54,7 @@ export function useSearch() {
     searchQuery,
     setSearchQuery: (query: string) => {
       setSearchQuery(query);
-      performSearch(query);
+      // Only perform search navigation when explicitly called, not on every keystroke
     },
     performSearch,
     clearSearch
