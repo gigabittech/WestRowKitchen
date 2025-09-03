@@ -114,9 +114,14 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                       data-testid={`search-result-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}`}
                       onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Clicked on restaurant:', restaurant.name);
                         console.log('Navigating to:', restaurantUrl);
                         onItemClick();
-                        navigate(restaurantUrl);
+                        // Small delay to ensure dropdown closes first
+                        setTimeout(() => {
+                          navigate(restaurantUrl);
+                        }, 100);
                       }}
                     >
                       <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
