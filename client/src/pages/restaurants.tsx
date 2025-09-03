@@ -14,6 +14,7 @@ import type { Restaurant } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
 import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -31,6 +32,14 @@ export default function Restaurants() {
   const [location] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const { cartItems, updateQuantity, removeFromCart, cartItemCount, isCartOpen, setIsCartOpen } = useCart();
+  
+  useDocumentTitle(
+    searchTerm 
+      ? `"${searchTerm}" Restaurants - West Row Kitchen`
+      : selectedCuisine !== "ALL" 
+        ? `${selectedCuisine} Restaurants - West Row Kitchen`
+        : "All Restaurants - West Row Kitchen"
+  );
 
   // Get search parameter from URL
   useEffect(() => {
@@ -62,7 +71,6 @@ export default function Restaurants() {
 
   return (
     <div className="min-h-screen bg-background">
-      <title>All Restaurants - West Row Kitchen</title>
       
       <NavigationHeader />
 

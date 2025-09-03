@@ -13,6 +13,7 @@ import { slugMatches } from "@/utils/slug";
 import { getFoodImage } from "@/utils/food-images";
 import { useCart } from "@/contexts/CartContext";
 import { FoodDetailSkeleton } from "@/components/skeleton-loader";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function FoodItemDetailPage() {
   const { restaurantSlug, itemId } = useParams<{ restaurantSlug: string; itemId: string }>();
@@ -42,6 +43,13 @@ export default function FoodItemDetailPage() {
 
   const foodItem = menuItems.find((item: MenuItem) => item.id === itemId);
   const isLoading = restaurantsLoading || menuLoading;
+  
+  // Set document title based on food item and restaurant
+  useDocumentTitle(
+    foodItem && restaurant 
+      ? `${foodItem.name} - ${restaurant.name} - West Row Kitchen`
+      : "Food Item - West Row Kitchen"
+  );
 
   const handleAddToCart = (item: MenuItem, qty: number) => {
     // Add items one by one to match the quantity
@@ -78,8 +86,6 @@ export default function FoodItemDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <title>{foodItem.name} - {restaurant.name} - West Row Kitchen</title>
-      <meta name="description" content={`Order ${foodItem.name} from ${restaurant.name}. ${foodItem.description || 'Delicious food delivered fresh to your door.'}`} />
       
       <NavigationHeader />
 

@@ -14,13 +14,15 @@ import { ShoppingBag, Clock, Star, TrendingUp } from "lucide-react";
 import type { Restaurant, Order } from "@shared/schema";
 import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
-import CartDebugSimple from "@/components/cart-debug-simple";
-import ImageTest from "@/components/image-test";
+
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function Home() {
   const { user } = useAuth();
   const [selectedCuisine, setSelectedCuisine] = useState<string>("ALL");
   const { cartItems, updateQuantity, removeFromCart, cartItemCount, isCartOpen, setIsCartOpen } = useCart();
+  
+  useDocumentTitle("Welcome Home - West Row Kitchen");
 
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
@@ -64,7 +66,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <title>Welcome Home - West Row Kitchen</title>
       
       <NavigationHeader />
 
@@ -220,8 +221,6 @@ export default function Home() {
       <Footer />
 
       {/* Cart sidebar now handled globally by UniversalCartSidebar */}
-      <CartDebugSimple />
-      <ImageTest />
     </div>
   );
 }

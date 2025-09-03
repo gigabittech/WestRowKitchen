@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,8 @@ export default function Checkout() {
     deliveryInstructions: "",
     paymentMethod: "card",
   });
+  
+  useDocumentTitle("Checkout - West Row Kitchen");
 
   const subtotal = cartTotal;
   const deliveryFee = 2.99;
@@ -100,7 +103,6 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <title>Checkout - West Row Kitchen</title>
       
       <NavigationHeader />
 

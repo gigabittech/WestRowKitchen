@@ -22,6 +22,7 @@ import { slugMatches, createSlug } from "@/utils/slug";
 import { useCart } from "@/contexts/CartContext";
 import { getFoodImage } from "@/utils/food-images";
 import { MenuItemCardSkeleton } from "@/components/skeleton-loader";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -50,6 +51,9 @@ export default function RestaurantPage() {
   const restaurant = restaurants.find((r) => slugMatches(slug || "", r.name));
 
   const restaurantLoading = restaurantsLoading;
+  
+  // Set document title based on restaurant
+  useDocumentTitle(restaurant ? `${restaurant.name} - West Row Kitchen` : "Restaurant - West Row Kitchen");
 
   // Update document title and meta when restaurant loads
   useEffect(() => {
@@ -146,7 +150,6 @@ export default function RestaurantPage() {
 
   return (
     <div className="min-h-screen bg-background">
-
       <NavigationHeader />
 
       {/* Back Button */}
