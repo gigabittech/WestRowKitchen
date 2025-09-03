@@ -4,7 +4,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NavigationHeader from "@/components/navigation-header";
 import CartSidebar from "@/components/ui/cart-sidebar";
 import Footer from "@/components/footer";
@@ -30,6 +29,7 @@ export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   // Restaurant logo mapping
   const logoMap: Record<string, string> = {
@@ -288,58 +288,57 @@ export default function RestaurantPage() {
         </div>
 
         {categories.length > 0 ? (
-          <Tabs defaultValue="all" className="w-full">
-            {/* Modern Tab Navigation */}
-            <div className="flex justify-center mb-12 px-4">
-              <TabsList className="bg-gray-100 p-1 rounded-2xl shadow-lg flex-wrap gap-1 w-full max-w-4xl justify-center">
-                {/* All Items Tab */}
-                <TabsTrigger
-                  value="all"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-xl px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all duration-200 text-xs sm:text-sm"
-                >
-                  <span>All</span>
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {menuItems.length}
-                  </Badge>
-                </TabsTrigger>
-
-                {/* Category Tabs */}
-                {categories.map((category: MenuCategory) => {
-                  const categoryItems = menuItems.filter(
-                    (item: MenuItem) => item.categoryId === category.id,
-                  );
-                  return (
-                    <TabsTrigger
-                      key={category.id}
-                      value={category.id?.toString()}
-                      className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-xl px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all duration-200 text-xs sm:text-sm"
-                    >
-                      <span>{category.name}</span>
-                      <Badge variant="secondary" className="ml-2 text-xs">
-                        {categoryItems.length}
-                      </Badge>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
+          <div className="w-full">
+            {/* Category Filter Buttons - Matching /restaurants layout */}
+            <div className="flex gap-2 overflow-x-auto w-full mb-12">
+              {/* All Items Button */}
+              <Button
+                variant={selectedCategory === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory("all")}
+                className="whitespace-nowrap"
+              >
+                All ({menuItems.length})
+              </Button>
+              
+              {/* Category Buttons */}
+              {categories.map((category: MenuCategory) => {
+                const categoryItems = menuItems.filter((item: MenuItem) => item.categoryId === category.id);
+                return (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategory === category.id?.toString() ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category.id?.toString() || "")}
+                    className="whitespace-nowrap"
+                  >
+                    {category.name} ({categoryItems.length})
+                  </Button>
+                );
+              })}
             </div>
 
-            {/* All Items Tab Content */}
-            <TabsContent value="all">
-              <div className="mb-8">
-                <div className="text-center mb-8">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                    All Items
-                  </h3>
-                  <p className="text-gray-600">
-                    {menuItems.length}{" "}
-                    {menuItems.length === 1 ? "item" : "items"} available
-                  </p>
-                </div>
+            {/* Menu Items Display */}
+            <div className="mb-8">
+              <div className="text-center mb-8">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                  {selectedCategory === "all" ? "All Items" : categories.find(c => c.id?.toString() === selectedCategory)?.name}
+                </h3>
+                <p className="text-gray-600">
+                  {selectedCategory === "all" 
+                    ? `${menuItems.length} ${menuItems.length === 1 ? "item" : "items"} available`
+                    : `${menuItems.filter(item => item.categoryId?.toString() === selectedCategory).length} ${menuItems.filter(item => item.categoryId?.toString() === selectedCategory).length === 1 ? "item" : "items"} available`
+                  }
+                </p>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                {menuItems.map((item: MenuItem) => (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              {menuItems
+                .filter((item: MenuItem) => 
+                  selectedCategory === "all" || item.categoryId?.toString() === selectedCategory
+                )
+                .map((item: MenuItem) => (
                   <Card
                     key={item.id}
                     className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
@@ -402,98 +401,8 @@ export default function RestaurantPage() {
                     </Link>
                   </Card>
                 ))}
-              </div>
-            </TabsContent>
-
-            {/* Category-specific Tab Contents */}
-            {categories.map((category: MenuCategory) => {
-              const categoryItems = menuItems.filter(
-                (item: MenuItem) => item.categoryId === category.id,
-              );
-              return (
-                <TabsContent key={category.id} value={category.id?.toString()}>
-                  <div className="mb-8">
-                    <div className="text-center mb-8">
-                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                        {category.name}
-                      </h3>
-                      <p className="text-gray-600">
-                        {categoryItems.length}{" "}
-                        {categoryItems.length === 1 ? "item" : "items"}{" "}
-                        available
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                    {categoryItems.map((item: MenuItem) => (
-                      <Card
-                        key={item.id}
-                        className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
-                      >
-                        <Link
-                          href={`/restaurant/${createSlug(restaurant?.name || "")}/item/${item.id}`}
-                        >
-                          <CardContent className="p-0">
-                            <div className="p-8 relative">
-                              {/* Item Image Placeholder */}
-                              <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                                <Utensils className="w-10 h-10 text-primary" />
-                              </div>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
-                                    {item.name}
-                                  </h3>
-                                  <p className="text-gray-600 leading-relaxed text-base line-clamp-3">
-                                    {item.description}
-                                  </p>
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                  <div className="space-y-1">
-                                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">
-                                      ${parseFloat(item.price).toFixed(2)}
-                                    </span>
-                                    <p className="text-sm text-gray-500">
-                                      per item
-                                    </p>
-                                  </div>
-
-                                  {item.isAvailable ? (
-                                    <Button
-                                      onClick={() => addToCart(item)}
-                                      size="lg"
-                                      className="bg-primary hover:bg-primary/90 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
-                                    >
-                                      <Plus className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" />
-                                      Add to Cart
-                                    </Button>
-                                  ) : (
-                                    <Badge
-                                      variant="secondary"
-                                      className="px-4 py-2"
-                                    >
-                                      Unavailable
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Decorative Elements */}
-                              <div className="absolute top-4 right-4 w-2 h-2 bg-primary/20 rounded-full"></div>
-                              <div className="absolute top-8 right-8 w-1 h-1 bg-primary/30 rounded-full"></div>
-                            </div>
-                          </CardContent>
-                        </Link>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-              );
-            })}
-          </Tabs>
+            </div>
+          </div>
         ) : (
           <Card className="p-16 text-center border-0 shadow-xl bg-gradient-to-br from-gray-50 to-white">
             <div className="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-8">
