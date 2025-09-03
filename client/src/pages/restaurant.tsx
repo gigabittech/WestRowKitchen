@@ -8,15 +8,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NavigationHeader from "@/components/navigation-header";
 import CartSidebar from "@/components/ui/cart-sidebar";
 import Footer from "@/components/footer";
-import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus, Utensils } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant, MenuCategory, MenuItem } from "@shared/schema";
 import { slugMatches } from "@/utils/slug";
+
+// Import restaurant logos
+import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
+import PappisPizzaLogo from "@assets/Pappi's Pizza Logo_1755170145362.png";
+import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png";
 
 export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<any[]>([]);
+
+  // Restaurant logo mapping
+  const logoMap: Record<string, string> = {
+    "My Lai Kitchen": MyLaiLogo,
+    "Pappi's Pizza": PappisPizzaLogo,
+    "Cheeky's Burgers": CheekysBurgersLogo,
+  };
 
 
 
@@ -151,8 +163,16 @@ export default function RestaurantPage() {
       <section className="max-w-7xl mx-auto px-4 pb-8">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <div className="h-64 bg-gradient-to-r from-orange-400 to-red-500 rounded-2xl mb-6 flex items-center justify-center">
-              <div className="text-white text-6xl">🍽️</div>
+            <div className="h-64 bg-gradient-to-r from-orange-400 to-red-500 rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
+              {restaurant && logoMap[restaurant.name] ? (
+                <img 
+                  src={logoMap[restaurant.name]} 
+                  alt={restaurant.name}
+                  className="w-32 h-32 object-contain drop-shadow-lg"
+                />
+              ) : (
+                <Utensils className="w-16 h-16 text-white" />
+              )}
             </div>
           </div>
           
