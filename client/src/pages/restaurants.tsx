@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import NavigationHeader from "@/components/navigation-header";
+import CartSidebar from "@/components/ui/cart-sidebar";
 import Footer from "@/components/footer";
 import { Clock, Star, MapPin, Search } from "lucide-react";
 import { Link } from "wouter";
@@ -200,6 +201,14 @@ export default function Restaurants() {
       </div>
 
       <Footer />
+      
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
+      />
     </div>
   );
 }

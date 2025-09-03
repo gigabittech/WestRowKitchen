@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import NavigationHeader from "@/components/navigation-header";
+import CartSidebar from "@/components/ui/cart-sidebar";
 import { ArrowLeft, CreditCard, MapPin, Clock } from "lucide-react";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
@@ -17,31 +19,15 @@ export default function Checkout() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { cartItems, updateQuantity, removeFromCart, cartItemCount, cartTotal } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [orderForm, setOrderForm] = useState({
     deliveryAddress: "",
     deliveryInstructions: "",
     paymentMethod: "card",
   });
 
-  // Mock cart data - in real app this would come from context/state
-  const cartItems = [
-    {
-      id: "1",
-      name: "Classic Cheeseburger",
-      price: 12.99,
-      quantity: 2,
-      restaurantName: "Burger Kingdom",
-    },
-    {
-      id: "2",
-      name: "Salmon Avocado Roll",
-      price: 14.99,
-      quantity: 1,
-      restaurantName: "Tokyo Sushi Express",
-    },
-  ];
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartTotal;
   const deliveryFee = 2.99;
   const serviceFee = subtotal * 0.05;
   const tax = (subtotal + deliveryFee + serviceFee) * 0.0875;
@@ -83,7 +69,7 @@ export default function Checkout() {
 
     // Group items by restaurant
     const restaurantOrders = cartItems.reduce((acc, item) => {
-      const key = item.restaurantName;
+      const key = item.restaurantId;
       if (!acc[key]) {
         acc[key] = [];
       }
@@ -118,9 +104,9 @@ export default function Checkout() {
       <title>Checkout - West Row Kitchen</title>
       
       <NavigationHeader 
-        isCartOpen={false}
-        setIsCartOpen={() => {}}
-        cartItemCount={0}
+        isCartOpen={isCartOpen}
+        setIsCartOpen={setIsCartOpen}
+        cartItemCount={cartItemCount}
       />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -217,7 +203,6 @@ export default function Checkout() {
                   <div key={item.id} className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="font-medium">{item.name}</div>
-                      <div className="text-sm text-gray-500">{item.restaurantName}</div>
                       <div className="text-sm text-gray-500">Qty: {item.quantity}</div>
                     </div>
                     <div className="font-semibold">
@@ -286,6 +271,14 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+      
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
+      />
     </div>
   );
 }
