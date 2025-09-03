@@ -10,6 +10,7 @@ import Footer from "@/components/footer";
 import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus, Heart, Share2, Utensils } from "lucide-react";
 import type { Restaurant, MenuItem } from "@shared/schema";
 import { slugMatches } from "@/utils/slug";
+import { getFoodImage } from "@/utils/food-images";
 
 export default function FoodItemDetailPage() {
   const { restaurantSlug, itemId } = useParams<{ restaurantSlug: string; itemId: string }>();
@@ -100,6 +101,12 @@ export default function FoodItemDetailPage() {
     );
   }
 
+  if (!restaurant || !foodItem) {
+    return null;
+  }
+
+  const foodImageSrc = getFoodImage(foodItem.name);
+
   return (
     <div className="min-h-screen bg-background">
       <title>{foodItem.name} - {restaurant.name} - West Row Kitchen</title>
@@ -127,7 +134,16 @@ export default function FoodItemDetailPage() {
           {/* Food Image */}
           <div className="relative">
             <div className="aspect-square bg-gradient-to-br from-orange-100 to-red-100 rounded-3xl flex items-center justify-center overflow-hidden shadow-2xl">
-              <Utensils className="w-24 h-24 text-primary/60" />
+              {foodImageSrc ? (
+                <img 
+                  src={foodImageSrc} 
+                  alt={foodItem.name}
+                  className="w-full h-full object-cover"
+                  data-testid={`img-food-${foodItem.id}`}
+                />
+              ) : (
+                <Utensils className="w-24 h-24 text-primary/60" />
+              )}
             </div>
             
             {/* Action Buttons */}
