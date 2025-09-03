@@ -100,11 +100,7 @@ export default function RestaurantPage() {
   if (restaurantLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <NavigationHeader
-          isCartOpen={isCartOpen}
-          setIsCartOpen={setIsCartOpen}
-          cartItemCount={cartItemCount}
-        />
+        <NavigationHeader />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-8">
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>

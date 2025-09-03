@@ -71,9 +71,9 @@ export default function CartSidebar({
               <div className="space-y-4 mb-6">
                 {items.map((item) => (
                   <div key={item.id} className="flex items-center space-x-4 py-4 border-b border-gray-100">
-                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
                       {item.image ? (
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-2xl">🍽️</span>
                       )}

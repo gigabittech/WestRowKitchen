@@ -14,6 +14,7 @@ import { ShoppingBag, Clock, Star, TrendingUp } from "lucide-react";
 import type { Restaurant, Order } from "@shared/schema";
 import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
+import CartDebugSimple from "@/components/cart-debug-simple";
 
 export default function Home() {
   const { user } = useAuth();
@@ -218,6 +219,7 @@ export default function Home() {
       <Footer />
 
       {/* Cart sidebar now handled globally by UniversalCartSidebar */}
+      <CartDebugSimple />
     </div>
   );
 }
