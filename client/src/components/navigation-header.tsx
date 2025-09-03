@@ -44,7 +44,9 @@ export default function NavigationHeader({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    performSearch(searchQuery);
+    if (searchQuery.trim()) {
+      performSearch(searchQuery);
+    }
   };
 
   return (
@@ -77,6 +79,7 @@ export default function NavigationHeader({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2"
+                data-testid="input-search-desktop"
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             </form>
@@ -170,6 +173,7 @@ export default function NavigationHeader({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4"
+              data-testid="input-search-mobile"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           </form>

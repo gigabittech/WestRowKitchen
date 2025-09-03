@@ -24,9 +24,9 @@ const logoMap: Record<string, string> = {
 };
 
 export default function Restaurants() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState("ALL");
   const [location] = useLocation();
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Get search parameter from URL
   useEffect(() => {
@@ -34,6 +34,8 @@ export default function Restaurants() {
     const searchParam = params.get('search');
     if (searchParam) {
       setSearchTerm(searchParam);
+    } else {
+      setSearchTerm("");
     }
   }, [location]);
 
@@ -69,20 +71,17 @@ export default function Restaurants() {
           <h1 className="text-4xl font-bold mb-4">All Restaurants</h1>
           <p className="text-gray-600 mb-6">Discover amazing local flavors from our partner restaurants</p>
           
-          {/* Search and Filter */}
+          {/* Filter Section */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search restaurants, cuisines, or dishes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+            {searchTerm && (
+              <div className="flex items-center text-sm text-gray-600">
+                <Search className="w-4 h-4 mr-2" />
+                Searching for: <span className="font-medium ml-1">"{searchTerm}"</span>
+              </div>
+            )}
             
             {/* Cuisine Filter */}
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="flex gap-2 overflow-x-auto w-full">
               {cuisineTypes.map((cuisine) => (
                 <Button
                   key={cuisine}
