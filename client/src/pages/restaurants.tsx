@@ -178,7 +178,27 @@ export default function Restaurants() {
           <div className="text-center py-12">
             <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No restaurants found</h3>
-            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+            <p className="text-gray-500 mb-6">Try adjusting your search or filter criteria</p>
+            <div className="flex justify-center gap-4">
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setSelectedCuisine("ALL");
+                  window.history.pushState({}, '', '/restaurants');
+                }}
+                data-testid="button-clear-filters"
+              >
+                Clear Filters
+              </Button>
+              <Link href="/">
+                <Button 
+                  className="bg-primary hover:bg-primary/90"
+                  data-testid="button-back-home"
+                >
+                  Back to Home
+                </Button>
+              </Link>
+            </div>
           </div>
         )}
       </div>

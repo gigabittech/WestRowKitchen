@@ -88,6 +88,28 @@ export default function Landing() {
               From local favorites to hidden gems, get the food you love delivered hot and fresh to your door
             </p>
             
+            {/* Primary CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+              <Link href="/restaurants">
+                <Button 
+                  size="lg" 
+                  className="btn-primary text-lg px-8 py-4 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                  data-testid="button-browse-restaurants"
+                >
+                  Browse Restaurants
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="text-lg px-8 py-4 border-2 border-primary hover:bg-primary hover:text-white transition-all duration-300"
+                onClick={() => document.getElementById('featured-restaurants')?.scrollIntoView({ behavior: 'smooth' })}
+                data-testid="button-see-featured"
+              >
+                See Featured
+              </Button>
+            </div>
+            
             {/* Delivery Options */}
             <div className="flex justify-center items-center space-x-8 mb-12">
               <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl hover:scale-105 transition-all duration-300">
@@ -148,11 +170,20 @@ export default function Landing() {
       )}
 
       {/* Featured Restaurants */}
-      <section className="py-12 bg-white">
+      <section id="featured-restaurants" className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-4">Featured Restaurants</h2>
-            <p className="text-gray-600">Discover amazing local flavors</p>
+            <p className="text-gray-600 mb-6">Discover amazing local flavors</p>
+            <Link href="/restaurants">
+              <Button 
+                variant="outline" 
+                className="hover:bg-primary hover:text-white transition-all mb-8"
+                data-testid="button-browse-all-featured"
+              >
+                Browse All Restaurants
+              </Button>
+            </Link>
           </div>
           
           {restaurantsLoading ? (
@@ -174,15 +205,54 @@ export default function Landing() {
           )}
           
           <div className="text-center mt-12">
-            <Button className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full font-semibold">
-              View All Restaurants
+            <Link href="/restaurants">
+              <Button 
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                data-testid="button-view-all-bottom"
+              >
+                View All Restaurants
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-primary to-secondary text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Ready to Order?
+          </h2>
+          <p className="text-xl mb-8 opacity-90">
+            Join thousands of satisfied customers. Get your favorite food delivered in minutes.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/restaurants">
+              <Button 
+                size="lg"
+                variant="secondary"
+                className="bg-white text-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-xl"
+                data-testid="button-start-ordering"
+              >
+                Start Ordering
+              </Button>
+            </Link>
+            <Button 
+              size="lg"
+              variant="outline"
+              className="border-2 border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold"
+              onClick={() => document.getElementById('featured-restaurants')?.scrollIntoView({ behavior: 'smooth' })}
+              data-testid="button-browse-featured"
+            >
+              Browse Featured
             </Button>
           </div>
         </div>
       </section>
 
       {/* App Download Section */}
-      <section className="py-16 gradient-primary text-white">
+      <section className="py-16 bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>

@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Star, Clock, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
@@ -75,6 +76,17 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
               Min. order: ${restaurant.minimumOrder}
             </div>
           )}
+          
+          {/* CTA Button */}
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <Button 
+              className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
+              size="sm"
+              data-testid={`button-order-now-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              Order Now
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </Link>
