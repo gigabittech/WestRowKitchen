@@ -240,12 +240,11 @@ export default function Landing() {
             </Link>
             <Button 
               size="lg"
-              variant="outline"
-              className="border-2 border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold"
+              className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold transition-all duration-200"
               onClick={() => document.getElementById('featured-restaurants')?.scrollIntoView({ behavior: 'smooth' })}
               data-testid="button-browse-featured"
             >
-              Browse Featured
+              See Featured
             </Button>
           </div>
         </div>
