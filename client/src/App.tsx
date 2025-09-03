@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
-import RouteLoader from "@/components/route-loader";
+
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Restaurant from "@/pages/restaurant";
@@ -28,45 +28,43 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
-    <RouteLoader>
-      <Switch>
-        {isLoading || !isAuthenticated ? (
-          <>
-            <Route path="/" component={Landing} />
-            <Route path="/auth" component={AuthPage} />
-            <Route path="/restaurants" component={Restaurants} />
-            <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
-            <Route path="/restaurant/:slug" component={Restaurant} />
-            <Route path="/checkout" component={Checkout} />
-            <Route path="/stripe-checkout" component={StripeCheckout} />
-            <Route path="/terms" component={Terms} />
-            <Route path="/privacy" component={Privacy} />
-            <Route path="/refund" component={Refund} />
-            <Route path="/help" component={Help} />
-            <Route path="/contact" component={Contact} />
-            <Route path="/faq" component={FAQ} />
-          </>
-        ) : (
-          <>
-            <Route path="/" component={Home} />
-            <Route path="/restaurants" component={Restaurants} />
-            <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
-            <Route path="/restaurant/:slug" component={Restaurant} />
-            <Route path="/admin" component={Admin} />
-            <Route path="/checkout" component={Checkout} />
-            <Route path="/stripe-checkout" component={StripeCheckout} />
-            <Route path="/orders" component={Orders} />
-            <Route path="/terms" component={Terms} />
-            <Route path="/privacy" component={Privacy} />
-            <Route path="/refund" component={Refund} />
-            <Route path="/help" component={Help} />
-            <Route path="/contact" component={Contact} />
-            <Route path="/faq" component={FAQ} />
-          </>
-        )}
-        <Route component={NotFound} />
-      </Switch>
-    </RouteLoader>
+    <Switch>
+      {isLoading || !isAuthenticated ? (
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/auth" component={AuthPage} />
+          <Route path="/restaurants" component={Restaurants} />
+          <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
+          <Route path="/restaurant/:slug" component={Restaurant} />
+          <Route path="/checkout" component={Checkout} />
+          <Route path="/stripe-checkout" component={StripeCheckout} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/refund" component={Refund} />
+          <Route path="/help" component={Help} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/faq" component={FAQ} />
+        </>
+      ) : (
+        <>
+          <Route path="/" component={Home} />
+          <Route path="/restaurants" component={Restaurants} />
+          <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
+          <Route path="/restaurant/:slug" component={Restaurant} />
+          <Route path="/admin" component={Admin} />
+          <Route path="/checkout" component={Checkout} />
+          <Route path="/stripe-checkout" component={StripeCheckout} />
+          <Route path="/orders" component={Orders} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/refund" component={Refund} />
+          <Route path="/help" component={Help} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/faq" component={FAQ} />
+        </>
+      )}
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
