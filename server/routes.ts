@@ -26,7 +26,7 @@ import { z } from "zod";
 let stripe: Stripe | null = null;
 try {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_4eC39HqLyjWDarjtT1zdp7dc", {
-    apiVersion: "2023-10-16",
+    apiVersion: "2025-06-30.basil",
   });
 } catch (error) {
   console.log("Stripe not configured, payment functionality disabled");
@@ -265,11 +265,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const orderWithItems = {
             ...order,
             items: orderItems,
-            subtotal: orderItems.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0),
+            subtotal: orderItems.reduce((sum: number, item: any) => sum + (parseFloat(item.unitPrice) * item.quantity), 0),
             deliveryFee: 2.99,
             serviceFee: 0,
             tax: 0,
-            total: orderItems.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0) + 2.99
+            total: orderItems.reduce((sum: number, item: any) => sum + (parseFloat(item.unitPrice) * item.quantity), 0) + 2.99
           };
           
           await sendOrderConfirmationEmail(orderWithItems, restaurant, user);

@@ -30,6 +30,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Key Components
 
+### Transactional Email System
+- Brevo SMTP integration for professional email delivery
+- Automated order confirmation emails with detailed order summaries
+- Order status update notifications (confirmed, preparing, ready, delivered, cancelled)
+- Welcome emails for new user registrations
+- Beautiful HTML email templates with brand styling
+- Non-blocking email sending (app continues if email fails)
+- Email service health monitoring and error handling
+
 ### Authentication System
 - Replit OpenID Connect integration for user authentication
 - Session-based authentication with PostgreSQL session storage
