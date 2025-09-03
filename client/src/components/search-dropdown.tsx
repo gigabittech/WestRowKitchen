@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Search, MapPin, Utensils, Clock, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,7 @@ interface SearchDropdownProps {
 
 export default function SearchDropdown({ query, isVisible, onClose, onItemClick }: SearchDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [, navigate] = useLocation();
   
   // Fetch all restaurants for search
   const { data: restaurants = [], isLoading } = useQuery<Restaurant[]>({
@@ -114,11 +115,12 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                       onMouseDown={(e) => {
                         // Use mousedown instead of click to prevent dropdown from closing first
                         e.preventDefault();
+                        e.stopPropagation();
                         console.log('Mouse down on restaurant:', restaurant.name);
                         console.log('Navigating to:', restaurantUrl);
                         onItemClick();
-                        // Navigate using window.location for immediate navigation
-                        window.location.href = restaurantUrl;
+                        // Use wouter's navigate for smooth transitions
+                        navigate(restaurantUrl);
                       }}
                     >
                       <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
