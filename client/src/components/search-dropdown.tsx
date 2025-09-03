@@ -107,20 +107,20 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                   const restaurantUrl = `/restaurant/${restaurantSlug}`;
                   
                   return (
-                    <Link 
+                    <div
                       key={restaurant.id}
-                      href={restaurantUrl}
-                      className="block"
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center space-x-3 border-b border-gray-50 last:border-b-0"
+                      data-testid={`search-result-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      onMouseDown={(e) => {
+                        // Use mousedown instead of click to prevent dropdown from closing first
+                        e.preventDefault();
+                        console.log('Mouse down on restaurant:', restaurant.name);
+                        console.log('Navigating to:', restaurantUrl);
+                        onItemClick();
+                        // Navigate using window.location for immediate navigation
+                        window.location.href = restaurantUrl;
+                      }}
                     >
-                      <div
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center space-x-3 border-b border-gray-50 last:border-b-0"
-                        data-testid={`search-result-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}`}
-                        onClick={(e) => {
-                          console.log('Clicked on restaurant:', restaurant.name);
-                          console.log('Navigating to:', restaurantUrl);
-                          onItemClick();
-                        }}
-                      >
                       <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {logoMap[restaurant.name] ? (
                           <img 
@@ -154,8 +154,7 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                           {restaurant.isOpen ? "Open" : "Closed"}
                         </Badge>
                       </div>
-                      </div>
-                    </Link>
+                    </div>
                   );
                 })}
               </div>
