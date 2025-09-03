@@ -12,6 +12,7 @@ import Footer from "@/components/footer";
 import { ShoppingBag, Clock, Star, TrendingUp } from "lucide-react";
 import type { Restaurant, Order } from "@shared/schema";
 import { useCart } from "@/hooks/useCart";
+import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
 
 export default function Home() {
   const { user } = useAuth();
@@ -184,7 +185,7 @@ export default function Home() {
           {restaurantsLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(9)].map((_, i) => (
-                <div key={i} className="bg-gray-200 animate-pulse rounded-2xl h-80"></div>
+                <RestaurantCardSkeleton key={i} />
               ))}
             </div>
           ) : restaurants.length === 0 ? (

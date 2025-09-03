@@ -30,6 +30,27 @@ Preferred communication style: Simple, everyday language.
 
 ## Key Components
 
+### Loading and Navigation System
+- Comprehensive route-level loading states with smooth transitions
+- Custom skeleton loaders for restaurants, menu items, and food details
+- Minimum loading duration to prevent flicker and improve perceived performance
+- Smooth opacity transitions between page loads
+- Professional loading spinners with contextual messages
+
+### Food Image System  
+- Smart image matching system with 18 professional food images
+- Automatic image lookup by food item names with fuzzy matching
+- Fallback to default icons when no image match is found
+- Images display throughout the app (menus, cart, detail pages)
+- Optimized loading and caching for better performance
+
+### Global Cart Management
+- Persistent cart state across all application routes  
+- localStorage integration for cart persistence between sessions
+- Real-time cart updates with proper TypeScript integration
+- Food images automatically included in cart items
+- Consistent cart functionality across all pages
+
 ### Transactional Email System
 - Brevo SMTP integration for professional email delivery
 - Automated order confirmation emails with detailed order summaries

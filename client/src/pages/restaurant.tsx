@@ -21,6 +21,7 @@ import type { Restaurant, MenuCategory, MenuItem } from "@shared/schema";
 import { slugMatches, createSlug } from "@/utils/slug";
 import { useCart } from "@/hooks/useCart";
 import { getFoodImage } from "@/utils/food-images";
+import { MenuItemCardSkeleton } from "@/components/skeleton-loader";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -106,12 +107,17 @@ export default function RestaurantPage() {
           cartItemCount={cartItemCount}
         />
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="h-64 bg-gray-200 rounded mb-8"></div>
-            <div className="grid md:grid-cols-3 gap-6">
+          <div className="animate-pulse space-y-8">
+            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+            <div className="h-64 bg-gray-200 rounded-3xl"></div>
+            <div className="flex flex-wrap gap-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-10 bg-gray-200 rounded-full w-24"></div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-48 bg-gray-200 rounded"></div>
+                <MenuItemCardSkeleton key={i} />
               ))}
             </div>
           </div>
