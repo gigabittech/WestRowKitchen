@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MapPin, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, Check, Crosshair, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -25,10 +25,67 @@ const popularLocations = [
 export default function LocationPicker({ currentLocation, onLocationChange }: LocationPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [customLocation, setCustomLocation] = useState("");
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [recentLocations, setRecentLocations] = useState<string[]>([]);
+
+  // Load recent locations from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('wrk_recent_locations');
+    if (saved) {
+      try {
+        setRecentLocations(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to load recent locations:', e);
+      }
+    }
+  }, []);
 
   const handleLocationSelect = (location: string) => {
     onLocationChange(location);
+    saveToRecentLocations(location);
     setIsOpen(false);
+  };
+
+  const saveToRecentLocations = (location: string) => {
+    const updated = [location, ...recentLocations.filter(l => l !== location)].slice(0, 3);
+    setRecentLocations(updated);
+    localStorage.setItem('wrk_recent_locations', JSON.stringify(updated));
+  };
+
+  const detectCurrentLocation = () => {
+    setIsDetectingLocation(true);
+    
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by this browser.');
+      setIsDetectingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          // In a real app, you'd use a geocoding service here
+          // For now, we'll use a simulated address
+          const detectedLocation = `Detected: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+          handleLocationSelect(detectedLocation);
+        } catch (error) {
+          console.error('Geocoding failed:', error);
+          alert('Failed to get address for your location');
+        } finally {
+          setIsDetectingLocation(false);
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Failed to detect your location. Please enter manually.');
+        setIsDetectingLocation(false);
+      },
+      { 
+        enableHighAccuracy: true, 
+        timeout: 10000, 
+        maximumAge: 300000 
+      }
+    );
   };
 
   const handleCustomLocationSubmit = (e: React.FormEvent) => {
@@ -55,6 +112,18 @@ export default function LocationPicker({ currentLocation, onLocationChange }: Lo
         <div className="p-4">
           <h4 className="font-semibold mb-3">Choose delivery location</h4>
           
+          {/* GPS Detection Button */}
+          <Button
+            onClick={detectCurrentLocation}
+            disabled={isDetectingLocation}
+            variant="outline"
+            className="w-full mb-3 flex items-center justify-center"
+            data-testid="button-detect-location"
+          >
+            <Crosshair className="w-4 h-4 mr-2" />
+            {isDetectingLocation ? 'Detecting...' : 'Use current location'}
+          </Button>
+          
           {/* Custom location input */}
           <form onSubmit={handleCustomLocationSubmit} className="mb-4">
             <div className="flex gap-2">
@@ -70,6 +139,31 @@ export default function LocationPicker({ currentLocation, onLocationChange }: Lo
             </div>
           </form>
           
+          {/* Recent locations */}
+          {recentLocations.length > 0 && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2 flex items-center">
+                <Clock className="w-3 h-3 mr-1" />
+                Recent locations:
+              </p>
+              <div className="space-y-1">
+                {recentLocations.map((location, index) => (
+                  <button
+                    key={`recent-${index}`}
+                    onClick={() => handleLocationSelect(location)}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center justify-between text-sm"
+                    data-testid={`button-recent-location-${index}`}
+                  >
+                    <span className="truncate">{location}</span>
+                    {location === currentLocation && (
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {/* Popular locations */}
           <div>
             <p className="text-sm text-gray-600 mb-2">Popular locations:</p>
@@ -79,6 +173,7 @@ export default function LocationPicker({ currentLocation, onLocationChange }: Lo
                   key={location}
                   onClick={() => handleLocationSelect(location)}
                   className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center justify-between text-sm"
+                  data-testid={`button-popular-location-${location.split(',')[0].replace(/\s+/g, '-').toLowerCase()}`}
                 >
                   <span className="truncate">{location}</span>
                   {location === currentLocation && (
