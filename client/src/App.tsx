@@ -49,6 +49,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/auth" component={AuthPage} />
           <Route path="/restaurants" component={Restaurants} />
           <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
           <Route path="/restaurant/:slug" component={Restaurant} />
