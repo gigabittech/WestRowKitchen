@@ -56,7 +56,7 @@ export interface IStorage {
   createOrderItems(items: InsertOrderItem[]): Promise<OrderItem[]>;
   getUserOrders(userId: string): Promise<Order[]>;
   getOrderById(orderId: string): Promise<Order | null>;
-  getOrderItems(orderId: string): Promise<OrderItem[]>;
+  getOrderItems(orderId: string): Promise<OrderItem[]>;\n  getOrderItemsWithDetails(orderId: string): Promise<any[]>;
   getRestaurantOrders(restaurantId: string): Promise<Order[]>;
   updateOrderStatus(orderId: string, status: string): Promise<Order>;
 
