@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { queryKeys } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ export default function AuthPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
   const [loginForm, setLoginForm] = useState({
     email: "",
@@ -31,9 +33,15 @@ export default function AuthPage() {
   const loginMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
       const response = await apiRequest("POST", "/api/login", credentials);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Login failed");
+      }
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate user query to refetch authentication state
+      queryClient.invalidateQueries({ queryKey: queryKeys.user() });
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
@@ -52,9 +60,15 @@ export default function AuthPage() {
   const registerMutation = useMutation({
     mutationFn: async (userData: any) => {
       const response = await apiRequest("POST", "/api/register", userData);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Registration failed");
+      }
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate user query to refetch authentication state
+      queryClient.invalidateQueries({ queryKey: queryKeys.user() });
       toast({
         title: "Account Created!",
         description: "Welcome to West Row Kitchen. You're now logged in.",

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { queryKeys } from "@/lib/queryKeys";
 import { useLocation as useLocationHook } from "@/hooks/useLocation";
 import { useSearch } from "@/hooks/useSearch";
 import { Button } from "@/components/ui/button";
@@ -34,6 +36,7 @@ export default function NavigationHeader() {
   const { location, updateLocation } = useLocationHook();
   const { searchQuery, setSearchQuery, performSearch } = useSearch();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
@@ -128,7 +131,11 @@ export default function NavigationHeader() {
                   <DropdownMenuItem 
                     onClick={() => {
                       fetch('/api/logout', { method: 'POST', credentials: 'include' })
-                        .then(() => setLocation('/'));
+                        .then(() => {
+                          // Invalidate user query to clear authentication state
+                          queryClient.invalidateQueries({ queryKey: queryKeys.user() });
+                          setLocation('/');
+                        });
                     }}
                     className="text-red-600 cursor-pointer"
                   >
