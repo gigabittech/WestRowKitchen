@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import NavigationHeader from "@/components/navigation-header";
 import CartSidebar from "@/components/ui/cart-sidebar";
-import { ArrowLeft, CreditCard, MapPin, Clock, User, Phone } from "lucide-react";
+import { ArrowLeft, CreditCard, MapPin, Clock, User, Phone, Banknote } from "lucide-react";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
 
@@ -379,7 +379,10 @@ export default function Checkout() {
                       checked={orderForm.paymentMethod === "cash"}
                       onChange={(e) => setOrderForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
                     />
-                    <label htmlFor="cash">Cash on Delivery</label>
+                    <label htmlFor="cash" className="flex items-center">
+                      <Banknote className="w-4 h-4 mr-2" />
+                      Cash on Delivery
+                    </label>
                   </div>
                 </div>
               </CardContent>
@@ -466,7 +469,12 @@ export default function Checkout() {
                     className="w-full btn-primary py-3 text-lg"
                     disabled={placeOrderMutation.isPending}
                   >
-                    {placeOrderMutation.isPending ? "Placing Order..." : `Place Order - ${total.toFixed(2)} (Cash on Delivery)`}
+                    {placeOrderMutation.isPending ? "Placing Order..." : (
+                      <>
+                        Place Order - ${total.toFixed(2)}<br />
+                        <span className="text-sm">(Cash on Delivery)</span>
+                      </>
+                    )}
                   </Button>
                 )}
                 <p className="text-xs text-gray-500 text-center mt-2">
