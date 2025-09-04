@@ -459,6 +459,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search endpoint for both restaurants and food items
+  app.get("/api/search", async (req, res) => {
+    try {
+      const { q: query } = req.query;
+      
+      if (!query || typeof query !== 'string' || query.length < 2) {
+        return res.json({ restaurants: [], menuItems: [] });
+      }
+
+      // Search restaurants
+      const restaurants = await storage.getRestaurants();
+      const searchTerm = query.toLowerCase();
+      const filteredRestaurants = restaurants.filter((restaurant) => 
+        restaurant.name.toLowerCase().includes(searchTerm) ||
+        restaurant.cuisine.toLowerCase().includes(searchTerm) ||
+        (restaurant.description && restaurant.description.toLowerCase().includes(searchTerm))
+      ).slice(0, 5);
+
+      // Search menu items
+      const menuItems = await storage.searchMenuItems(query);
+
+      res.json({
+        restaurants: filteredRestaurants,
+        menuItems: menuItems.slice(0, 5)
+      });
+    } catch (error) {
+      console.error("Error searching:", error);
+      res.status(500).json({ message: "Failed to search" });
+    }
+  });
+
   // Reorder endpoint
   app.post("/api/orders/reorder", isAuthenticated, async (req: any, res) => {
     try {

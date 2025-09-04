@@ -4,8 +4,9 @@ import { Link, useLocation } from "wouter";
 import { Search, MapPin, Utensils, Clock, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Restaurant } from "@shared/schema";
+import type { Restaurant, MenuItem } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
+import { getFoodImage } from "@/utils/food-images";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -29,23 +30,14 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [, navigate] = useLocation();
   
-  // Fetch all restaurants for search
-  const { data: restaurants = [], isLoading } = useQuery<Restaurant[]>({
-    queryKey: ["/api/restaurants"],
-    enabled: isVisible,
+  // Fetch search results for both restaurants and food items
+  const { data: searchResults = { restaurants: [], menuItems: [] }, isLoading } = useQuery<{
+    restaurants: Restaurant[];
+    menuItems: (MenuItem & { restaurant: Restaurant })[];
+  }>({
+    queryKey: ["/api/search", { q: query }],
+    enabled: isVisible && query.length >= 2,
   });
-
-  // Filter results based on search query
-  const filteredResults = restaurants.filter((restaurant: Restaurant) => {
-    if (!query || query.length < 2) return false;
-    
-    const searchTerm = query.toLowerCase();
-    return (
-      restaurant.name.toLowerCase().includes(searchTerm) ||
-      restaurant.cuisine.toLowerCase().includes(searchTerm) ||
-      (restaurant.description && restaurant.description.toLowerCase().includes(searchTerm))
-    );
-  }).slice(0, 5); // Limit to 5 results
 
   // Popular search suggestions when no query
   const popularSearches = [
@@ -71,15 +63,6 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
 
   if (!isVisible) return null;
 
-  // Debug logging - remove in production
-  // console.log('Search Dropdown Debug:', { 
-  //   query, 
-  //   queryLength: query.length, 
-  //   restaurantsCount: restaurants.length, 
-  //   filteredCount: filteredResults.length,
-  //   isLoading 
-  // });
-
   return (
     <div 
       ref={dropdownRef}
@@ -94,71 +77,127 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
               <p className="text-gray-500 text-sm">Searching...</p>
             </div>
-          ) : filteredResults.length > 0 ? (
+          ) : (searchResults.restaurants.length > 0 || searchResults.menuItems.length > 0) ? (
             <>
               <div className="px-4 py-2 border-b border-gray-100">
                 <p className="text-sm text-gray-600 flex items-center">
                   <Search className="w-4 h-4 mr-2" />
-                  Results for "{query}"
+                  {searchResults.restaurants.length + searchResults.menuItems.length} result{(searchResults.restaurants.length + searchResults.menuItems.length) !== 1 ? 's' : ''} found
                 </p>
               </div>
               <div className="max-h-80 overflow-y-auto">
-                {filteredResults.map((restaurant: Restaurant) => {
-                  const restaurantSlug = createSlug(restaurant.name);
-                  const restaurantUrl = `/restaurant/${restaurantSlug}`;
-                  
-                  return (
-                    <div
-                      key={restaurant.id}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center space-x-3 border-b border-gray-50 last:border-b-0"
-                      data-testid={`search-result-${restaurant.name.toLowerCase().replace(/\s+/g, '-')}`}
-                      onMouseDown={(e) => {
-                        // Use mousedown instead of click to prevent dropdown from closing first
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Mouse down on restaurant:', restaurant.name);
-                        console.log('Navigating to:', restaurantUrl);
-                        onItemClick();
-                        // Use wouter's navigate for smooth transitions
-                        navigate(restaurantUrl);
-                      }}
-                    >
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {logoMap[restaurant.name] ? (
-                          <img 
-                            src={logoMap[restaurant.name]} 
-                            alt={restaurant.name}
-                            className="w-10 h-10 object-contain"
-                          />
-                        ) : (
-                          <Utensils className="w-6 h-6 text-gray-400" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 truncate">{restaurant.name}</h4>
-                        <div className="flex items-center space-x-3 text-sm text-gray-500">
-                          <span className="truncate">{restaurant.cuisine}</span>
-                          <div className="flex items-center">
-                            <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
-                            <span>{restaurant.rating}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Clock className="w-3 h-3 mr-1" />
-                            <span>{restaurant.deliveryTime || "25-35 min"}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge 
-                          variant={restaurant.isOpen ? "default" : "secondary"}
-                          className={restaurant.isOpen ? "bg-green-100 text-green-800 text-xs" : "text-xs"}
-                        >
-                          {restaurant.isOpen ? "Open" : "Closed"}
-                        </Badge>
-                      </div>
+                {/* Restaurant Results */}
+                {searchResults.restaurants.length > 0 && (
+                  <div>
+                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Restaurants</p>
                     </div>
-                  );
-                })}
+                    {searchResults.restaurants.map((restaurant) => {
+                      const restaurantSlug = createSlug(restaurant.name);
+                      const logo = logoMap[restaurant.name];
+                      
+                      return (
+                        <Link 
+                          key={restaurant.id} 
+                          href={`/restaurant/${restaurantSlug}`}
+                          onClick={onItemClick}
+                        >
+                          <div className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0">
+                            <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-3">
+                              {logo ? (
+                                <img
+                                  src={logo}
+                                  alt={restaurant.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                  <Utensils className="w-6 h-6 text-primary" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-gray-900 truncate">
+                                {restaurant.name}
+                              </h3>
+                              <div className="flex items-center mt-1 space-x-3">
+                                <Badge variant="secondary" className="text-xs">
+                                  {restaurant.cuisine}
+                                </Badge>
+                                {restaurant.rating && restaurant.rating !== "0.00" && (
+                                  <div className="flex items-center text-xs text-gray-500">
+                                    <Star className="w-3 h-3 fill-current text-yellow-400 mr-1" />
+                                    {restaurant.rating}
+                                  </div>
+                                )}
+                                {restaurant.deliveryTime && (
+                                  <div className="flex items-center text-xs text-gray-500">
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    {restaurant.deliveryTime}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Food Item Results */}
+                {searchResults.menuItems.length > 0 && (
+                  <div>
+                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Food Items</p>
+                    </div>
+                    {searchResults.menuItems.map((item) => {
+                      const restaurantSlug = createSlug(item.restaurant.name);
+                      const itemSlug = createSlug(item.name);
+                      const foodImage = getFoodImage(item.name);
+                      
+                      return (
+                        <Link 
+                          key={item.id} 
+                          href={`/restaurant/${restaurantSlug}/food/${itemSlug}?id=${item.id}`}
+                          onClick={onItemClick}
+                        >
+                          <div className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0">
+                            <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-3">
+                              {foodImage ? (
+                                <img
+                                  src={foodImage}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                  <Utensils className="w-6 h-6 text-primary" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-gray-900 truncate">
+                                {item.name}
+                              </h3>
+                              <p className="text-sm text-gray-600 truncate">
+                                from {item.restaurant.name}
+                              </p>
+                              <div className="flex items-center justify-between mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {item.restaurant.cuisine}
+                                </Badge>
+                                <span className="font-semibold text-primary">
+                                  ${parseFloat(item.price).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
                 <Link href={`/restaurants?search=${encodeURIComponent(query)}`} onClick={onItemClick}>
@@ -172,9 +211,8 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
           ) : (
             <div className="px-4 py-6 text-center">
               <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm">No restaurants found for "{query}"</p>
-              <p className="text-gray-400 text-xs mt-1">Try searching for a different cuisine or restaurant name</p>
-
+              <p className="text-gray-500 text-sm">No results found</p>
+              <p className="text-gray-400 text-xs mt-1">Try searching with different keywords</p>
             </div>
           )}
         </div>

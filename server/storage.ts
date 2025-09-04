@@ -47,6 +47,8 @@ export interface IStorage {
   getMenuCategories(restaurantId: string): Promise<MenuCategory[]>;
   createMenuCategory(category: InsertMenuCategory): Promise<MenuCategory>;
   getMenuItems(restaurantId: string, categoryId?: string): Promise<MenuItem[]>;
+  getMenuItemById(id: string): Promise<MenuItem | undefined>;
+  searchMenuItems(query: string): Promise<(MenuItem & { restaurant: Restaurant })[]>;
   createMenuItem(item: InsertMenuItem): Promise<MenuItem>;
   updateMenuItem(id: string, item: Partial<InsertMenuItem>): Promise<MenuItem>;
   deleteMenuItem(id: string): Promise<void>;
@@ -205,6 +207,60 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMenuItem(id: string): Promise<void> {
     await db.delete(menuItems).where(eq(menuItems.id, id));
+  }
+
+  async getMenuItemById(id: string): Promise<MenuItem | undefined> {
+    const [item] = await db
+      .select()
+      .from(menuItems)
+      .where(eq(menuItems.id, id))
+      .limit(1);
+    return item;
+  }
+
+  async searchMenuItems(query: string): Promise<(MenuItem & { restaurant: Restaurant })[]> {
+    const searchTerm = `%${query.toLowerCase()}%`;
+    
+    return await db
+      .select({
+        id: menuItems.id,
+        categoryId: menuItems.categoryId,
+        restaurantId: menuItems.restaurantId,
+        name: menuItems.name,
+        description: menuItems.description,
+        price: menuItems.price,
+        image: menuItems.image,
+        isAvailable: menuItems.isAvailable,
+        preparationTime: menuItems.preparationTime,
+        sortOrder: menuItems.sortOrder,
+        createdAt: menuItems.createdAt,
+        updatedAt: menuItems.updatedAt,
+        restaurant: {
+          id: restaurants.id,
+          name: restaurants.name,
+          cuisine: restaurants.cuisine,
+          description: restaurants.description,
+          image: restaurants.image,
+          address: restaurants.address,
+          phone: restaurants.phone,
+          rating: restaurants.rating,
+          deliveryTime: restaurants.deliveryTime,
+          deliveryFee: restaurants.deliveryFee,
+          minimumOrder: restaurants.minimumOrder,
+          isOpen: restaurants.isOpen,
+          createdAt: restaurants.createdAt,
+          updatedAt: restaurants.updatedAt,
+        }
+      })
+      .from(menuItems)
+      .innerJoin(restaurants, eq(menuItems.restaurantId, restaurants.id))
+      .where(and(
+        like(sql`LOWER(${menuItems.name})`, searchTerm),
+        eq(menuItems.isAvailable, true),
+        eq(restaurants.isOpen, true)
+      ))
+      .orderBy(asc(menuItems.name))
+      .limit(10);
   }
 
   // Order operations
