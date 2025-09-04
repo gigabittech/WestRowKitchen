@@ -129,6 +129,9 @@ export default function StripeCheckout() {
 
   const checkoutFormData = getCheckoutFormData();
   
+  // Debug: Log the checkout form data to see what's stored
+  console.log('Stripe Checkout - Checkout Form Data:', checkoutFormData);
+  
   // Use stored totals (which include coupon discounts) or fallback to calculated
   const subtotal = checkoutFormData.totals?.subtotal || cartTotal;
   const deliveryFee = checkoutFormData.totals?.deliveryFee || 2.99;
