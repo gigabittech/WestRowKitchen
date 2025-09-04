@@ -56,7 +56,8 @@ export interface IStorage {
   createOrderItems(items: InsertOrderItem[]): Promise<OrderItem[]>;
   getUserOrders(userId: string): Promise<Order[]>;
   getOrderById(orderId: string): Promise<Order | null>;
-  getOrderItems(orderId: string): Promise<OrderItem[]>;\n  getOrderItemsWithDetails(orderId: string): Promise<any[]>;
+  getOrderItems(orderId: string): Promise<OrderItem[]>;
+  getOrderItemsWithDetails(orderId: string): Promise<any[]>;
   getRestaurantOrders(restaurantId: string): Promise<Order[]>;
   updateOrderStatus(orderId: string, status: string): Promise<Order>;
 
@@ -389,6 +390,28 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(orderItems)
+      .where(eq(orderItems.orderId, orderId));
+  }
+
+  async getOrderItemsWithDetails(orderId: string): Promise<any[]> {
+    return await db
+      .select({
+        id: orderItems.id,
+        orderId: orderItems.orderId,
+        menuItemId: orderItems.menuItemId,
+        quantity: orderItems.quantity,
+        unitPrice: orderItems.unitPrice,
+        totalPrice: orderItems.totalPrice,
+        specialInstructions: orderItems.specialInstructions,
+        menuItem: {
+          id: menuItems.id,
+          name: menuItems.name,
+          description: menuItems.description,
+          image: menuItems.image,
+        },
+      })
+      .from(orderItems)
+      .innerJoin(menuItems, eq(orderItems.menuItemId, menuItems.id))
       .where(eq(orderItems.orderId, orderId));
   }
 
