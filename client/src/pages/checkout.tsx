@@ -182,18 +182,18 @@ export default function Checkout() {
 
     placeOrderMutation.mutate({
       restaurantId: firstRestaurant || "default-restaurant-id",
-      totalAmount: total,
-      deliveryFee,
-      serviceFee,
-      tax,
+      totalAmount: total.toFixed(2),
+      deliveryFee: deliveryFee.toFixed(2),
+      serviceFee: serviceFee.toFixed(2),
+      tax: tax.toFixed(2),
       deliveryAddress: fullDeliveryAddress,
       deliveryInstructions: orderForm.deliveryInstructions,
       status: "pending",
       items: restaurantItems.map((item) => ({
         menuItemId: item.id,
         quantity: item.quantity,
-        unitPrice: item.price,
-        totalPrice: item.price * item.quantity,
+        unitPrice: item.price.toFixed(2),
+        totalPrice: (item.price * item.quantity).toFixed(2),
       })),
     });
   };
