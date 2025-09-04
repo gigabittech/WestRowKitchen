@@ -24,7 +24,7 @@ export default function Orders() {
     error, 
     refetch 
   } = useQuery<Order[]>({
-    queryKey: queryKeys.orders.byUser(user?.id || ""),
+    queryKey: queryKeys.orders.all(),
     enabled: !!user?.id, // Only run when user is authenticated
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true, // Refresh when user comes back to tab
@@ -37,13 +37,13 @@ export default function Orders() {
     },
     onMutate: async (orderId) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: queryKeys.orders.byUser(user?.id || "") });
+      await queryClient.cancelQueries({ queryKey: queryKeys.orders.all() });
       
       // Snapshot the previous value
-      const previousOrders = queryClient.getQueryData<Order[]>(queryKeys.orders.byUser(user?.id || ""));
+      const previousOrders = queryClient.getQueryData<Order[]>(queryKeys.orders.all());
       
       // Optimistically update to the new value
-      queryClient.setQueryData<Order[]>(queryKeys.orders.byUser(user?.id || ""), (old) => 
+      queryClient.setQueryData<Order[]>(queryKeys.orders.all(), (old) => 
         old?.map(order => 
           order.id === orderId ? { ...order, status: "cancelled" } : order
         ) || []
@@ -54,7 +54,7 @@ export default function Orders() {
     onError: (err, orderId, context) => {
       // Rollback on error
       if (context?.previousOrders) {
-        queryClient.setQueryData(queryKeys.orders.byUser(user?.id || ""), context.previousOrders);
+        queryClient.setQueryData(queryKeys.orders.all(), context.previousOrders);
       }
       toast({
         title: "Failed to cancel order",
@@ -70,7 +70,7 @@ export default function Orders() {
     },
     onSettled: () => {
       // Always refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.byUser(user?.id || "") });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
     },
   });
 
@@ -85,7 +85,7 @@ export default function Orders() {
         description: "Previous order items have been added to your cart.",
       });
       // Invalidate related caches
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.byUser(user?.id || "") });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
     },
     onError: () => {
       toast({
