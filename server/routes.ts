@@ -437,7 +437,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get order items with details
       const orderItems = await storage.getOrderItemsWithDetails(orderId);
-      orderDetail.items = orderItems;
 
       // Check if the restaurant is still active
       const restaurant = await storage.getRestaurant(orderDetail.restaurantId);
@@ -445,8 +444,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Restaurant is no longer available" });
       }
 
-      // Prepare cart items from order
-      const cartItems = orderDetail.items?.map(item => ({
+      // Prepare cart items from order items
+      const cartItems = orderItems?.map((item: any) => ({
         id: item.menuItem.id,
         name: item.menuItem.name,
         price: parseFloat(item.unitPrice),
