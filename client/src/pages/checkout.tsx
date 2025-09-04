@@ -154,6 +154,7 @@ export default function Checkout() {
       return response.json();
     },
     onSuccess: () => {
+      clearCart();
       toast({
         title: "Order Placed!",
         description: "Your order has been confirmed and is being prepared.",
