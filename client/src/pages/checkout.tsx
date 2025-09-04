@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { cacheUtils, queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -153,25 +154,65 @@ export default function Checkout() {
   const placeOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
       const response = await apiRequest("POST", "/api/orders", orderData);
+      if (!response.ok) {
+        throw new Error("Failed to place order");
+      }
       return response.json();
     },
-    onSuccess: () => {
+    onMutate: async (orderData) => {
+      // Cancel any outgoing refetches to prevent overwrites
+      await queryClient.cancelQueries({ queryKey: queryKeys.orders.all() });
+      
+      // Snapshot the previous orders
+      const previousOrders = queryClient.getQueryData(queryKeys.orders.all());
+      
+      // Optimistically add the new order
+      const optimisticOrder = {
+        id: `temp-${Date.now()}`,
+        ...orderData,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        restaurantName: cartItems[0]?.restaurantName || "Restaurant",
+        items: cartItems,
+      };
+      
+      queryClient.setQueryData(queryKeys.orders.all(), (old: any) => {
+        return old ? [optimisticOrder, ...old] : [optimisticOrder];
+      });
+      
+      return { previousOrders };
+    },
+    onSuccess: (newOrder) => {
       clearCart();
-      // Invalidate orders cache to show new order immediately
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      // Smart invalidation for related data
+      cacheUtils.invalidateOrderCreation(queryClient, {
+        restaurantId: newOrder.restaurantId,
+        userId: user?.id,
+      });
+      
       toast({
         title: "Order Placed!",
         description: "Your order has been confirmed and is being prepared.",
       });
+      
       // Redirect to orders page
       setLocation("/orders");
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      // Rollback optimistic update on error
+      if (context?.previousOrders) {
+        queryClient.setQueryData(queryKeys.orders.all(), context.previousOrders);
+      }
+      
       toast({
         title: "Error",
         description: "Failed to place order. Please try again.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Always refetch to ensure consistency
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
     },
   });
 

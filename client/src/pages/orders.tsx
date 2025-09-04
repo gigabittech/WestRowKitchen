@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +13,7 @@ export default function Orders() {
   const { user } = useAuth();
 
   const { data: orders = [], isLoading } = useQuery({
-    queryKey: ["/api/orders"],
+    queryKey: queryKeys.orders.all(),
   });
 
   const getStatusColor = (status: string) => {

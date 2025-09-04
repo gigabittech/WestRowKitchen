@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { queryKeys } from "@/lib/queryKeys";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +27,7 @@ export default function Home() {
 
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
-    queryKey: ["restaurants", selectedCuisine],
+    queryKey: queryKeys.restaurants.all(),
     queryFn: async () => {
       const params = selectedCuisine !== "ALL" ? `?cuisine=${selectedCuisine}` : "";
       const response = await fetch(`/api/restaurants${params}`, {
@@ -41,7 +42,7 @@ export default function Home() {
 
   // Fetch recent orders
   const { data: recentOrders = [] } = useQuery<Order[]>({
-    queryKey: ["orders"],
+    queryKey: queryKeys.orders.all(),
     queryFn: async () => {
       const response = await fetch("/api/orders", {
         credentials: "include",

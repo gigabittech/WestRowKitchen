@@ -3,6 +3,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { cacheUtils, queryKeys } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -55,8 +56,12 @@ const CheckoutForm = ({ total, orderData }: { total: number; orderData: any }) =
           
           if (response.ok) {
             clearCart();
-            // Invalidate orders cache to show new order immediately
-            queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+            
+            // Smart invalidation for related data after successful order
+            cacheUtils.invalidateOrderCreation(queryClient, {
+              restaurantId: orderData.restaurantId,
+            });
+            
             // Clean up temporary form data
             localStorage.removeItem('checkout-form-data');
             toast({
