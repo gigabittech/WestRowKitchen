@@ -692,6 +692,18 @@ export default function Checkout() {
                           JSON.stringify({
                             ...orderForm,
                             deliveryAddress: fullDeliveryAddress,
+                            appliedCoupon: appliedCoupon,
+                            couponDiscount: {
+                              itemDiscount: itemDiscount,
+                              deliveryDiscount: baseDeliveryFee - deliveryFee,
+                            },
+                            totals: {
+                              subtotal: subtotal,
+                              deliveryFee: deliveryFee,
+                              serviceFee: serviceFee,
+                              tax: tax,
+                              total: total,
+                            },
                           }),
                         );
                         setLocation("/stripe-checkout");

@@ -103,14 +103,7 @@ export default function StripeCheckout() {
   
   useDocumentTitle("Complete Payment - West Row Kitchen");
   
-  // Calculate totals
-  const subtotal = cartTotal;
-  const deliveryFee = 2.99;
-  const serviceFee = subtotal * 0.05;
-  const tax = (subtotal + deliveryFee + serviceFee) * 0.0875;
-  const total = subtotal + deliveryFee + serviceFee + tax;
-
-  // Get checkout form data from localStorage
+  // Get checkout form data from localStorage (includes coupon totals)
   const getCheckoutFormData = () => {
     try {
       const formData = localStorage.getItem('checkout-form-data');
@@ -123,11 +116,26 @@ export default function StripeCheckout() {
     return {
       deliveryAddress: "",
       deliveryInstructions: "",
-      paymentMethod: "card"
+      paymentMethod: "card",
+      totals: {
+        subtotal: cartTotal,
+        deliveryFee: 2.99,
+        serviceFee: cartTotal * 0.05,
+        tax: (cartTotal + 2.99 + cartTotal * 0.05) * 0.0875,
+        total: cartTotal + 2.99 + cartTotal * 0.05 + (cartTotal + 2.99 + cartTotal * 0.05) * 0.0875,
+      }
     };
   };
 
   const checkoutFormData = getCheckoutFormData();
+  
+  // Use stored totals (which include coupon discounts) or fallback to calculated
+  const subtotal = checkoutFormData.totals?.subtotal || cartTotal;
+  const deliveryFee = checkoutFormData.totals?.deliveryFee || 2.99;
+  const serviceFee = checkoutFormData.totals?.serviceFee || subtotal * 0.05;
+  const tax = checkoutFormData.totals?.tax || (subtotal + deliveryFee + serviceFee) * 0.0875;
+  const total = checkoutFormData.totals?.total || subtotal + deliveryFee + serviceFee + tax;
+
 
   // Prepare order data for after payment
   const orderData = {
@@ -221,8 +229,15 @@ export default function StripeCheckout() {
                   <span>Subtotal ({cartItems.length} items)</span>
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
+                {/* Show discount line if coupon is applied */}
+                {checkoutFormData.appliedCoupon && checkoutFormData.couponDiscount?.itemDiscount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount ({checkoutFormData.appliedCoupon.code})</span>
+                    <span>-${checkoutFormData.couponDiscount.itemDiscount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
-                  <span>Delivery Fee</span>
+                  <span>Delivery Fee{checkoutFormData.appliedCoupon?.discountType === "free_delivery" ? " (Free)" : ""}</span>
                   <span>${deliveryFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
