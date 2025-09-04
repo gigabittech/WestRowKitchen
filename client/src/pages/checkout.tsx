@@ -125,9 +125,16 @@ export default function Checkout() {
       if (data.valid) {
         setAppliedCoupon(data.coupon);
         setCouponValidation({ loading: false, error: null });
+        
+        // Calculate savings message based on coupon type
+        let savingsMessage = `You saved $${data.discountAmount}`;
+        if (data.coupon.discountType === "free_delivery") {
+          savingsMessage = `You saved $${baseDeliveryFee.toFixed(2)} on delivery!`;
+        }
+        
         toast({
           title: "Coupon Applied!",
-          description: `You saved $${data.discountAmount}`,
+          description: savingsMessage,
         });
       }
     },
