@@ -61,9 +61,11 @@ export default function CartSidebar({
               <ShoppingBag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h4 className="text-lg font-semibold mb-2">Your cart is empty</h4>
               <p className="text-gray-600 mb-6">Add items from restaurants to get started</p>
-              <Button onClick={onClose} className="btn-primary">
-                Browse Restaurants
-              </Button>
+              <Link href="/restaurants">
+                <Button onClick={onClose} className="btn-primary" data-testid="button-browse-restaurants">
+                  Browse Restaurants
+                </Button>
+              </Link>
             </div>
           ) : (
             <>
