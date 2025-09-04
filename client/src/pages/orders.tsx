@@ -1,20 +1,110 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { queryKeys } from "@/lib/queryKeys";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import NavigationHeader from "@/components/navigation-header";
-import { Clock, MapPin, Package, ArrowLeft } from "lucide-react";
+import { Clock, MapPin, Package, ArrowLeft, AlertCircle, RefreshCw } from "lucide-react";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@shared/schema";
 
 export default function Orders() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  const { data: orders = [], isLoading } = useQuery({
-    queryKey: queryKeys.orders.all(),
+  // Orders query with proper dependency management and typing
+  const { 
+    data: orders = [], 
+    isLoading, 
+    error, 
+    refetch 
+  } = useQuery<Order[]>({
+    queryKey: queryKeys.orders.byUser(user?.id || ""),
+    enabled: !!user?.id, // Only run when user is authenticated
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: true, // Refresh when user comes back to tab
   });
+
+  // Cancel order mutation with optimistic updates
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      return await apiRequest("PATCH", `/api/orders/${orderId}`, { status: "cancelled" });
+    },
+    onMutate: async (orderId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.orders.byUser(user?.id || "") });
+      
+      // Snapshot the previous value
+      const previousOrders = queryClient.getQueryData<Order[]>(queryKeys.orders.byUser(user?.id || ""));
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData<Order[]>(queryKeys.orders.byUser(user?.id || ""), (old) => 
+        old?.map(order => 
+          order.id === orderId ? { ...order, status: "cancelled" } : order
+        ) || []
+      );
+      
+      return { previousOrders };
+    },
+    onError: (err, orderId, context) => {
+      // Rollback on error
+      if (context?.previousOrders) {
+        queryClient.setQueryData(queryKeys.orders.byUser(user?.id || ""), context.previousOrders);
+      }
+      toast({
+        title: "Failed to cancel order",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Order cancelled",
+        description: "Your order has been successfully cancelled.",
+      });
+    },
+    onSettled: () => {
+      // Always refetch to ensure consistency
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.byUser(user?.id || "") });
+    },
+  });
+
+  // Reorder mutation with cache management
+  const reorderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      return await apiRequest("POST", `/api/orders/reorder`, { orderId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Items added to cart",
+        description: "Previous order items have been added to your cart.",
+      });
+      // Invalidate related caches
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.byUser(user?.id || "") });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to reorder",
+        description: "Please try adding items manually.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCancelOrder = (orderId: string) => {
+    if (window.confirm("Are you sure you want to cancel this order?")) {
+      cancelOrderMutation.mutate(orderId);
+    }
+  };
+
+  const handleReorder = (orderId: string) => {
+    reorderMutation.mutate(orderId);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,11 +149,7 @@ export default function Orders() {
       <title>My Orders - West Row Kitchen</title>
       <meta name="description" content="Track your food delivery orders and view order history on West Row Kitchen." />
       
-      <NavigationHeader 
-        isCartOpen={false}
-        setIsCartOpen={() => {}}
-        cartItemCount={0}
-      />
+      <NavigationHeader />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link href="/">
@@ -80,12 +166,28 @@ export default function Orders() {
           </div>
         </div>
 
-        {isLoading ? (
+        {authLoading || isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="bg-gray-200 animate-pulse rounded-lg h-32"></div>
             ))}
           </div>
+        ) : error ? (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Failed to load orders. Please try again.</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => refetch()}
+                className="ml-4"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
         ) : orders.length === 0 ? (
           <Card className="p-12 text-center">
             <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -101,8 +203,8 @@ export default function Orders() {
           </Card>
         ) : (
           <div className="space-y-6">
-            {orders.map((order: Order) => (
-              <Card key={order.id} className="hover:shadow-md transition-shadow">
+            {orders.map((order) => (
+              <Card key={order.id} className="hover:shadow-md transition-shadow" data-testid={`card-order-${order.id}`}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -184,18 +286,33 @@ export default function Orders() {
                   <div className="flex justify-between items-center mt-4 pt-4 border-t">
                     <div className="flex space-x-2">
                       {order.status === "delivered" && (
-                        <Button variant="outline" size="sm">
-                          Reorder
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleReorder(order.id)}
+                          disabled={reorderMutation.isPending}
+                          data-testid={`button-reorder-${order.id}`}
+                        >
+                          {reorderMutation.isPending ? "Adding..." : "Reorder"}
                         </Button>
                       )}
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
+                      <Link href={`/orders/${order.id}`}>
+                        <Button variant="outline" size="sm" data-testid={`button-view-details-${order.id}`}>
+                          View Details
+                        </Button>
+                      </Link>
                     </div>
                     
                     {["pending", "confirmed", "preparing"].includes(order.status) && (
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                        Cancel Order
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleCancelOrder(order.id)}
+                        disabled={cancelOrderMutation.isPending}
+                        data-testid={`button-cancel-${order.id}`}
+                      >
+                        {cancelOrderMutation.isPending ? "Cancelling..." : "Cancel Order"}
                       </Button>
                     )}
                   </div>
