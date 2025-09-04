@@ -94,6 +94,9 @@ export const orders = pgTable("orders", {
   deliveryFee: decimal("delivery_fee", { precision: 10, scale: 2 }).default("0.00"),
   serviceFee: decimal("service_fee", { precision: 10, scale: 2 }).default("0.00"),
   tax: decimal("tax", { precision: 10, scale: 2 }).default("0.00"),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0.00"),
+  couponCode: varchar("coupon_code", { length: 50 }),
+  promotionId: uuid("promotion_id").references(() => promotions.id),
   deliveryAddress: text("delivery_address").notNull(),
   deliveryInstructions: text("delivery_instructions"),
   estimatedDeliveryTime: timestamp("estimated_delivery_time"),
@@ -129,6 +132,34 @@ export const promotions = pgTable("promotions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Coupons table
+export const coupons = pgTable("coupons", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  discountType: varchar("discount_type", { length: 50 }).notNull(), // 'percentage', 'fixed', 'free_delivery'
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }),
+  minimumOrder: decimal("minimum_order", { precision: 10, scale: 2 }),
+  maxUsage: integer("max_usage"), // null = unlimited
+  currentUsage: integer("current_usage").default(0),
+  userLimit: integer("user_limit"), // per user usage limit
+  isActive: boolean("is_active").default(true),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  restaurantId: uuid("restaurant_id").references(() => restaurants.id), // null = platform-wide
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Coupon usage tracking table
+export const couponUsage = pgTable("coupon_usage", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  couponId: uuid("coupon_id").references(() => coupons.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  orderId: uuid("order_id").references(() => orders.id),
+  usedAt: timestamp("used_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   restaurants: many(restaurants),
@@ -144,6 +175,7 @@ export const restaurantsRelations = relations(restaurants, ({ one, many }) => ({
   menuItems: many(menuItems),
   orders: many(orders),
   promotions: many(promotions),
+  coupons: many(coupons),
 }));
 
 export const menuCategoriesRelations = relations(menuCategories, ({ one, many }) => ({
@@ -196,6 +228,29 @@ export const promotionsRelations = relations(promotions, ({ one }) => ({
   }),
 }));
 
+export const couponsRelations = relations(coupons, ({ one, many }) => ({
+  restaurant: one(restaurants, {
+    fields: [coupons.restaurantId],
+    references: [restaurants.id],
+  }),
+  couponUsage: many(couponUsage),
+}));
+
+export const couponUsageRelations = relations(couponUsage, ({ one }) => ({
+  coupon: one(coupons, {
+    fields: [couponUsage.couponId],
+    references: [coupons.id],
+  }),
+  user: one(users, {
+    fields: [couponUsage.userId],
+    references: [users.id],
+  }),
+  order: one(orders, {
+    fields: [couponUsage.orderId],
+    references: [orders.id],
+  }),
+}));
+
 // Insert schemas
 export const insertRestaurantSchema = createInsertSchema(restaurants).omit({
   id: true,
@@ -230,6 +285,17 @@ export const insertPromotionSchema = createInsertSchema(promotions).omit({
   createdAt: true,
 });
 
+export const insertCouponSchema = createInsertSchema(coupons).omit({
+  id: true,
+  createdAt: true,
+  currentUsage: true,
+});
+
+export const insertCouponUsageSchema = createInsertSchema(couponUsage).omit({
+  id: true,
+  usedAt: true,
+});
+
 // Types
 export type InsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -245,3 +311,7 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 export type Promotion = typeof promotions.$inferSelect;
 export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = z.infer<typeof insertCouponSchema>;
+export type CouponUsage = typeof couponUsage.$inferSelect;
+export type InsertCouponUsage = z.infer<typeof insertCouponUsageSchema>;

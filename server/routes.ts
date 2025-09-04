@@ -385,6 +385,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Coupon routes
+  app.get("/api/coupons", async (req, res) => {
+    try {
+      const { restaurantId } = req.query;
+      const coupons = await storage.getActiveCoupons(restaurantId as string);
+      res.json(coupons);
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+      res.status(500).json({ message: "Failed to fetch coupons" });
+    }
+  });
+
+  app.post("/api/coupons/validate", async (req, res) => {
+    try {
+      const { code, restaurantId, orderAmount } = req.body;
+      
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      const validation = await storage.validateCoupon(code, userId, restaurantId, orderAmount);
+      
+      if (!validation.valid) {
+        return res.status(400).json({ 
+          valid: false, 
+          error: validation.error 
+        });
+      }
+
+      // Calculate discount amount
+      let discountAmount = 0;
+      if (validation.coupon) {
+        const coupon = validation.coupon;
+        if (coupon.discountType === "percentage") {
+          discountAmount = orderAmount * (parseFloat(coupon.discountValue || "0") / 100);
+        } else if (coupon.discountType === "fixed") {
+          discountAmount = parseFloat(coupon.discountValue || "0");
+        } else if (coupon.discountType === "free_delivery") {
+          // This will be handled in the frontend by removing delivery fee
+          discountAmount = 0;
+        }
+      }
+
+      res.json({
+        valid: true,
+        coupon: validation.coupon,
+        discountAmount: discountAmount.toFixed(2)
+      });
+    } catch (error) {
+      console.error("Error validating coupon:", error);
+      res.status(500).json({ message: "Failed to validate coupon" });
+    }
+  });
+
+  app.post("/api/coupons/apply", isAuthenticated, async (req, res) => {
+    try {
+      const { couponId, orderId } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      const usage = await storage.applyCoupon(couponId, userId, orderId);
+      res.json(usage);
+    } catch (error) {
+      console.error("Error applying coupon:", error);
+      res.status(500).json({ message: "Failed to apply coupon" });
+    }
+  });
+
   // Analytics routes
   app.get("/api/restaurants/:id/stats", isAuthenticated, async (req: any, res) => {
     try {

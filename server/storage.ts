@@ -6,6 +6,8 @@ import {
   orders,
   orderItems,
   promotions,
+  coupons,
+  couponUsage,
   type User,
   type InsertUser,
   type Restaurant,
@@ -20,6 +22,10 @@ import {
   type InsertOrderItem,
   type Promotion,
   type InsertPromotion,
+  type Coupon,
+  type InsertCoupon,
+  type CouponUsage,
+  type InsertCouponUsage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, like, and, sql } from "drizzle-orm";
@@ -55,6 +61,18 @@ export interface IStorage {
   // Promotion operations
   getActivePromotions(restaurantId?: string): Promise<Promotion[]>;
   createPromotion(promotion: InsertPromotion): Promise<Promotion>;
+
+  // Coupon operations
+  getCouponByCode(code: string): Promise<Coupon | undefined>;
+  validateCoupon(code: string, userId: string, restaurantId: string, orderAmount: number): Promise<{
+    valid: boolean;
+    coupon?: Coupon;
+    error?: string;
+  }>;
+  applyCoupon(couponId: string, userId: string, orderId?: string): Promise<CouponUsage>;
+  getCouponUsageCount(couponId: string, userId: string): Promise<number>;
+  updateCouponUsage(couponId: string, increment: number): Promise<void>;
+  getActiveCoupons(restaurantId?: string): Promise<Coupon[]>;
 
   // Analytics
   getRestaurantStats(restaurantId: string): Promise<{
@@ -272,6 +290,118 @@ export class DatabaseStorage implements IStorage {
       .where(eq(orders.restaurantId, restaurantId));
 
     return stats || { totalOrders: 0, totalRevenue: "0", averageOrderValue: "0" };
+  }
+
+  // Coupon operations
+  async getCouponByCode(code: string): Promise<Coupon | undefined> {
+    const [coupon] = await db.select().from(coupons).where(eq(coupons.code, code));
+    return coupon;
+  }
+
+  async validateCoupon(code: string, userId: string, restaurantId: string, orderAmount: number): Promise<{
+    valid: boolean;
+    coupon?: Coupon;
+    error?: string;
+  }> {
+    const coupon = await this.getCouponByCode(code);
+    
+    if (!coupon) {
+      return { valid: false, error: "Coupon code not found" };
+    }
+
+    if (!coupon.isActive) {
+      return { valid: false, error: "Coupon is no longer active" };
+    }
+
+    const now = new Date();
+    if (now < new Date(coupon.startDate) || now > new Date(coupon.endDate)) {
+      return { valid: false, error: "Coupon has expired or is not yet valid" };
+    }
+
+    // Check restaurant-specific restrictions
+    if (coupon.restaurantId && coupon.restaurantId !== restaurantId) {
+      return { valid: false, error: "Coupon is not valid for this restaurant" };
+    }
+
+    // Check minimum order amount
+    if (coupon.minimumOrder && orderAmount < parseFloat(coupon.minimumOrder)) {
+      return { valid: false, error: `Minimum order of $${coupon.minimumOrder} required` };
+    }
+
+    // Check overall usage limit
+    if (coupon.maxUsage && (coupon.currentUsage || 0) >= coupon.maxUsage) {
+      return { valid: false, error: "Coupon usage limit reached" };
+    }
+
+    // Check per-user usage limit
+    if (coupon.userLimit) {
+      const userUsageCount = await this.getCouponUsageCount(coupon.id, userId);
+      if (userUsageCount >= coupon.userLimit) {
+        return { valid: false, error: "You have reached the usage limit for this coupon" };
+      }
+    }
+
+    return { valid: true, coupon };
+  }
+
+  async applyCoupon(couponId: string, userId: string, orderId?: string): Promise<CouponUsage> {
+    const [usage] = await db.insert(couponUsage).values({
+      couponId,
+      userId,
+      orderId,
+    }).returning();
+
+    // Increment coupon usage count
+    await this.updateCouponUsage(couponId, 1);
+
+    return usage;
+  }
+
+  async getCouponUsageCount(couponId: string, userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(couponUsage)
+      .where(and(eq(couponUsage.couponId, couponId), eq(couponUsage.userId, userId)));
+    
+    return result.count;
+  }
+
+  async updateCouponUsage(couponId: string, increment: number): Promise<void> {
+    await db
+      .update(coupons)
+      .set({ currentUsage: sql`${coupons.currentUsage} + ${increment}` })
+      .where(eq(coupons.id, couponId));
+  }
+
+  async getActiveCoupons(restaurantId?: string): Promise<Coupon[]> {
+    const now = new Date();
+    
+    if (restaurantId) {
+      return await db
+        .select()
+        .from(coupons)
+        .where(
+          and(
+            eq(coupons.isActive, true),
+            sql`${coupons.startDate} <= ${now}`,
+            sql`${coupons.endDate} >= ${now}`,
+            sql`${coupons.restaurantId} = ${restaurantId} OR ${coupons.restaurantId} IS NULL`
+          )
+        )
+        .orderBy(desc(coupons.createdAt));
+    }
+
+    return await db
+      .select()
+      .from(coupons)
+      .where(
+        and(
+          eq(coupons.isActive, true),
+          sql`${coupons.startDate} <= ${now}`,
+          sql`${coupons.endDate} >= ${now}`
+        )
+      )
+      .orderBy(desc(coupons.createdAt));
   }
 }
 

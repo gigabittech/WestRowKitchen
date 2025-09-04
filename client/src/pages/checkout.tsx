@@ -20,6 +20,9 @@ import {
   User,
   Phone,
   Banknote,
+  Tag,
+  Check,
+  X,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
@@ -51,6 +54,14 @@ export default function Checkout() {
     paymentMethod: "card",
   });
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponValidation, setCouponValidation] = useState<{
+    loading: boolean;
+    error: string | null;
+  }>({ loading: false, error: null });
+
   useDocumentTitle("Checkout - West Row Kitchen");
 
   // Redirect to auth if not authenticated
@@ -77,11 +88,58 @@ export default function Checkout() {
     }
   }, [user, isAuthenticated]);
 
+  // Calculate totals with coupon discounts
   const subtotal = cartTotal;
-  const deliveryFee = 2.99;
+  const baseDeliveryFee = 2.99;
   const serviceFee = subtotal * 0.05;
-  const tax = (subtotal + deliveryFee + serviceFee) * 0.0875;
-  const total = subtotal + deliveryFee + serviceFee + tax;
+  
+  // Apply coupon discounts
+  let deliveryFee = baseDeliveryFee;
+  let itemDiscount = 0;
+  
+  if (appliedCoupon) {
+    if (appliedCoupon.discountType === "free_delivery") {
+      deliveryFee = 0;
+    } else if (appliedCoupon.discountType === "percentage") {
+      itemDiscount = subtotal * (parseFloat(appliedCoupon.discountValue || "0") / 100);
+    } else if (appliedCoupon.discountType === "fixed") {
+      itemDiscount = Math.min(parseFloat(appliedCoupon.discountValue || "0"), subtotal);
+    }
+  }
+  
+  const discountedSubtotal = subtotal - itemDiscount;
+  const tax = (discountedSubtotal + deliveryFee + serviceFee) * 0.0875;
+  const total = discountedSubtotal + deliveryFee + serviceFee + tax;
+
+  // Coupon validation mutation
+  const validateCouponMutation = useMutation({
+    mutationFn: async ({ code, restaurantId, orderAmount }: any) => {
+      const response = await apiRequest("POST", "/api/coupons/validate", {
+        code,
+        restaurantId,
+        orderAmount,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.valid) {
+        setAppliedCoupon(data.coupon);
+        setCouponValidation({ loading: false, error: null });
+        toast({
+          title: "Coupon Applied!",
+          description: `You saved $${data.discountAmount}`,
+        });
+      }
+    },
+    onError: (error: any) => {
+      setCouponValidation({ loading: false, error: "Invalid coupon code" });
+      toast({
+        title: "Invalid Coupon",
+        description: "Please check your coupon code and try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const placeOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
@@ -104,6 +162,33 @@ export default function Checkout() {
       });
     },
   });
+
+  // Coupon handling functions
+  const handleApplyCoupon = () => {
+    if (!couponCode.trim()) return;
+    
+    setCouponValidation({ loading: true, error: null });
+    
+    // For now, use the first restaurant from cart items
+    const firstCartItem = cartItems[0];
+    if (!firstCartItem) return;
+    
+    validateCouponMutation.mutate({
+      code: couponCode.trim(),
+      restaurantId: firstCartItem.restaurantId,
+      orderAmount: subtotal,
+    });
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponValidation({ loading: false, error: null });
+    toast({
+      title: "Coupon Removed",
+      description: "The coupon has been removed from your order.",
+    });
+  };
 
   const validateForm = () => {
     const requiredFields = [
@@ -495,13 +580,72 @@ export default function Checkout() {
                   </div>
                 ))}
 
+                {/* Coupon Section */}
+                <div className="border-t pt-4">
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Tag className="w-4 h-4" />
+                      <span className="font-medium">Have a coupon?</span>
+                    </div>
+                    
+                    {!appliedCoupon ? (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Enter coupon code"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          data-testid="input-coupon-code"
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={handleApplyCoupon}
+                          disabled={!couponCode.trim() || couponValidation.loading}
+                          data-testid="button-apply-coupon"
+                          size="sm"
+                        >
+                          {couponValidation.loading ? "Checking..." : "Apply"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Check className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-800">
+                            {appliedCoupon.code} applied!
+                          </span>
+                        </div>
+                        <Button
+                          onClick={handleRemoveCoupon}
+                          variant="ghost"
+                          size="sm"
+                          data-testid="button-remove-coupon"
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {couponValidation.error && (
+                      <p className="text-sm text-red-600 mt-2">{couponValidation.error}</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
+                  {/* Show discount line if coupon is applied */}
+                  {appliedCoupon && itemDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Discount ({appliedCoupon.code})</span>
+                      <span>-${itemDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
-                    <span>Delivery Fee</span>
+                    <span>Delivery Fee{appliedCoupon?.discountType === "free_delivery" ? " (Free)" : ""}</span>
                     <span>${deliveryFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
