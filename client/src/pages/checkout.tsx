@@ -242,7 +242,23 @@ export default function Checkout() {
                 {orderForm.paymentMethod === "card" ? (
                   <div className="space-y-3">
                     <Button 
-                      onClick={() => setLocation("/stripe-checkout")}
+                      onClick={() => {
+                        if (!orderForm.deliveryAddress.trim()) {
+                          toast({
+                            title: "Error",
+                            description: "Please enter a delivery address before proceeding to payment.",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        // Store order form data temporarily for stripe checkout
+                        localStorage.setItem('checkout-form-data', JSON.stringify({
+                          deliveryAddress: orderForm.deliveryAddress,
+                          deliveryInstructions: orderForm.deliveryInstructions,
+                          paymentMethod: orderForm.paymentMethod
+                        }));
+                        setLocation("/stripe-checkout");
+                      }}
                       className="w-full btn-primary py-3 text-lg"
                     >
                       Pay with Card - ${total.toFixed(2)}
