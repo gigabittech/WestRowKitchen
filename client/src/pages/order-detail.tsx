@@ -208,23 +208,25 @@ export default function OrderDetail() {
                       <User className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-medium">{user?.firstName || 'Customer'}</h4>
+                      <h4 className="font-medium" data-testid="text-customer-name">
+                        {order.customerName || 'Customer'}
+                      </h4>
                       <p className="text-sm text-gray-600">Order Customer</p>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    {user?.email && (
-                      <div className="flex items-center space-x-2 text-sm">
+                    {order.customerEmail && (
+                      <div className="flex items-center space-x-2 text-sm" data-testid="text-customer-email">
                         <Mail className="w-4 h-4 text-gray-400" />
-                        <span>{user.email}</span>
+                        <span>{order.customerEmail}</span>
                       </div>
                     )}
                     
-                    {user?.phone && (
-                      <div className="flex items-center space-x-2 text-sm">
+                    {order.customerPhone && (
+                      <div className="flex items-center space-x-2 text-sm" data-testid="text-customer-phone">
                         <Phone className="w-4 h-4 text-gray-400" />
-                        <span>{user.phone}</span>
+                        <span>{order.customerPhone}</span>
                       </div>
                     )}
                   </div>

@@ -220,6 +220,11 @@ export default function Orders() {
                           minute: '2-digit'
                         })}
                       </p>
+                      {order.customerName && (
+                        <p className="text-sm text-gray-600 mt-1" data-testid={`text-customer-name-${order.id}`}>
+                          Customer: {order.customerName}
+                        </p>
+                      )}
                     </div>
                     <Badge className={getStatusColor(order.status)}>
                       {getStatusText(order.status)}
