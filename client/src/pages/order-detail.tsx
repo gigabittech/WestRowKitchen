@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import NavigationHeader from "@/components/navigation-header";
-import { Clock, MapPin, Package, ArrowLeft, AlertCircle, RefreshCw, Phone, Mail, User } from "lucide-react";
+import { Clock, MapPin, Package, ArrowLeft, AlertCircle, RefreshCw, Phone, Mail, User, Utensils } from "lucide-react";
 import { Link, useParams } from "wouter";
 import type { Order } from "@shared/schema";
+import { getFoodImage } from "@/utils/food-images";
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
@@ -143,23 +144,42 @@ export default function OrderDetail() {
                 <div className="space-y-4">
                   {order.items && order.items.length > 0 ? (
                     <>
-                      {order.items.map((item: any, index: number) => (
-                        <div key={item.id} className="flex justify-between items-start py-3 border-b last:border-b-0" data-testid={`order-item-${index}`}>
-                          <div className="flex-1">
-                            <h4 className="font-medium" data-testid={`item-name-${index}`}>{item.menuItem.name}</h4>
-                            <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                            {item.specialInstructions && (
-                              <p className="text-sm text-gray-600 mt-1">
-                                <span className="font-medium">Special instructions:</span> {item.specialInstructions}
-                              </p>
-                            )}
+                      {order.items.map((item: any, index: number) => {
+                        const foodImage = getFoodImage(item.menuItem.name);
+                        return (
+                          <div key={item.id} className="flex justify-between items-start py-3 border-b last:border-b-0" data-testid={`order-item-${index}`}>
+                            <div className="flex items-start space-x-3 flex-1">
+                              <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                {foodImage ? (
+                                  <img 
+                                    src={foodImage} 
+                                    alt={item.menuItem.name}
+                                    className="w-full h-full object-cover"
+                                    data-testid={`img-food-item-${index}`}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Utensils className="w-8 h-8 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-medium" data-testid={`item-name-${index}`}>{item.menuItem.name}</h4>
+                                <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                                {item.specialInstructions && (
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    <span className="font-medium">Special instructions:</span> {item.specialInstructions}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium" data-testid={`item-total-${index}`}>${parseFloat(item.totalPrice).toFixed(2)}</p>
+                              <p className="text-sm text-gray-600">${parseFloat(item.unitPrice).toFixed(2)} each</p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-medium" data-testid={`item-total-${index}`}>${parseFloat(item.totalPrice).toFixed(2)}</p>
-                            <p className="text-sm text-gray-600">${parseFloat(item.unitPrice).toFixed(2)} each</p>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </>
                   ) : (
                     <div className="flex justify-between items-center py-3 border-b">
@@ -201,10 +221,12 @@ export default function OrderDetail() {
                       </div>
                     )}
                     
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600">Contact via platform messaging</span>
-                    </div>
+                    {user?.phone && (
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <span>{user.phone}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
