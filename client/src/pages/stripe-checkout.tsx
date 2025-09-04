@@ -172,7 +172,7 @@ export default function StripeCheckout() {
   useEffect(() => {
     // Redirect back to checkout if cart is empty or no delivery address
     if (cartItems.length === 0) {
-      setLocation("/checkout");
+      setLocation("/restaurants");
       return;
     }
 

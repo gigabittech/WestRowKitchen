@@ -24,6 +24,7 @@ import {
   Tag,
   Check,
   X,
+  ShoppingBag,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
@@ -363,6 +364,31 @@ export default function Checkout() {
       })),
     });
   };
+
+  // Show empty cart message if no items
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <NavigationHeader />
+        <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+          <div className="mb-8">
+            <ShoppingBag className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">Your Cart is Empty</h1>
+            <p className="text-gray-600 mb-8">
+              Looks like you haven't added any delicious items to your cart yet. 
+              Browse our amazing restaurants and discover your next favorite meal!
+            </p>
+            <Link href="/restaurants">
+              <Button size="lg" className="px-8 py-3" data-testid="button-browse-restaurants">
+                <ShoppingBag className="w-5 h-5 mr-2" />
+                Browse Restaurants
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
