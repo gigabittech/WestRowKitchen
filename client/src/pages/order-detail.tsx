@@ -73,9 +73,21 @@ export default function OrderDetail() {
   // Reorder mutation
   const reorderMutation = useMutation({
     mutationFn: async (orderId: string) => {
-      return await apiRequest("POST", `/api/orders/reorder`, { orderId });
+      const response = await apiRequest("POST", `/api/orders/reorder`, { orderId });
+      return await response.json();
     },
     onSuccess: (data: any) => {
+      console.log("Reorder response:", data);
+      
+      if (!data.success || !data.cartItems) {
+        toast({
+          title: "Failed to reorder", 
+          description: data.message || "Unable to process reorder",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Check if cart has items from different restaurant
       const hasItemsFromDifferentRestaurant = cartItems.length > 0 && 
         cartItems.some(item => item.restaurantId !== data.restaurantInfo.id);

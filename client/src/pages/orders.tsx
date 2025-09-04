@@ -77,13 +77,17 @@ export default function Orders() {
   // Reorder mutation with cache management
   const reorderMutation = useMutation({
     mutationFn: async (orderId: string) => {
-      return await apiRequest("POST", `/api/orders/reorder`, { orderId });
+      const response = await apiRequest("POST", `/api/orders/reorder`, { orderId });
+      return await response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Items added to cart",
-        description: "Previous order items have been added to your cart.",
-      });
+    onSuccess: (data: any) => {
+      if (data.success && data.cartItems) {
+        toast({
+          title: "Items added to cart",
+          description: `Previous order items from ${data.restaurantInfo?.name || 'restaurant'} have been added to your cart.`,
+        });
+        // Note: Cart integration would need to be added here if needed
+      }
       // Invalidate related caches
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all() });
     },
