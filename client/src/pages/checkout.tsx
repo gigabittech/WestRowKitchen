@@ -12,7 +12,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import NavigationHeader from "@/components/navigation-header";
 import CartSidebar from "@/components/ui/cart-sidebar";
-import { ArrowLeft, CreditCard, MapPin, Clock, User, Phone, Banknote } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  MapPin,
+  Clock,
+  User,
+  Phone,
+  Banknote,
+} from "lucide-react";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
 
@@ -20,7 +28,15 @@ export default function Checkout() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { cartItems, updateQuantity, removeFromCart, cartItemCount, cartTotal, isCartOpen, setIsCartOpen } = useCart();
+  const {
+    cartItems,
+    updateQuantity,
+    removeFromCart,
+    cartItemCount,
+    cartTotal,
+    isCartOpen,
+    setIsCartOpen,
+  } = useCart();
   const [orderForm, setOrderForm] = useState({
     firstName: "",
     lastName: "",
@@ -34,7 +50,7 @@ export default function Checkout() {
     deliveryInstructions: "",
     paymentMethod: "card",
   });
-  
+
   useDocumentTitle("Checkout - West Row Kitchen");
 
   // Redirect to auth if not authenticated
@@ -52,7 +68,7 @@ export default function Checkout() {
   // Pre-fill user information if available
   useEffect(() => {
     if (user && isAuthenticated) {
-      setOrderForm(prev => ({
+      setOrderForm((prev) => ({
         ...prev,
         firstName: user.firstName || "",
         lastName: user.lastName || "",
@@ -91,14 +107,14 @@ export default function Checkout() {
 
   const validateForm = () => {
     const requiredFields = [
-      { field: 'firstName', label: 'First Name' },
-      { field: 'lastName', label: 'Last Name' },
-      { field: 'email', label: 'Email' },
-      { field: 'phone', label: 'Phone Number' },
-      { field: 'streetAddress', label: 'Street Address' },
-      { field: 'city', label: 'City' },
-      { field: 'state', label: 'State/Province' },
-      { field: 'postalCode', label: 'Postal Code' }
+      { field: "firstName", label: "First Name" },
+      { field: "lastName", label: "Last Name" },
+      { field: "email", label: "Email" },
+      { field: "phone", label: "Phone Number" },
+      { field: "streetAddress", label: "Street Address" },
+      { field: "city", label: "City" },
+      { field: "state", label: "State/Province" },
+      { field: "postalCode", label: "Postal Code" },
     ];
 
     for (const { field, label } of requiredFields) {
@@ -124,11 +140,12 @@ export default function Checkout() {
     }
 
     // Basic phone validation (10+ digits)
-    const phoneDigits = orderForm.phone.replace(/\D/g, '');
+    const phoneDigits = orderForm.phone.replace(/\D/g, "");
     if (phoneDigits.length < 10) {
       toast({
         title: "Invalid Phone Number",
-        description: "Please enter a valid phone number with at least 10 digits.",
+        description:
+          "Please enter a valid phone number with at least 10 digits.",
         variant: "destructive",
       });
       return false;
@@ -139,26 +156,29 @@ export default function Checkout() {
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     // Group items by restaurant
-    const restaurantOrders = cartItems.reduce((acc, item) => {
-      const key = item.restaurantId;
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(item);
-      return acc;
-    }, {} as Record<string, typeof cartItems>);
+    const restaurantOrders = cartItems.reduce(
+      (acc, item) => {
+        const key = item.restaurantId;
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(item);
+        return acc;
+      },
+      {} as Record<string, typeof cartItems>,
+    );
 
     // For now, just place one order for the first restaurant
     const firstRestaurant = Object.keys(restaurantOrders)[0];
     const restaurantItems = restaurantOrders[firstRestaurant];
 
-    const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ', ' + orderForm.apartment : ''}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
+    const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ", " + orderForm.apartment : ""}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
 
     placeOrderMutation.mutate({
       restaurantId: firstRestaurant || "default-restaurant-id",
@@ -175,7 +195,7 @@ export default function Checkout() {
         email: orderForm.email,
         phone: orderForm.phone,
       },
-      items: restaurantItems.map(item => ({
+      items: restaurantItems.map((item) => ({
         menuItemId: item.id,
         quantity: item.quantity,
         unitPrice: item.price,
@@ -186,7 +206,6 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen bg-background">
-      
       <NavigationHeader />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -219,7 +238,12 @@ export default function Checkout() {
                       type="text"
                       placeholder="Enter your first name"
                       value={orderForm.firstName}
-                      onChange={(e) => setOrderForm(prev => ({ ...prev, firstName: e.target.value }))}
+                      onChange={(e) =>
+                        setOrderForm((prev) => ({
+                          ...prev,
+                          firstName: e.target.value,
+                        }))
+                      }
                       required
                       data-testid="input-first-name"
                     />
@@ -231,7 +255,12 @@ export default function Checkout() {
                       type="text"
                       placeholder="Enter your last name"
                       value={orderForm.lastName}
-                      onChange={(e) => setOrderForm(prev => ({ ...prev, lastName: e.target.value }))}
+                      onChange={(e) =>
+                        setOrderForm((prev) => ({
+                          ...prev,
+                          lastName: e.target.value,
+                        }))
+                      }
                       required
                       data-testid="input-last-name"
                     />
@@ -244,19 +273,34 @@ export default function Checkout() {
                     type="email"
                     placeholder="Enter your email address"
                     value={orderForm.email}
-                    onChange={(e) => setOrderForm(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                     required
                     data-testid="input-email"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone Number * <span className="text-sm text-gray-500">(for delivery coordination)</span></Label>
+                  <Label htmlFor="phone">
+                    Phone Number *{" "}
+                    <span className="text-sm text-gray-500">
+                      (for delivery coordination)
+                    </span>
+                  </Label>
                   <Input
                     id="phone"
                     type="tel"
                     placeholder="Enter your phone number"
                     value={orderForm.phone}
-                    onChange={(e) => setOrderForm(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
                     required
                     data-testid="input-phone"
                   />
@@ -280,19 +324,31 @@ export default function Checkout() {
                     type="text"
                     placeholder="Enter your street address"
                     value={orderForm.streetAddress}
-                    onChange={(e) => setOrderForm(prev => ({ ...prev, streetAddress: e.target.value }))}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
+                        streetAddress: e.target.value,
+                      }))
+                    }
                     required
                     data-testid="input-street-address"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="apartment">Apartment, Unit, Building (Optional)</Label>
+                  <Label htmlFor="apartment">
+                    Apartment, Unit, Building (Optional)
+                  </Label>
                   <Input
                     id="apartment"
                     type="text"
                     placeholder="Apt, Suite, Floor, etc."
                     value={orderForm.apartment}
-                    onChange={(e) => setOrderForm(prev => ({ ...prev, apartment: e.target.value }))}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
+                        apartment: e.target.value,
+                      }))
+                    }
                     data-testid="input-apartment"
                   />
                 </div>
@@ -304,7 +360,12 @@ export default function Checkout() {
                       type="text"
                       placeholder="Enter city"
                       value={orderForm.city}
-                      onChange={(e) => setOrderForm(prev => ({ ...prev, city: e.target.value }))}
+                      onChange={(e) =>
+                        setOrderForm((prev) => ({
+                          ...prev,
+                          city: e.target.value,
+                        }))
+                      }
                       required
                       data-testid="input-city"
                     />
@@ -316,7 +377,12 @@ export default function Checkout() {
                       type="text"
                       placeholder="Enter state/province"
                       value={orderForm.state}
-                      onChange={(e) => setOrderForm(prev => ({ ...prev, state: e.target.value }))}
+                      onChange={(e) =>
+                        setOrderForm((prev) => ({
+                          ...prev,
+                          state: e.target.value,
+                        }))
+                      }
                       required
                       data-testid="input-state"
                     />
@@ -328,19 +394,31 @@ export default function Checkout() {
                       type="text"
                       placeholder="Enter postal code"
                       value={orderForm.postalCode}
-                      onChange={(e) => setOrderForm(prev => ({ ...prev, postalCode: e.target.value }))}
+                      onChange={(e) =>
+                        setOrderForm((prev) => ({
+                          ...prev,
+                          postalCode: e.target.value,
+                        }))
+                      }
                       required
                       data-testid="input-postal-code"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="instructions">Delivery Instructions (Optional)</Label>
+                  <Label htmlFor="instructions">
+                    Delivery Instructions (Optional)
+                  </Label>
                   <Textarea
                     id="instructions"
                     placeholder="Special instructions for delivery driver (gate codes, building access, etc.)"
                     value={orderForm.deliveryInstructions}
-                    onChange={(e) => setOrderForm(prev => ({ ...prev, deliveryInstructions: e.target.value }))}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
+                        deliveryInstructions: e.target.value,
+                      }))
+                    }
                     data-testid="input-delivery-instructions"
                   />
                 </div>
@@ -363,7 +441,12 @@ export default function Checkout() {
                       name="payment"
                       value="card"
                       checked={orderForm.paymentMethod === "card"}
-                      onChange={(e) => setOrderForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                      onChange={(e) =>
+                        setOrderForm((prev) => ({
+                          ...prev,
+                          paymentMethod: e.target.value,
+                        }))
+                      }
                     />
                     <label htmlFor="card" className="flex items-center">
                       <CreditCard className="w-4 h-4 mr-2" />
@@ -377,7 +460,12 @@ export default function Checkout() {
                       name="payment"
                       value="cash"
                       checked={orderForm.paymentMethod === "cash"}
-                      onChange={(e) => setOrderForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                      onChange={(e) =>
+                        setOrderForm((prev) => ({
+                          ...prev,
+                          paymentMethod: e.target.value,
+                        }))
+                      }
                     />
                     <label htmlFor="cash" className="flex items-center">
                       <Banknote className="w-4 h-4 mr-2" />
@@ -397,17 +485,22 @@ export default function Checkout() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex justify-between items-start">
+                  <div
+                    key={item.id}
+                    className="flex justify-between items-start"
+                  >
                     <div className="flex-1">
                       <div className="font-medium">{item.name}</div>
-                      <div className="text-sm text-gray-500">Qty: {item.quantity}</div>
+                      <div className="text-sm text-gray-500">
+                        Qty: {item.quantity}
+                      </div>
                     </div>
                     <div className="font-semibold">
                       ${(item.price * item.quantity).toFixed(2)}
                     </div>
                   </div>
                 ))}
-                
+
                 <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
@@ -441,18 +534,21 @@ export default function Checkout() {
                 </div>
                 {orderForm.paymentMethod === "card" ? (
                   <div className="space-y-3">
-                    <Button 
+                    <Button
                       onClick={() => {
                         if (!validateForm()) {
                           return;
                         }
-                        
+
                         // Store order form data temporarily for stripe checkout
-                        const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ', ' + orderForm.apartment : ''}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
-                        localStorage.setItem('checkout-form-data', JSON.stringify({
-                          ...orderForm,
-                          deliveryAddress: fullDeliveryAddress
-                        }));
+                        const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ", " + orderForm.apartment : ""}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
+                        localStorage.setItem(
+                          "checkout-form-data",
+                          JSON.stringify({
+                            ...orderForm,
+                            deliveryAddress: fullDeliveryAddress,
+                          }),
+                        );
                         setLocation("/stripe-checkout");
                       }}
                       className="w-full btn-primary py-3 text-lg"
@@ -464,28 +560,31 @@ export default function Checkout() {
                     </p>
                   </div>
                 ) : (
-                  <Button 
+                  <Button
                     onClick={handlePlaceOrder}
                     className="w-full btn-primary py-3 text-lg"
                     disabled={placeOrderMutation.isPending}
                   >
-                    {placeOrderMutation.isPending ? "Placing Order..." : (
+                    {placeOrderMutation.isPending ? (
+                      "Placing Order..."
+                    ) : (
                       <>
-                        Place Order - ${total.toFixed(2)}<br />
-                        <span className="text-sm">(Cash on Delivery)</span>
+                        Place Order - ${total.toFixed(2)}
+                        <br />
                       </>
                     )}
                   </Button>
                 )}
                 <p className="text-xs text-gray-500 text-center mt-2">
-                  By placing this order, you agree to our Terms of Service and Privacy Policy.
+                  By placing this order, you agree to our Terms of Service and
+                  Privacy Policy.
                 </p>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-      
+
       {/* Cart sidebar now handled globally by UniversalCartSidebar */}
     </div>
   );
