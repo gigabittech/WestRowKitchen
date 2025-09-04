@@ -16,23 +16,10 @@ export default function AuthPage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      setLocation("/");
-    }
-  }, [user, setLocation]);
-
-  if (user) {
-    return null;
-  }
-
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
   });
-
   const [registerForm, setRegisterForm] = useState({
     firstName: "",
     lastName: "",
@@ -126,6 +113,18 @@ export default function AuthPage() {
     const { confirmPassword, ...userData } = registerForm;
     registerMutation.mutate(userData);
   };
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
+
+  // Show loading/empty when redirecting
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100">
