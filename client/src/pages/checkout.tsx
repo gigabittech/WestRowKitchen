@@ -222,13 +222,28 @@ export default function Checkout() {
     
     setCouponValidation({ loading: true, error: null });
     
-    // For now, use the first restaurant from cart items
-    const firstCartItem = cartItems[0];
-    if (!firstCartItem) return;
+    // Check if cart has items from multiple restaurants
+    const restaurantIds = [...new Set(cartItems.map(item => item.restaurantId))];
+    
+    if (restaurantIds.length === 0) {
+      setCouponValidation({ loading: false, error: "Your cart is empty" });
+      return;
+    }
+    
+    if (restaurantIds.length > 1) {
+      setCouponValidation({ 
+        loading: false, 
+        error: "Coupons can only be applied to orders from a single restaurant. Please checkout items from one restaurant at a time." 
+      });
+      return;
+    }
+    
+    // All items are from the same restaurant
+    const restaurantId = restaurantIds[0];
     
     validateCouponMutation.mutate({
       code: couponCode.trim(),
-      restaurantId: firstCartItem.restaurantId,
+      restaurantId: restaurantId,
       orderAmount: subtotal,
     });
   };
@@ -299,27 +314,35 @@ export default function Checkout() {
       return;
     }
 
-    // Group items by restaurant
-    const restaurantOrders = cartItems.reduce(
-      (acc, item) => {
-        const key = item.restaurantId;
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(item);
-        return acc;
-      },
-      {} as Record<string, typeof cartItems>,
-    );
+    // Check if cart has items from multiple restaurants
+    const restaurantIds = [...new Set(cartItems.map(item => item.restaurantId))];
+    
+    if (restaurantIds.length === 0) {
+      toast({
+        title: "Cart Empty",
+        description: "Please add items to your cart before placing an order.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (restaurantIds.length > 1) {
+      toast({
+        title: "Multiple Restaurants",
+        description: "You can only place orders from one restaurant at a time. Please remove items from other restaurants.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // For now, just place one order for the first restaurant
-    const firstRestaurant = Object.keys(restaurantOrders)[0];
-    const restaurantItems = restaurantOrders[firstRestaurant];
+    // All items are from the same restaurant
+    const restaurantId = restaurantIds[0];
+    const restaurantItems = cartItems.filter(item => item.restaurantId === restaurantId);
 
     const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ", " + orderForm.apartment : ""}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
 
     placeOrderMutation.mutate({
-      restaurantId: firstRestaurant || "default-restaurant-id",
+      restaurantId: restaurantId,
       totalAmount: total.toFixed(2),
       deliveryFee: deliveryFee.toFixed(2),
       serviceFee: serviceFee.toFixed(2),
