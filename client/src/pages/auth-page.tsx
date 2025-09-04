@@ -42,8 +42,6 @@ export default function AuthPage() {
     onSuccess: async () => {
       // Invalidate and refetch user query to update authentication state immediately
       await queryClient.invalidateQueries({ queryKey: queryKeys.user() });
-      
-      // Force refetch to ensure immediate update
       await queryClient.refetchQueries({ queryKey: queryKeys.user() });
       
       toast({

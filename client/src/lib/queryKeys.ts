@@ -1,35 +1,35 @@
 // Query Key Factory for consistent cache management
 export const queryKeys = {
   // User related queries
-  user: () => ["user"] as const,
+  user: () => ["/api/user"] as const,
   
   // Orders related queries  
   orders: {
-    all: () => ["orders"] as const,
-    byUser: (userId: string) => ["orders", userId] as const,
-    byId: (orderId: string) => ["orders", "detail", orderId] as const,
+    all: () => ["/api/orders"] as const,
+    byUser: (userId: string) => ["/api/orders", userId] as const,
+    byId: (orderId: string) => ["/api/orders", "detail", orderId] as const,
   },
   
   // Restaurants related queries
   restaurants: {
-    all: () => ["restaurants"] as const,
-    byId: (restaurantId: string) => ["restaurants", restaurantId] as const,
-    menu: (restaurantId: string) => ["restaurants", restaurantId, "menu"] as const,
-    stats: (restaurantId: string) => ["restaurants", restaurantId, "stats"] as const,
-    orders: (restaurantId: string) => ["restaurants", restaurantId, "orders"] as const,
+    all: () => ["/api/restaurants"] as const,
+    byId: (restaurantId: string) => ["/api/restaurants", restaurantId] as const,
+    menu: (restaurantId: string) => ["/api/restaurants", restaurantId, "menu"] as const,
+    stats: (restaurantId: string) => ["/api/restaurants", restaurantId, "stats"] as const,
+    orders: (restaurantId: string) => ["/api/restaurants", restaurantId, "orders"] as const,
   },
   
   // Coupons related queries
   coupons: {
-    all: () => ["coupons"] as const,
+    all: () => ["/api/coupons"] as const,
     validate: (code: string, restaurantId: string, amount: number) => 
-      ["coupons", "validate", code, restaurantId, amount] as const,
+      ["/api/coupons", "validate", code, restaurantId, amount] as const,
   },
   
   // Promotions
   promotions: {
-    all: () => ["promotions"] as const,
-    active: () => ["promotions", "active"] as const,
+    all: () => ["/api/promotions"] as const,
+    active: () => ["/api/promotions", "active"] as const,
   },
 } as const;
 
