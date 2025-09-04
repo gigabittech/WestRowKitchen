@@ -1,6 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { queryKeys } from "@/lib/queryKeys";
+import { useCart } from "@/contexts/CartContext";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +17,9 @@ import { getFoodImage } from "@/utils/food-images";
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { addToCart, clearCart, cartItems } = useCart();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { 
     data: order, 
@@ -62,6 +68,50 @@ export default function OrderDetail() {
       default:
         return status;
     }
+  };
+
+  // Reorder mutation
+  const reorderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      return await apiRequest("POST", `/api/orders/reorder`, { orderId });
+    },
+    onSuccess: (data: any) => {
+      // Check if cart has items from different restaurant
+      const hasItemsFromDifferentRestaurant = cartItems.length > 0 && 
+        cartItems.some(item => item.restaurantId !== data.restaurantInfo.id);
+      
+      if (hasItemsFromDifferentRestaurant) {
+        if (window.confirm(
+          `Your cart contains items from a different restaurant. Do you want to clear your cart and add items from ${data.restaurantInfo.name}?`
+        )) {
+          clearCart();
+          data.cartItems.forEach((item: any) => addToCart(item));
+          toast({
+            title: "Items added to cart",
+            description: `Previous order items from ${data.restaurantInfo.name} have been added to your cart.`,
+          });
+        }
+      } else {
+        // Add items to cart
+        data.cartItems.forEach((item: any) => addToCart(item));
+        toast({
+          title: "Items added to cart",
+          description: `Previous order items from ${data.restaurantInfo.name} have been added to your cart.`,
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Failed to reorder",
+        description: "Some items may no longer be available. Please try adding items manually.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleReorder = () => {
+    if (!order?.id) return;
+    reorderMutation.mutate(order.id);
   };
 
   return (
@@ -320,9 +370,15 @@ export default function OrderDetail() {
 
             {/* Action Buttons */}
             <div className="flex gap-4 pt-4">
-              <Button variant="outline" className="flex-1" data-testid="button-reorder">
+              <Button 
+                variant="outline" 
+                className="flex-1" 
+                onClick={handleReorder}
+                disabled={reorderMutation.isPending}
+                data-testid="button-reorder"
+              >
                 <Package className="w-4 h-4 mr-2" />
-                Reorder Items
+                {reorderMutation.isPending ? "Adding to Cart..." : "Reorder Items"}
               </Button>
               <Button variant="outline" className="flex-1" data-testid="button-contact-support">
                 <Mail className="w-4 h-4 mr-2" />

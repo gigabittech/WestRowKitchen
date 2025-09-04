@@ -418,6 +418,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reorder endpoint
+  app.post("/api/orders/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { orderId } = req.body;
+
+      if (!orderId) {
+        return res.status(400).json({ message: "Order ID is required" });
+      }
+
+      // Get the original order with items
+      const orderDetail = await storage.getOrderById(orderId);
+      
+      if (!orderDetail || orderDetail.userId !== userId) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      // Get order items with details
+      const orderItems = await storage.getOrderItemsWithDetails(orderId);
+      orderDetail.items = orderItems;
+
+      // Check if the restaurant is still active
+      const restaurant = await storage.getRestaurant(orderDetail.restaurantId);
+      if (!restaurant) {
+        return res.status(400).json({ message: "Restaurant is no longer available" });
+      }
+
+      // Prepare cart items from order
+      const cartItems = orderDetail.items?.map(item => ({
+        id: item.menuItem.id,
+        name: item.menuItem.name,
+        price: parseFloat(item.unitPrice),
+        quantity: item.quantity,
+        restaurantId: orderDetail.restaurantId,
+        restaurantName: restaurant.name,
+        description: item.menuItem.description || "",
+        category: item.menuItem.category || "Unknown"
+      })) || [];
+
+      res.json({ 
+        success: true, 
+        message: "Items ready to be added to cart",
+        cartItems,
+        restaurantInfo: {
+          id: restaurant.id,
+          name: restaurant.name
+        }
+      });
+
+    } catch (error) {
+      console.error("Error processing reorder:", error);
+      res.status(500).json({ message: "Failed to process reorder" });
+    }
+  });
+
   // Promotion routes
   app.get("/api/promotions", async (req, res) => {
     try {
