@@ -107,9 +107,11 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                         <div 
                           key={restaurant.id} 
                           className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
-                          onClick={() => {
-                            onItemClick();
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             navigate(`/restaurant/${restaurantSlug}`);
+                            onItemClick();
                           }}
                           data-testid={`search-result-restaurant-${restaurant.id}`}
                         >
@@ -169,9 +171,11 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                         <div 
                           key={item.id} 
                           className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
-                          onClick={() => {
-                            onItemClick();
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             navigate(`/restaurant/${restaurantSlug}/food/${itemSlug}?id=${item.id}`);
+                            onItemClick();
                           }}
                           data-testid={`search-result-food-${item.id}`}
                         >
