@@ -26,7 +26,7 @@ import { z } from "zod";
 let stripe: Stripe | null = null;
 try {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_4eC39HqLyjWDarjtT1zdp7dc", {
-    apiVersion: "2025-06-30.basil",
+    apiVersion: "2025-08-27.basil",
   });
 } catch (error) {
   console.log("Stripe not configured, payment functionality disabled");
@@ -296,6 +296,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  // Get individual order by ID
+  app.get("/api/orders/detail/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const orderId = req.params.id;
+      const order = await storage.getOrderById(orderId);
+      
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      // Check if user owns this order or is admin
+      const user = await storage.getUser(userId);
+      if (order.userId !== userId && !user?.isAdmin) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      res.status(500).json({ message: "Failed to fetch order" });
     }
   });
 

@@ -15,6 +15,7 @@ import Admin from "@/pages/admin";
 import Checkout from "@/pages/checkout";
 import StripeCheckout from "@/pages/stripe-checkout";
 import Orders from "@/pages/orders";
+import OrderDetail from "@/pages/order-detail";
 import Terms from "@/pages/legal/terms";
 import Privacy from "@/pages/legal/privacy";
 import Refund from "@/pages/legal/refund";
@@ -57,6 +58,7 @@ function Router() {
           <Route path="/checkout" component={Checkout} />
           <Route path="/stripe-checkout" component={StripeCheckout} />
           <Route path="/orders" component={Orders} />
+          <Route path="/orders/:id" component={OrderDetail} />
           <Route path="/terms" component={Terms} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/refund" component={Refund} />

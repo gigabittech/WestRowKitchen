@@ -55,6 +55,7 @@ export interface IStorage {
   createOrder(order: InsertOrder): Promise<Order>;
   createOrderItems(items: InsertOrderItem[]): Promise<OrderItem[]>;
   getUserOrders(userId: string): Promise<Order[]>;
+  getOrderById(orderId: string): Promise<Order | null>;
   getRestaurantOrders(restaurantId: string): Promise<Order[]>;
   updateOrderStatus(orderId: string, status: string): Promise<Order>;
 
@@ -371,6 +372,16 @@ export class DatabaseStorage implements IStorage {
       .update(coupons)
       .set({ currentUsage: sql`${coupons.currentUsage} + ${increment}` })
       .where(eq(coupons.id, couponId));
+  }
+
+  async getOrderById(orderId: string): Promise<Order | null> {
+    const result = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+    
+    return result[0] || null;
   }
 
   async getActiveCoupons(restaurantId?: string): Promise<Coupon[]> {
