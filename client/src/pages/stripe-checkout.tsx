@@ -154,7 +154,7 @@ export default function StripeCheckout() {
       return;
     }
 
-    if (!checkoutFormData.deliveryAddress.trim()) {
+    if (!checkoutFormData.streetAddress || !checkoutFormData.streetAddress.trim()) {
       setLocation("/checkout");
       return;
     }

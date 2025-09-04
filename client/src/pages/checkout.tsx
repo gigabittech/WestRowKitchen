@@ -12,22 +12,54 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import NavigationHeader from "@/components/navigation-header";
 import CartSidebar from "@/components/ui/cart-sidebar";
-import { ArrowLeft, CreditCard, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, CreditCard, MapPin, Clock, User, Phone } from "lucide-react";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
 
 export default function Checkout() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { cartItems, updateQuantity, removeFromCart, cartItemCount, cartTotal, isCartOpen, setIsCartOpen } = useCart();
   const [orderForm, setOrderForm] = useState({
-    deliveryAddress: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    streetAddress: "",
+    apartment: "",
+    city: "",
+    state: "",
+    postalCode: "",
     deliveryInstructions: "",
     paymentMethod: "card",
   });
   
   useDocumentTitle("Checkout - West Row Kitchen");
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Please Sign In",
+        description: "You need to sign in to place an order.",
+        variant: "destructive",
+      });
+      setLocation("/auth");
+    }
+  }, [isAuthenticated, setLocation, toast]);
+
+  // Pre-fill user information if available
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      setOrderForm(prev => ({
+        ...prev,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+      }));
+    }
+  }, [user, isAuthenticated]);
 
   const subtotal = cartTotal;
   const deliveryFee = 2.99;
@@ -57,15 +89,58 @@ export default function Checkout() {
     },
   });
 
+  const validateForm = () => {
+    const requiredFields = [
+      { field: 'firstName', label: 'First Name' },
+      { field: 'lastName', label: 'Last Name' },
+      { field: 'email', label: 'Email' },
+      { field: 'phone', label: 'Phone Number' },
+      { field: 'streetAddress', label: 'Street Address' },
+      { field: 'city', label: 'City' },
+      { field: 'state', label: 'State/Province' },
+      { field: 'postalCode', label: 'Postal Code' }
+    ];
+
+    for (const { field, label } of requiredFields) {
+      if (!orderForm[field as keyof typeof orderForm].trim()) {
+        toast({
+          title: "Missing Information",
+          description: `Please enter your ${label.toLowerCase()}.`,
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(orderForm.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Basic phone validation (10+ digits)
+    const phoneDigits = orderForm.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid phone number with at least 10 digits.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!orderForm.deliveryAddress.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a delivery address.",
-        variant: "destructive",
-      });
+    if (!validateForm()) {
       return;
     }
 
@@ -83,15 +158,23 @@ export default function Checkout() {
     const firstRestaurant = Object.keys(restaurantOrders)[0];
     const restaurantItems = restaurantOrders[firstRestaurant];
 
+    const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ', ' + orderForm.apartment : ''}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
+
     placeOrderMutation.mutate({
-      restaurantId: "sample-restaurant-id", // This would be the actual restaurant ID
+      restaurantId: firstRestaurant || "default-restaurant-id",
       totalAmount: total,
       deliveryFee,
       serviceFee,
       tax,
-      deliveryAddress: orderForm.deliveryAddress,
+      deliveryAddress: fullDeliveryAddress,
       deliveryInstructions: orderForm.deliveryInstructions,
       status: "pending",
+      customerInfo: {
+        firstName: orderForm.firstName,
+        lastName: orderForm.lastName,
+        email: orderForm.email,
+        phone: orderForm.phone,
+      },
       items: restaurantItems.map(item => ({
         menuItemId: item.id,
         quantity: item.quantity,
@@ -119,32 +202,146 @@ export default function Checkout() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Order Form */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Customer Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  Customer Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="firstName">First Name *</Label>
+                    <Input
+                      id="firstName"
+                      type="text"
+                      placeholder="Enter your first name"
+                      value={orderForm.firstName}
+                      onChange={(e) => setOrderForm(prev => ({ ...prev, firstName: e.target.value }))}
+                      required
+                      data-testid="input-first-name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Input
+                      id="lastName"
+                      type="text"
+                      placeholder="Enter your last name"
+                      value={orderForm.lastName}
+                      onChange={(e) => setOrderForm(prev => ({ ...prev, lastName: e.target.value }))}
+                      required
+                      data-testid="input-last-name"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={orderForm.email}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                    data-testid="input-email"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number * <span className="text-sm text-gray-500">(for delivery coordination)</span></Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    value={orderForm.phone}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, phone: e.target.value }))}
+                    required
+                    data-testid="input-phone"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Delivery Address */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <MapPin className="w-5 h-5 mr-2" />
-                  Delivery Information
+                  Delivery Address
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="address">Delivery Address *</Label>
-                  <Textarea
-                    id="address"
-                    placeholder="Enter your full delivery address..."
-                    value={orderForm.deliveryAddress}
-                    onChange={(e) => setOrderForm(prev => ({ ...prev, deliveryAddress: e.target.value }))}
+                  <Label htmlFor="streetAddress">Street Address *</Label>
+                  <Input
+                    id="streetAddress"
+                    type="text"
+                    placeholder="Enter your street address"
+                    value={orderForm.streetAddress}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, streetAddress: e.target.value }))}
                     required
-                    className="min-h-[80px]"
+                    data-testid="input-street-address"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="apartment">Apartment, Unit, Building (Optional)</Label>
+                  <Input
+                    id="apartment"
+                    type="text"
+                    placeholder="Apt, Suite, Floor, etc."
+                    value={orderForm.apartment}
+                    onChange={(e) => setOrderForm(prev => ({ ...prev, apartment: e.target.value }))}
+                    data-testid="input-apartment"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="city">City *</Label>
+                    <Input
+                      id="city"
+                      type="text"
+                      placeholder="Enter city"
+                      value={orderForm.city}
+                      onChange={(e) => setOrderForm(prev => ({ ...prev, city: e.target.value }))}
+                      required
+                      data-testid="input-city"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="state">State/Province *</Label>
+                    <Input
+                      id="state"
+                      type="text"
+                      placeholder="Enter state/province"
+                      value={orderForm.state}
+                      onChange={(e) => setOrderForm(prev => ({ ...prev, state: e.target.value }))}
+                      required
+                      data-testid="input-state"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="postalCode">Postal Code *</Label>
+                    <Input
+                      id="postalCode"
+                      type="text"
+                      placeholder="Enter postal code"
+                      value={orderForm.postalCode}
+                      onChange={(e) => setOrderForm(prev => ({ ...prev, postalCode: e.target.value }))}
+                      required
+                      data-testid="input-postal-code"
+                    />
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="instructions">Delivery Instructions (Optional)</Label>
                   <Textarea
                     id="instructions"
-                    placeholder="Any special instructions for the delivery driver..."
+                    placeholder="Special instructions for delivery driver (gate codes, building access, etc.)"
                     value={orderForm.deliveryInstructions}
                     onChange={(e) => setOrderForm(prev => ({ ...prev, deliveryInstructions: e.target.value }))}
+                    data-testid="input-delivery-instructions"
                   />
                 </div>
               </CardContent>
@@ -243,19 +440,15 @@ export default function Checkout() {
                   <div className="space-y-3">
                     <Button 
                       onClick={() => {
-                        if (!orderForm.deliveryAddress.trim()) {
-                          toast({
-                            title: "Error",
-                            description: "Please enter a delivery address before proceeding to payment.",
-                            variant: "destructive",
-                          });
+                        if (!validateForm()) {
                           return;
                         }
+                        
                         // Store order form data temporarily for stripe checkout
+                        const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ', ' + orderForm.apartment : ''}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
                         localStorage.setItem('checkout-form-data', JSON.stringify({
-                          deliveryAddress: orderForm.deliveryAddress,
-                          deliveryInstructions: orderForm.deliveryInstructions,
-                          paymentMethod: orderForm.paymentMethod
+                          ...orderForm,
+                          deliveryAddress: fullDeliveryAddress
                         }));
                         setLocation("/stripe-checkout");
                       }}
