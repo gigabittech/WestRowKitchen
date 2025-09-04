@@ -132,18 +132,18 @@ export default function StripeCheckout() {
   // Prepare order data for after payment
   const orderData = {
     restaurantId: cartItems.length > 0 ? cartItems[0].restaurantId : "unknown",
-    totalAmount: total,
-    deliveryFee,
-    serviceFee,
-    tax,
+    totalAmount: total.toFixed(2),
+    deliveryFee: deliveryFee.toFixed(2),
+    serviceFee: serviceFee.toFixed(2),
+    tax: tax.toFixed(2),
     deliveryAddress: checkoutFormData.deliveryAddress,
     deliveryInstructions: checkoutFormData.deliveryInstructions,
     status: "pending",
     items: cartItems.map(item => ({
       menuItemId: item.id,
       quantity: item.quantity,
-      unitPrice: item.price,
-      totalPrice: item.price * item.quantity,
+      unitPrice: item.price.toFixed(2),
+      totalPrice: (item.price * item.quantity).toFixed(2),
     })),
   };
 

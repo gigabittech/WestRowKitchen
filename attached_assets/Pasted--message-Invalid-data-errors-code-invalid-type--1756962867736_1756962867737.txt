@@ -1,0 +1,129 @@
+{
+    "message": "Invalid data",
+    "errors": [
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "totalAmount"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "deliveryFee"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "serviceFee"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "tax"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "items",
+                0,
+                "unitPrice"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "items",
+                0,
+                "totalPrice"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "items",
+                1,
+                "unitPrice"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "items",
+                1,
+                "totalPrice"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "items",
+                2,
+                "unitPrice"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "items",
+                2,
+                "totalPrice"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "items",
+                3,
+                "unitPrice"
+            ],
+            "message": "Expected string, received number"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "number",
+            "path": [
+                "items",
+                3,
+                "totalPrice"
+            ],
+            "message": "Expected string, received number"
+        }
+    ]
+}
