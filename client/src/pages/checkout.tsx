@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,7 @@ export default function Checkout() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const {
     cartItems,
     clearCart,
@@ -156,6 +157,8 @@ export default function Checkout() {
     },
     onSuccess: () => {
       clearCart();
+      // Invalidate orders cache to show new order immediately
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       toast({
         title: "Order Placed!",
         description: "Your order has been confirmed and is being prepared.",

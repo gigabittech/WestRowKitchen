@@ -1,6 +1,7 @@
 import { useStripe, Elements, PaymentElement, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { useEffect, useState } from 'react';
+import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
@@ -20,6 +21,7 @@ const CheckoutForm = ({ total, orderData }: { total: number; orderData: any }) =
   const [, setLocation] = useLocation();
   const [processing, setProcessing] = useState(false);
   const { cartItems, clearCart } = useCart();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +55,8 @@ const CheckoutForm = ({ total, orderData }: { total: number; orderData: any }) =
           
           if (response.ok) {
             clearCart();
+            // Invalidate orders cache to show new order immediately
+            queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
             // Clean up temporary form data
             localStorage.removeItem('checkout-form-data');
             toast({
