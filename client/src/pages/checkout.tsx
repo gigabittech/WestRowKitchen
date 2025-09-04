@@ -378,7 +378,7 @@ export default function Checkout() {
               Looks like you haven't added any delicious items to your cart yet. 
               Browse our amazing restaurants and discover your next favorite meal!
             </p>
-            <Link href="/restaurants">
+            <Link href="/">
               <Button size="lg" className="px-8 py-3" data-testid="button-browse-restaurants">
                 <ShoppingBag className="w-5 h-5 mr-2" />
                 Browse Restaurants
