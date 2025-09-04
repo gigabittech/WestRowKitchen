@@ -418,6 +418,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Customer order cancellation endpoint
+  app.patch("/api/orders/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const orderId = req.params.id;
+      const { status } = req.body;
+
+      // Check if user owns this order
+      const order = await storage.getOrderById(orderId);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      if (order.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // For customer cancellations, only allow if order is pending
+      if (status === "cancelled") {
+        if (order.status !== "pending") {
+          return res.status(400).json({ 
+            message: "Orders can only be cancelled while pending" 
+          });
+        }
+      } else {
+        return res.status(400).json({ 
+          message: "Customers can only cancel orders" 
+        });
+      }
+
+      const updatedOrder = await storage.updateOrderStatus(orderId, status);
+      res.json(updatedOrder);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error updating order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
   // Reorder endpoint
   app.post("/api/orders/reorder", isAuthenticated, async (req: any, res) => {
     try {

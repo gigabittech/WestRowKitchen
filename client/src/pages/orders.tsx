@@ -101,7 +101,7 @@ export default function Orders() {
   });
 
   const handleCancelOrder = (orderId: string) => {
-    if (window.confirm("Are you sure you want to cancel this order?")) {
+    if (window.confirm("Are you sure you want to cancel this order? Only pending orders can be cancelled.")) {
       cancelOrderMutation.mutate(orderId);
     }
   };
@@ -312,7 +312,7 @@ export default function Orders() {
                       </Link>
                     </div>
                     
-                    {["pending", "confirmed", "preparing"].includes(order.status) && (
+                    {order.status === "pending" && (
                       <Button 
                         variant="outline" 
                         size="sm" 
