@@ -153,6 +153,8 @@ export default function StripeCheckout() {
     deliveryFee: deliveryFee.toFixed(2),
     serviceFee: serviceFee.toFixed(2),
     tax: tax.toFixed(2),
+    discountAmount: checkoutFormData.couponDiscount?.itemDiscount?.toFixed(2) || "0.00",
+    couponCode: checkoutFormData.appliedCoupon?.code || null,
     deliveryAddress: checkoutFormData.deliveryAddress,
     deliveryInstructions: checkoutFormData.deliveryInstructions,
     status: "pending",

@@ -269,7 +269,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
       });
       
-      console.log('Safe parsed orderData:', JSON.stringify(orderData, null, 2));
 
       const order = await storage.createOrder(orderData);
       
@@ -279,14 +278,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Track coupon usage if a coupon was applied
       if (orderData.couponCode) {
-        console.log('Order has coupon code:', orderData.couponCode);
         try {
           const coupon = await storage.getCouponByCode(orderData.couponCode);
-          console.log('Found coupon:', coupon ? coupon.id : 'null');
           if (coupon) {
-            console.log('Applying coupon usage for coupon:', coupon.id, 'user:', userId, 'order:', order.id);
-            const usage = await storage.applyCoupon(coupon.id, userId, order.id);
-            console.log('Coupon usage recorded:', usage);
+            await storage.applyCoupon(coupon.id, userId, order.id);
           }
         } catch (couponError) {
           console.error('Failed to track coupon usage:', couponError);
