@@ -56,6 +56,7 @@ export interface IStorage {
   createOrderItems(items: InsertOrderItem[]): Promise<OrderItem[]>;
   getUserOrders(userId: string): Promise<Order[]>;
   getOrderById(orderId: string): Promise<Order | null>;
+  getOrderItems(orderId: string): Promise<OrderItem[]>;
   getRestaurantOrders(restaurantId: string): Promise<Order[]>;
   updateOrderStatus(orderId: string, status: string): Promise<Order>;
 
@@ -382,6 +383,13 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return result[0] || null;
+  }
+
+  async getOrderItems(orderId: string): Promise<OrderItem[]> {
+    return await db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId));
   }
 
   async getActiveCoupons(restaurantId?: string): Promise<Coupon[]> {

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import NavigationHeader from "@/components/navigation-header";
-import { Clock, MapPin, Package, ArrowLeft, AlertCircle, RefreshCw, Phone, Mail } from "lucide-react";
+import { Clock, MapPin, Package, ArrowLeft, AlertCircle, RefreshCw, Phone, Mail, User } from "lucide-react";
 import { Link, useParams } from "wouter";
 import type { Order } from "@shared/schema";
 
@@ -78,49 +78,43 @@ export default function OrderDetail() {
           </Button>
         </Link>
 
-        {isLoading ? (
-          <div className="space-y-4">
-            <div className="bg-gray-200 animate-pulse rounded-lg h-48"></div>
-            <div className="bg-gray-200 animate-pulse rounded-lg h-32"></div>
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
+              <p className="text-lg text-muted-foreground">Loading order details...</p>
+            </div>
           </div>
-        ) : error ? (
+        )}
+
+        {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
-              <span>Failed to load order details. Please try again.</span>
+            <AlertDescription>
+              Failed to load order details. Please try again.
+            </AlertDescription>
+            <div className="mt-3">
               <Button 
+                onClick={() => refetch()} 
                 variant="outline" 
-                size="sm" 
-                onClick={() => refetch()}
-                className="ml-4"
+                size="sm"
                 data-testid="button-retry-order-detail"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
+                Try Again
               </Button>
-            </AlertDescription>
+            </div>
           </Alert>
-        ) : !order ? (
-          <Card className="p-12 text-center">
-            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Order Not Found</h3>
-            <p className="text-gray-600 mb-6">
-              This order doesn't exist or you don't have permission to view it.
-            </p>
-            <Link href="/orders">
-              <Button className="btn-primary">
-                View All Orders
-              </Button>
-            </Link>
-          </Card>
-        ) : (
+        )}
+
+        {order && (
           <div className="space-y-6">
             {/* Order Header */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl mb-2">
+                    <CardTitle className="text-2xl" data-testid="text-order-number">
                       Order #{order.id.slice(-8).toUpperCase()}
                     </CardTitle>
                     <p className="text-gray-600">
@@ -154,6 +148,40 @@ export default function OrderDetail() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium">${parseFloat(order.totalAmount).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Customer Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Customer Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{user?.username || 'Customer'}</h4>
+                      <p className="text-sm text-gray-600">Order Customer</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {user?.email && (
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                        <span>{user.email}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-600">Contact via platform messaging</span>
                     </div>
                   </div>
                 </div>
@@ -228,14 +256,8 @@ export default function OrderDetail() {
                     <span>Tax:</span>
                     <span>${parseFloat(order.tax || "0").toFixed(2)}</span>
                   </div>
-                  {order.discountAmount && parseFloat(order.discountAmount) > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
-                      <span>Discount:</span>
-                      <span>-${parseFloat(order.discountAmount).toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between text-lg font-semibold">
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex justify-between font-semibold">
                       <span>Total:</span>
                       <span>${parseFloat(order.totalAmount).toFixed(2)}</span>
                     </div>
@@ -245,26 +267,16 @@ export default function OrderDetail() {
             </Card>
 
             {/* Action Buttons */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex flex-wrap gap-3">
-                  {order.status === "delivered" && (
-                    <Button variant="outline" data-testid="button-reorder-detail">
-                      Reorder Items
-                    </Button>
-                  )}
-                  {["pending", "confirmed", "preparing"].includes(order.status) && (
-                    <Button variant="outline" className="text-red-600 hover:text-red-700" data-testid="button-cancel-detail">
-                      Cancel Order
-                    </Button>
-                  )}
-                  <Button variant="outline" data-testid="button-contact-support">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Contact Support
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex gap-4 pt-4">
+              <Button variant="outline" className="flex-1" data-testid="button-reorder">
+                <Package className="w-4 h-4 mr-2" />
+                Reorder Items
+              </Button>
+              <Button variant="outline" className="flex-1" data-testid="button-contact-support">
+                <Mail className="w-4 h-4 mr-2" />
+                Contact Support
+              </Button>
+            </div>
           </div>
         )}
       </div>
