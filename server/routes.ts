@@ -316,7 +316,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      res.json(order);
+      // Get order items with menu item details
+      const orderItems = await storage.getOrderItemsWithDetails(orderId);
+      
+      res.json({ ...order, items: orderItems });
     } catch (error) {
       console.error("Error fetching order:", error);
       res.status(500).json({ message: "Failed to fetch order" });

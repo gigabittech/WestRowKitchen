@@ -19,7 +19,7 @@ export default function OrderDetail() {
     isLoading, 
     error, 
     refetch 
-  } = useQuery<Order>({
+  } = useQuery<Order & { items?: any[] }>({
     queryKey: ["/api/orders/detail", id],
     enabled: !!user?.id && !!id,
     staleTime: 1000 * 60 * 5,
@@ -141,15 +141,37 @@ export default function OrderDetail() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center py-3 border-b">
-                    <div>
-                      <h4 className="font-medium">Order Total</h4>
-                      <p className="text-sm text-gray-600">Individual items not available</p>
+                  {order.items && order.items.length > 0 ? (
+                    <>
+                      {order.items.map((item: any, index: number) => (
+                        <div key={item.id} className="flex justify-between items-start py-3 border-b last:border-b-0" data-testid={`order-item-${index}`}>
+                          <div className="flex-1">
+                            <h4 className="font-medium" data-testid={`item-name-${index}`}>{item.menuItem.name}</h4>
+                            <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                            {item.specialInstructions && (
+                              <p className="text-sm text-gray-600 mt-1">
+                                <span className="font-medium">Special instructions:</span> {item.specialInstructions}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium" data-testid={`item-total-${index}`}>${parseFloat(item.totalPrice).toFixed(2)}</p>
+                            <p className="text-sm text-gray-600">${parseFloat(item.unitPrice).toFixed(2)} each</p>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="flex justify-between items-center py-3 border-b">
+                      <div>
+                        <h4 className="font-medium">Order Total</h4>
+                        <p className="text-sm text-gray-600">Individual items not available</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${parseFloat(order.totalAmount).toFixed(2)}</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">${parseFloat(order.totalAmount).toFixed(2)}</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -166,7 +188,7 @@ export default function OrderDetail() {
                       <User className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-medium">{user?.username || 'Customer'}</h4>
+                      <h4 className="font-medium">{user?.firstName || 'Customer'}</h4>
                       <p className="text-sm text-gray-600">Order Customer</p>
                     </div>
                   </div>
