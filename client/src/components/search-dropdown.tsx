@@ -104,49 +104,51 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                       const logo = logoMap[restaurant.name];
                       
                       return (
-                        <Link 
+                        <div 
                           key={restaurant.id} 
-                          href={`/restaurant/${restaurantSlug}`}
-                          onClick={onItemClick}
+                          className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
+                          onClick={() => {
+                            onItemClick();
+                            navigate(`/restaurant/${restaurantSlug}`);
+                          }}
+                          data-testid={`search-result-restaurant-${restaurant.id}`}
                         >
-                          <div className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0">
-                            <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-3">
-                              {logo ? (
-                                <img
-                                  src={logo}
-                                  alt={restaurant.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                                  <Utensils className="w-6 h-6 text-primary" />
+                          <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-3">
+                            {logo ? (
+                              <img
+                                src={logo}
+                                alt={restaurant.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                <Utensils className="w-6 h-6 text-primary" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-gray-900 truncate">
+                              {restaurant.name}
+                            </h3>
+                            <div className="flex items-center mt-1 space-x-3">
+                              <Badge variant="secondary" className="text-xs">
+                                {restaurant.cuisine}
+                              </Badge>
+                              {restaurant.rating && restaurant.rating !== "0.00" && (
+                                <div className="flex items-center text-xs text-gray-500">
+                                  <Star className="w-3 h-3 fill-current text-yellow-400 mr-1" />
+                                  {restaurant.rating}
+                                </div>
+                              )}
+                              {restaurant.deliveryTime && (
+                                <div className="flex items-center text-xs text-gray-500">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {restaurant.deliveryTime}
                                 </div>
                               )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-gray-900 truncate">
-                                {restaurant.name}
-                              </h3>
-                              <div className="flex items-center mt-1 space-x-3">
-                                <Badge variant="secondary" className="text-xs">
-                                  {restaurant.cuisine}
-                                </Badge>
-                                {restaurant.rating && restaurant.rating !== "0.00" && (
-                                  <div className="flex items-center text-xs text-gray-500">
-                                    <Star className="w-3 h-3 fill-current text-yellow-400 mr-1" />
-                                    {restaurant.rating}
-                                  </div>
-                                )}
-                                {restaurant.deliveryTime && (
-                                  <div className="flex items-center text-xs text-gray-500">
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    {restaurant.deliveryTime}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
                           </div>
-                        </Link>
+                        </div>
                       );
                     })}
                   </div>
@@ -164,43 +166,45 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                       const foodImage = getFoodImage(item.name);
                       
                       return (
-                        <Link 
+                        <div 
                           key={item.id} 
-                          href={`/restaurant/${restaurantSlug}/food/${itemSlug}?id=${item.id}`}
-                          onClick={onItemClick}
+                          className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
+                          onClick={() => {
+                            onItemClick();
+                            navigate(`/restaurant/${restaurantSlug}/food/${itemSlug}?id=${item.id}`);
+                          }}
+                          data-testid={`search-result-food-${item.id}`}
                         >
-                          <div className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0">
-                            <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-3">
-                              {foodImage ? (
-                                <img
-                                  src={foodImage}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                                  <Utensils className="w-6 h-6 text-primary" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-gray-900 truncate">
-                                {item.name}
-                              </h3>
-                              <p className="text-sm text-gray-600 truncate">
-                                from {item.restaurant.name}
-                              </p>
-                              <div className="flex items-center justify-between mt-1">
-                                <Badge variant="secondary" className="text-xs">
-                                  {item.restaurant.cuisine}
-                                </Badge>
-                                <span className="font-semibold text-primary">
-                                  ${parseFloat(item.price).toFixed(2)}
-                                </span>
+                          <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-3">
+                            {foodImage ? (
+                              <img
+                                src={foodImage}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                <Utensils className="w-6 h-6 text-primary" />
                               </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-gray-900 truncate">
+                              {item.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 truncate">
+                              from {item.restaurant.name}
+                            </p>
+                            <div className="flex items-center justify-between mt-1">
+                              <Badge variant="secondary" className="text-xs">
+                                {item.restaurant.cuisine}
+                              </Badge>
+                              <span className="font-semibold text-primary">
+                                ${parseFloat(item.price).toFixed(2)}
+                              </span>
                             </div>
                           </div>
-                        </Link>
+                        </div>
                       );
                     })}
                   </div>
