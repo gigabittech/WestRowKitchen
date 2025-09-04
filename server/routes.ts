@@ -245,10 +245,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         items: z.array(insertOrderItemSchema.omit({ orderId: true })),
       });
       
-      const { items, ...orderData } = orderSchema.parse({
+      console.log('Request body:', JSON.stringify(req.body, null, 2));
+      
+      const parseData = {
         ...req.body,
         userId,
-      });
+      };
+      console.log('Data to parse:', JSON.stringify(parseData, null, 2));
+      
+      const { items, ...orderData } = orderSchema.parse(parseData);
+      console.log('Parsed orderData:', JSON.stringify(orderData, null, 2));
 
       const order = await storage.createOrder(orderData);
       
