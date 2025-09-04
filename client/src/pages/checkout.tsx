@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import NavigationHeader from "@/components/navigation-header";
-import CartSidebar from "@/components/ui/cart-sidebar";
 import {
   ArrowLeft,
   CreditCard,
@@ -96,21 +95,25 @@ export default function Checkout() {
   const subtotal = cartTotal;
   const baseDeliveryFee = 2.99;
   const serviceFee = subtotal * 0.05;
-  
+
   // Apply coupon discounts
   let deliveryFee = baseDeliveryFee;
   let itemDiscount = 0;
-  
+
   if (appliedCoupon) {
     if (appliedCoupon.discountType === "free_delivery") {
       deliveryFee = 0;
     } else if (appliedCoupon.discountType === "percentage") {
-      itemDiscount = subtotal * (parseFloat(appliedCoupon.discountValue || "0") / 100);
+      itemDiscount =
+        subtotal * (parseFloat(appliedCoupon.discountValue || "0") / 100);
     } else if (appliedCoupon.discountType === "fixed") {
-      itemDiscount = Math.min(parseFloat(appliedCoupon.discountValue || "0"), subtotal);
+      itemDiscount = Math.min(
+        parseFloat(appliedCoupon.discountValue || "0"),
+        subtotal,
+      );
     }
   }
-  
+
   const discountedSubtotal = subtotal - itemDiscount;
   const tax = (discountedSubtotal + deliveryFee + serviceFee) * 0.0875;
   const total = discountedSubtotal + deliveryFee + serviceFee + tax;
@@ -129,13 +132,13 @@ export default function Checkout() {
       if (data.valid) {
         setAppliedCoupon(data.coupon);
         setCouponValidation({ loading: false, error: null });
-        
+
         // Calculate savings message based on coupon type
         let savingsMessage = `You saved $${data.discountAmount}`;
         if (data.coupon.discountType === "free_delivery") {
           savingsMessage = `You saved $${baseDeliveryFee.toFixed(2)} on delivery!`;
         }
-        
+
         toast({
           title: "Coupon Applied!",
           description: savingsMessage,
@@ -163,10 +166,10 @@ export default function Checkout() {
     onMutate: async (orderData) => {
       // Cancel any outgoing refetches to prevent overwrites
       await queryClient.cancelQueries({ queryKey: queryKeys.orders.all() });
-      
+
       // Snapshot the previous orders
       const previousOrders = queryClient.getQueryData(queryKeys.orders.all());
-      
+
       // Optimistically add the new order
       const optimisticOrder = {
         id: `temp-${Date.now()}`,
@@ -176,11 +179,11 @@ export default function Checkout() {
         restaurantName: cartItems[0]?.restaurantName || "Restaurant",
         items: cartItems,
       };
-      
+
       queryClient.setQueryData(queryKeys.orders.all(), (old: any) => {
         return old ? [optimisticOrder, ...old] : [optimisticOrder];
       });
-      
+
       return { previousOrders };
     },
     onSuccess: (newOrder) => {
@@ -190,21 +193,24 @@ export default function Checkout() {
         restaurantId: newOrder.restaurantId,
         userId: user?.id,
       });
-      
+
       toast({
         title: "Order Placed!",
         description: "Your order has been confirmed and is being prepared.",
       });
-      
+
       // Redirect to orders page
       setLocation("/orders");
     },
     onError: (error, variables, context) => {
       // Rollback optimistic update on error
       if (context?.previousOrders) {
-        queryClient.setQueryData(queryKeys.orders.all(), context.previousOrders);
+        queryClient.setQueryData(
+          queryKeys.orders.all(),
+          context.previousOrders,
+        );
       }
-      
+
       toast({
         title: "Error",
         description: "Failed to place order. Please try again.",
@@ -220,28 +226,31 @@ export default function Checkout() {
   // Coupon handling functions
   const handleApplyCoupon = () => {
     if (!couponCode.trim()) return;
-    
+
     setCouponValidation({ loading: true, error: null });
-    
+
     // Check if cart has items from multiple restaurants
-    const restaurantIds = [...new Set(cartItems.map(item => item.restaurantId))];
-    
+    const restaurantIds = [
+      ...new Set(cartItems.map((item) => item.restaurantId)),
+    ];
+
     if (restaurantIds.length === 0) {
       setCouponValidation({ loading: false, error: "Your cart is empty" });
       return;
     }
-    
+
     if (restaurantIds.length > 1) {
-      setCouponValidation({ 
-        loading: false, 
-        error: "Coupons can only be applied to orders from a single restaurant. Please checkout items from one restaurant at a time." 
+      setCouponValidation({
+        loading: false,
+        error:
+          "Coupons can only be applied to orders from a single restaurant. Please checkout items from one restaurant at a time.",
       });
       return;
     }
-    
+
     // All items are from the same restaurant
     const restaurantId = restaurantIds[0];
-    
+
     validateCouponMutation.mutate({
       code: couponCode.trim(),
       restaurantId: restaurantId,
@@ -316,8 +325,10 @@ export default function Checkout() {
     }
 
     // Check if cart has items from multiple restaurants
-    const restaurantIds = [...new Set(cartItems.map(item => item.restaurantId))];
-    
+    const restaurantIds = [
+      ...new Set(cartItems.map((item) => item.restaurantId)),
+    ];
+
     if (restaurantIds.length === 0) {
       toast({
         title: "Cart Empty",
@@ -326,11 +337,12 @@ export default function Checkout() {
       });
       return;
     }
-    
+
     if (restaurantIds.length > 1) {
       toast({
         title: "Multiple Restaurants",
-        description: "You can only place orders from one restaurant at a time. Please remove items from other restaurants.",
+        description:
+          "You can only place orders from one restaurant at a time. Please remove items from other restaurants.",
         variant: "destructive",
       });
       return;
@@ -338,7 +350,9 @@ export default function Checkout() {
 
     // All items are from the same restaurant
     const restaurantId = restaurantIds[0];
-    const restaurantItems = cartItems.filter(item => item.restaurantId === restaurantId);
+    const restaurantItems = cartItems.filter(
+      (item) => item.restaurantId === restaurantId,
+    );
 
     const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ", " + orderForm.apartment : ""}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
 
@@ -373,13 +387,20 @@ export default function Checkout() {
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
           <div className="mb-8">
             <ShoppingBag className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">Your Cart is Empty</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">
+              Your Cart is Empty
+            </h1>
             <p className="text-gray-600 mb-8">
-              Looks like you haven't added any delicious items to your cart yet. 
-              Browse our amazing restaurants and discover your next favorite meal!
+              Looks like you haven't added any delicious items to your cart yet.
+              Browse our amazing restaurants and discover your next favorite
+              meal!
             </p>
             <Link href="/">
-              <Button size="lg" className="px-8 py-3" data-testid="button-browse-restaurants">
+              <Button
+                size="lg"
+                className="px-8 py-3"
+                data-testid="button-browse-restaurants"
+              >
                 <ShoppingBag className="w-5 h-5 mr-2" />
                 Browse Restaurants
               </Button>
@@ -694,19 +715,23 @@ export default function Checkout() {
                       <Tag className="w-4 h-4" />
                       <span className="font-medium">Have a coupon?</span>
                     </div>
-                    
+
                     {!appliedCoupon ? (
                       <div className="flex gap-2">
                         <Input
                           placeholder="Enter coupon code"
                           value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          onChange={(e) =>
+                            setCouponCode(e.target.value.toUpperCase())
+                          }
                           data-testid="input-coupon-code"
                           className="flex-1"
                         />
                         <Button
                           onClick={handleApplyCoupon}
-                          disabled={!couponCode.trim() || couponValidation.loading}
+                          disabled={
+                            !couponCode.trim() || couponValidation.loading
+                          }
                           data-testid="button-apply-coupon"
                           size="sm"
                         >
@@ -732,9 +757,11 @@ export default function Checkout() {
                         </Button>
                       </div>
                     )}
-                    
+
                     {couponValidation.error && (
-                      <p className="text-sm text-red-600 mt-2">{couponValidation.error}</p>
+                      <p className="text-sm text-red-600 mt-2">
+                        {couponValidation.error}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -752,7 +779,12 @@ export default function Checkout() {
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
-                    <span>Delivery Fee{appliedCoupon?.discountType === "free_delivery" ? " (Free)" : ""}</span>
+                    <span>
+                      Delivery Fee
+                      {appliedCoupon?.discountType === "free_delivery"
+                        ? " (Free)"
+                        : ""}
+                    </span>
                     <span>${deliveryFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
