@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "@/hooks/useLocation";
+import { useLocation as useLocationHook } from "@/hooks/useLocation";
 import { useSearch } from "@/hooks/useSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +31,9 @@ import CartIcon from "@/components/cart-icon";
 
 export default function NavigationHeader() {
   const { user, isAuthenticated } = useAuth();
-  const { location, updateLocation } = useLocation();
+  const { location, updateLocation } = useLocationHook();
   const { searchQuery, setSearchQuery, performSearch } = useSearch();
+  const [, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
@@ -127,7 +128,7 @@ export default function NavigationHeader() {
                   <DropdownMenuItem 
                     onClick={() => {
                       fetch('/api/logout', { method: 'POST', credentials: 'include' })
-                        .then(() => window.location.href = '/');
+                        .then(() => setLocation('/'));
                     }}
                     className="text-red-600 cursor-pointer"
                   >
@@ -138,7 +139,7 @@ export default function NavigationHeader() {
               </DropdownMenu>
             ) : (
               <Button 
-                onClick={() => window.location.href = '/auth'}
+                onClick={() => setLocation('/auth')}
                 className="btn-primary"
               >
                 Sign In

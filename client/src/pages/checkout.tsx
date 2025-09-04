@@ -33,6 +33,7 @@ export default function Checkout() {
   const [, setLocation] = useLocation();
   const {
     cartItems,
+    clearCart,
     updateQuantity,
     removeFromCart,
     cartItemCount,
@@ -160,7 +161,7 @@ export default function Checkout() {
         description: "Your order has been confirmed and is being prepared.",
       });
       // Redirect to orders page
-      window.location.href = "/orders";
+      setLocation("/orders");
     },
     onError: () => {
       toast({
