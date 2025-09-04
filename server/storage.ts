@@ -77,6 +77,9 @@ export interface IStorage {
   updateCouponUsage(couponId: string, increment: number): Promise<void>;
   getActiveCoupons(restaurantId?: string): Promise<Coupon[]>;
 
+  // Order-coupon operations
+  getOrderCoupon(orderId: string): Promise<Coupon | null>;
+
   // Analytics
   getRestaurantStats(restaurantId: string): Promise<{
     totalOrders: number;
@@ -275,6 +278,18 @@ export class DatabaseStorage implements IStorage {
       .values(promotion)
       .returning();
     return newPromotion;
+  }
+
+  // Order-coupon operations
+  async getOrderCoupon(orderId: string): Promise<Coupon | null> {
+    const [usage] = await db
+      .select()
+      .from(couponUsage)
+      .innerJoin(coupons, eq(couponUsage.couponId, coupons.id))
+      .where(eq(couponUsage.orderId, orderId))
+      .limit(1);
+    
+    return usage?.coupons || null;
   }
 
   // Analytics

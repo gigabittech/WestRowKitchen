@@ -324,6 +324,8 @@ export default function Checkout() {
       deliveryFee: deliveryFee.toFixed(2),
       serviceFee: serviceFee.toFixed(2),
       tax: tax.toFixed(2),
+      discountAmount: itemDiscount.toFixed(2),
+      couponCode: appliedCoupon?.code || null,
       deliveryAddress: fullDeliveryAddress,
       deliveryInstructions: orderForm.deliveryInstructions,
       status: "pending",

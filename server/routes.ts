@@ -256,6 +256,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         items.map(item => ({ ...item, orderId: order.id }))
       );
 
+      // Track coupon usage if a coupon was applied
+      if (orderData.couponCode) {
+        try {
+          const coupon = await storage.getCouponByCode(orderData.couponCode);
+          if (coupon) {
+            await storage.applyCoupon(coupon.id, userId, order.id);
+          }
+        } catch (couponError) {
+          console.error('Failed to track coupon usage:', couponError);
+          // Don't fail the order if coupon tracking fails
+        }
+      }
+
       // Send order confirmation email
       try {
         const user = await storage.getUser(userId);
@@ -319,7 +332,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get order items with menu item details
       const orderItems = await storage.getOrderItemsWithDetails(orderId);
       
-      res.json({ ...order, items: orderItems });
+      // Get applied coupon if any
+      const appliedCoupon = await storage.getOrderCoupon(orderId);
+      
+      res.json({ ...order, items: orderItems, appliedCoupon });
     } catch (error) {
       console.error("Error fetching order:", error);
       res.status(500).json({ message: "Failed to fetch order" });

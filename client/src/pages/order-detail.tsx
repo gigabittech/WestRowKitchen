@@ -20,7 +20,7 @@ export default function OrderDetail() {
     isLoading, 
     error, 
     refetch 
-  } = useQuery<Order & { items?: any[] }>({
+  } = useQuery<Order & { items?: any[]; appliedCoupon?: any }>({
     queryKey: ["/api/orders/detail", id],
     enabled: !!user?.id && !!id,
     staleTime: 1000 * 60 * 5,
@@ -286,8 +286,14 @@ export default function OrderDetail() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal:</span>
-                    <span>${(parseFloat(order.totalAmount) - parseFloat(order.deliveryFee || "0") - parseFloat(order.serviceFee || "0") - parseFloat(order.tax || "0")).toFixed(2)}</span>
+                    <span>${(parseFloat(order.totalAmount) - parseFloat(order.deliveryFee || "0") - parseFloat(order.serviceFee || "0") - parseFloat(order.tax || "0") + parseFloat(order.discountAmount || "0")).toFixed(2)}</span>
                   </div>
+                  {order.appliedCoupon && parseFloat(order.discountAmount || "0") > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Coupon Discount ({order.appliedCoupon.code}):</span>
+                      <span>-${parseFloat(order.discountAmount || "0").toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span>Delivery Fee:</span>
                     <span>${parseFloat(order.deliveryFee || "0").toFixed(2)}</span>
