@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -18,8 +18,13 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
+
   if (user) {
-    setLocation("/");
     return null;
   }
 

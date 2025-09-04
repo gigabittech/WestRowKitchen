@@ -189,12 +189,6 @@ export default function Checkout() {
       deliveryAddress: fullDeliveryAddress,
       deliveryInstructions: orderForm.deliveryInstructions,
       status: "pending",
-      customerInfo: {
-        firstName: orderForm.firstName,
-        lastName: orderForm.lastName,
-        email: orderForm.email,
-        phone: orderForm.phone,
-      },
       items: restaurantItems.map((item) => ({
         menuItemId: item.id,
         quantity: item.quantity,
