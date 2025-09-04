@@ -281,22 +281,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (orderData.couponCode) {
         console.log('Order has coupon code:', orderData.couponCode);
         try {
-          // Re-validate coupon before applying to ensure limits are respected
-          const validation = await storage.validateCoupon(
-            orderData.couponCode, 
-            userId, 
-            parseFloat(orderData.totalAmount), 
-            orderData.restaurantId
-          );
-          
-          if (!validation.valid) {
-            console.error('Coupon validation failed during order placement:', validation.error);
-            return res.status(400).json({ 
-              message: `Coupon validation failed: ${validation.error}` 
-            });
-          }
-          
-          const coupon = validation.coupon;
+          const coupon = await storage.getCouponByCode(orderData.couponCode);
+          console.log('Found coupon:', coupon ? coupon.id : 'null');
           if (coupon) {
             console.log('Applying coupon usage for coupon:', coupon.id, 'user:', userId, 'order:', order.id);
             const usage = await storage.applyCoupon(coupon.id, userId, order.id);
@@ -304,9 +290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (couponError) {
           console.error('Failed to track coupon usage:', couponError);
-          return res.status(400).json({ 
-            message: 'Failed to apply coupon. Please try again.' 
-          });
+          // Don't fail the order if coupon tracking fails
         }
       }
 
