@@ -245,16 +245,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         items: z.array(insertOrderItemSchema.omit({ orderId: true })),
       });
       
-      console.log('Request body:', JSON.stringify(req.body, null, 2));
+      // Create a safer schema that explicitly includes all needed fields
+      const safeOrderSchema = z.object({
+        userId: z.string(),
+        restaurantId: z.string(),
+        status: z.string().default("pending"),
+        totalAmount: z.string(),
+        deliveryFee: z.string().optional(),
+        serviceFee: z.string().optional(),
+        tax: z.string().optional(),
+        discountAmount: z.string().optional(),
+        couponCode: z.string().nullable().optional(),
+        promotionId: z.string().nullable().optional(),
+        deliveryAddress: z.string(),
+        deliveryInstructions: z.string().optional(),
+        estimatedDeliveryTime: z.string().nullable().optional(),
+        actualDeliveryTime: z.string().nullable().optional(),
+        items: z.array(insertOrderItemSchema.omit({ orderId: true })),
+      });
       
-      const parseData = {
+      const { items, ...orderData } = safeOrderSchema.parse({
         ...req.body,
         userId,
-      };
-      console.log('Data to parse:', JSON.stringify(parseData, null, 2));
+      });
       
-      const { items, ...orderData } = orderSchema.parse(parseData);
-      console.log('Parsed orderData:', JSON.stringify(orderData, null, 2));
+      console.log('Safe parsed orderData:', JSON.stringify(orderData, null, 2));
 
       const order = await storage.createOrder(orderData);
       
