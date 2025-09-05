@@ -213,7 +213,7 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
-      setRestaurantForm({name: "", description: "", cuisine: "", deliveryTime: "", deliveryFee: "", minimumOrder: "", address: "", phone: "", image: ""});
+      setRestaurantForm(getDefaultRestaurantForm());
       toast({ title: "Success", description: "Restaurant created successfully!" });
     },
     onError: handleMutationError,
@@ -227,6 +227,7 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
+      setRestaurantForm(getDefaultRestaurantForm());
       toast({ title: "Success", description: "Restaurant updated successfully!" });
     },
     onError: handleMutationError,
