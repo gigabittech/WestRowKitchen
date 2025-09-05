@@ -468,10 +468,12 @@ export default function Admin() {
     e.preventDefault();
     const data = {
       ...couponForm,
-      discountValue: parseFloat(couponForm.discountValue),
-      minimumOrder: couponForm.minimumOrder ? parseFloat(couponForm.minimumOrder) : undefined,
+      discountValue: couponForm.discountValue,
+      minimumOrder: couponForm.minimumOrder || undefined,
       maxUsage: couponForm.maxUsage ? parseInt(couponForm.maxUsage) : undefined,
       userLimit: couponForm.userLimit ? parseInt(couponForm.userLimit) : undefined,
+      startDate: new Date(couponForm.startDate),
+      endDate: new Date(couponForm.endDate),
       restaurantId: couponForm.restaurantId || undefined,
     };
     
