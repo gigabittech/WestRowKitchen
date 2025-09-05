@@ -23,7 +23,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
         <div className="relative bg-white">
           <div className="w-full h-48 flex items-center justify-center bg-gray-50">
             <img 
-              src={restaurant.image || getDefaultImage()} 
+              src={restaurant.image ? (restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`) : getDefaultImage()} 
               alt={restaurant.name}
               className="max-w-full max-h-full object-contain p-4"
               onError={(e) => {
