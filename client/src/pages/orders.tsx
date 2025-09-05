@@ -27,7 +27,7 @@ export default function Orders() {
     queryKey: queryKeys.orders.all(),
     enabled: !!user?.id, // Only run when user is authenticated
     staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: true, // Refresh when user comes back to tab
+    refetchOnWindowFocus: false, // Disable aggressive refetching
   });
 
   // Cancel order mutation with optimistic updates
