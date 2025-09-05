@@ -1276,6 +1276,20 @@ export default function Admin() {
                     {menuItems.map((item: MenuItem) => (
                       <Card key={item.id} data-testid={`menu-item-${item.id}`}>
                         <CardContent className="p-4">
+                          {/* Menu Item Image */}
+                          {item.image && (
+                            <div className="mb-3">
+                              <img 
+                                src={item.image} 
+                                alt={item.name}
+                                className="w-full h-32 object-cover rounded-md"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                                data-testid={`img-menu-item-${item.id}`}
+                              />
+                            </div>
+                          )}
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-semibold">{item.name}</h3>
                             <Badge variant={item.isAvailable ? "default" : "secondary"}>
