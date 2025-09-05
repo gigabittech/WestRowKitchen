@@ -189,7 +189,7 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
       setRestaurantForm(getDefaultRestaurantForm());
       toast({ title: "Success", description: "Restaurant created successfully!" });
@@ -203,7 +203,7 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
       setRestaurantForm(getDefaultRestaurantForm());
       toast({ title: "Success", description: "Restaurant updated successfully!" });
@@ -217,7 +217,7 @@ export default function Admin() {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setDeleteDialog({open: false, id: "", type: "", name: ""});
       toast({ title: "Success", description: "Restaurant deleted successfully!" });
     },
@@ -230,7 +230,7 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
       setCouponDialog({open: false, mode: "create", data: null});
       setCouponForm({code: "", title: "", description: "", discountType: "percentage", discountValue: "", minimumOrder: "", maxUsage: "", userLimit: "", startDate: "", endDate: "", restaurantId: "", isActive: true});
       toast({ title: "Success", description: "Coupon created successfully!" });
@@ -244,7 +244,7 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
       toast({ title: "Success", description: "Order status updated!" });
     },
     onError: handleMutationError,
@@ -256,7 +256,7 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User role updated!" });
     },
     onError: handleMutationError,
