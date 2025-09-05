@@ -458,8 +458,9 @@ export default function Admin() {
   const handleCategorySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const data = {
-      ...categoryForm,
-      displayOrder: categoryForm.displayOrder ? parseInt(categoryForm.displayOrder) : undefined,
+      name: categoryForm.name,
+      description: categoryForm.description || null,
+      sortOrder: categoryForm.displayOrder ? parseInt(categoryForm.displayOrder) : null,
       restaurantId: selectedRestaurant,
     };
     
@@ -1231,7 +1232,7 @@ export default function Admin() {
                                     setCategoryForm({
                                       name: category.name,
                                       description: category.description || "",
-                                      displayOrder: category.displayOrder?.toString() || ""
+                                      displayOrder: category.sortOrder?.toString() || ""
                                     });
                                     setCategoryDialog({open: true, mode: "edit", data: category});
                                   }}
