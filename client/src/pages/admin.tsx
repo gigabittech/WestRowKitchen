@@ -75,7 +75,7 @@ export default function Admin() {
   // Helper function to get default restaurant form
   const getDefaultRestaurantForm = () => ({
     name: "", description: "", cuisine: "", deliveryTime: "", deliveryFee: "", 
-    minimumOrder: "", address: "", phone: "", image: "", 
+    minimumOrder: "", address: "", phone: "", image: "", rating: "", reviewCount: "",
     operatingHoursMode: "default" as "default" | "advanced",
     defaultOpen: "09:00", defaultClose: "21:00",
     operatingHours: {
@@ -383,6 +383,8 @@ export default function Admin() {
       image: restaurantForm.image,
       deliveryFee: restaurantForm.deliveryFee ? parseFloat(restaurantForm.deliveryFee) : 0,
       minimumOrder: restaurantForm.minimumOrder ? parseFloat(restaurantForm.minimumOrder) : 0,
+      rating: restaurantForm.rating ? parseFloat(restaurantForm.rating) : 0,
+      reviewCount: restaurantForm.reviewCount ? parseInt(restaurantForm.reviewCount) : 0,
       operatingHours: restaurantForm.operatingHours,
     };
     
@@ -440,6 +442,8 @@ export default function Admin() {
       address: restaurant.address || "",
       phone: restaurant.phone || "",
       image: restaurant.image || "",
+      rating: restaurant.rating?.toString() || "0",
+      reviewCount: restaurant.reviewCount?.toString() || "0",
       operatingHoursMode: "advanced", // Always use advanced mode for editing existing restaurants
       defaultOpen: "09:00",
       defaultClose: "21:00", 
@@ -1400,6 +1404,44 @@ export default function Admin() {
                   />
                   <p className="text-xs text-muted-foreground">
                     Minimum order value for delivery
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="rating" className="text-sm font-medium">
+                    Rating (1-5)
+                  </Label>
+                  <Input 
+                    id="rating"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    value={restaurantForm.rating}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, rating: e.target.value }))}
+                    placeholder="4.5"
+                    data-testid="input-restaurant-rating"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Restaurant rating out of 5 stars
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="reviewCount" className="text-sm font-medium">
+                    Review Count
+                  </Label>
+                  <Input 
+                    id="reviewCount"
+                    type="number"
+                    min="0"
+                    value={restaurantForm.reviewCount}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, reviewCount: e.target.value }))}
+                    placeholder="125"
+                    data-testid="input-restaurant-review-count"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Total number of customer reviews
                   </p>
                 </div>
               </div>

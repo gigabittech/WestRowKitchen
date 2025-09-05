@@ -270,6 +270,14 @@ export const insertRestaurantSchema = createInsertSchema(restaurants, {
     if (typeof val === "string") return val ? parseFloat(val) : undefined;
     return val;
   }),
+  rating: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === "string") return val ? parseFloat(val) : undefined;
+    return val;
+  }),
+  reviewCount: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === "string") return val ? parseInt(val) : undefined;
+    return val;
+  }),
 }).omit({
   id: true,
   createdAt: true,
