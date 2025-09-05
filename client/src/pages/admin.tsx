@@ -53,6 +53,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { isRestaurantOpen, type OperatingHours } from "@/utils/restaurant-hours";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ImageUploader } from "@/components/ImageUploader";
 import { LogoUploader } from "@/components/LogoUploader";
@@ -826,10 +827,22 @@ export default function Admin() {
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-muted-foreground">Status</span>
                               <div className="flex items-center gap-1">
-                                <div className={`w-2 h-2 rounded-full ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                <Badge variant={restaurant.isOpen ? "default" : "destructive"} className="text-xs">
-                                  {restaurant.isTemporarilyClosed ? "Temp Closed" : restaurant.isOpen ? "Open" : "Closed"}
-                                </Badge>
+                                {(() => {
+                                  const isCurrentlyOpen = isRestaurantOpen(
+                                    restaurant.isOpen || false,
+                                    restaurant.operatingHours as OperatingHours,
+                                    restaurant.isTemporarilyClosed || false,
+                                    restaurant.timezone || "America/New_York"
+                                  );
+                                  return (
+                                    <>
+                                      <div className={`w-2 h-2 rounded-full ${isCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                      <Badge variant={isCurrentlyOpen ? "default" : "destructive"} className="text-xs">
+                                        {restaurant.isTemporarilyClosed ? "Temp Closed" : isCurrentlyOpen ? "Open" : "Closed"}
+                                      </Badge>
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>
