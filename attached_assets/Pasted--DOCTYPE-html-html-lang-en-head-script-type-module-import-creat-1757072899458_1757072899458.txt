@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <script type="module">
+            import {createHotContext} from "/@vite/client";
+            const hot = createHotContext("/__dummy__runtime-error-plugin");
+
+            function sendError(error) {
+                if (!(error instanceof Error)) {
+                    error = new Error("(unknown runtime error)");
+                }
+                const serialized = {
+                    message: error.message,
+                    stack: error.stack,
+                };
+                hot.send("runtime-error-plugin:error", serialized);
+            }
+
+            window.addEventListener("error", (evt) => {
+                sendError(evt.error);
+            }
+            );
+
+            window.addEventListener("unhandledrejection", (evt) => {
+                sendError(evt.reason);
+            }
+            );
+        </script>
+        <script type="module">
+            import RefreshRuntime from "/@react-refresh"
+            RefreshRuntime.injectIntoGlobalHook(window)
+            window.$RefreshReg$ = () => {}
+            window.$RefreshSig$ = () => (type) => type
+            window.__vite_plugin_react_preamble_installed__ = true
+        </script>
+        <script type="module" src="/@vite/client"></script>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+        <!-- SEO Meta Tags -->
+        <title>West Row Kitchen - Food Delivery from Local Restaurants</title>
+        <meta name="description" content="Order food delivery from the best local restaurants in your area. Fast delivery, fresh food, and amazing flavors at West Row Kitchen."/>
+        <meta name="keywords" content="food delivery, restaurant delivery, local restaurants, online ordering, takeout, West Row Kitchen"/>
+        <meta name="author" content="West Row Kitchen"/>
+        <meta name="robots" content="index, follow"/>
+        <!-- Open Graph Meta Tags -->
+        <meta property="og:title" content="West Row Kitchen - Food Delivery from Local Restaurants"/>
+        <meta property="og:description" content="Order food delivery from the best local restaurants in your area. Fast delivery, fresh food, and amazing flavors."/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:url" content="https://westrowkitchen.com"/>
+        <meta property="og:image" content="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?ixlib=rb-4.0.3&w=1200&h=630"/>
+        <!-- Twitter Card Meta Tags -->
+       
