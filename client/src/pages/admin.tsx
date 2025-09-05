@@ -1999,7 +1999,7 @@ export default function Admin() {
 
       {/* Coupon Dialog */}
       <Dialog open={couponDialog.open} onOpenChange={(open) => setCouponDialog({...couponDialog, open})}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {couponDialog.mode === "edit" ? "Edit Coupon" : "Create New Coupon"}
@@ -2007,7 +2007,9 @@ export default function Admin() {
           </DialogHeader>
           <form onSubmit={handleCouponSubmit} className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="code">Coupon Code</Label>
+              <Label htmlFor="code">
+                Coupon Code <span className="text-red-500">*</span>
+              </Label>
               <Input 
                 id="code"
                 value={couponForm.code}
@@ -2018,7 +2020,9 @@ export default function Admin() {
               />
             </div>
             <div>
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title">
+                Title <span className="text-red-500">*</span>
+              </Label>
               <Input 
                 id="title"
                 value={couponForm.title}
@@ -2037,7 +2041,9 @@ export default function Admin() {
               />
             </div>
             <div>
-              <Label htmlFor="discountType">Discount Type</Label>
+              <Label htmlFor="discountType">
+                Discount Type <span className="text-red-500">*</span>
+              </Label>
               <Select value={couponForm.discountType} onValueChange={(value: any) => setCouponForm(prev => ({ ...prev, discountType: value }))}>
                 <SelectTrigger data-testid="select-coupon-type">
                   <SelectValue />
@@ -2050,7 +2056,9 @@ export default function Admin() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="discountValue">Discount Value</Label>
+              <Label htmlFor="discountValue">
+                Discount Value <span className="text-red-500">*</span>
+              </Label>
               <Input 
                 id="discountValue"
                 type="number"
@@ -2064,7 +2072,9 @@ export default function Admin() {
               />
             </div>
             <div>
-              <Label htmlFor="startDate">Start Date</Label>
+              <Label htmlFor="startDate">
+                Start Date <span className="text-red-500">*</span>
+              </Label>
               <Input 
                 id="startDate"
                 type="datetime-local"
@@ -2075,7 +2085,9 @@ export default function Admin() {
               />
             </div>
             <div>
-              <Label htmlFor="endDate">End Date</Label>
+              <Label htmlFor="endDate">
+                End Date <span className="text-red-500">*</span>
+              </Label>
               <Input 
                 id="endDate"
                 type="datetime-local"
