@@ -155,22 +155,12 @@ export default function Admin() {
   });
 
   const { data: menuItems = [] } = useQuery({
-    queryKey: ["admin-menu-items", selectedRestaurant],
-    queryFn: async () => {
-      const response = await fetch(`/api/restaurants/${selectedRestaurant}/menu`, { credentials: "include" });
-      if (!response.ok) throw new Error('Failed to fetch menu items');
-      return response.json();
-    },
+    queryKey: [`/api/restaurants/${selectedRestaurant}/menu`],
     enabled: !!selectedRestaurant && !!user?.isAdmin,
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["admin-categories", selectedRestaurant],
-    queryFn: async () => {
-      const response = await fetch(`/api/restaurants/${selectedRestaurant}/categories`, { credentials: "include" });
-      if (!response.ok) throw new Error('Failed to fetch categories');
-      return response.json();
-    },
+    queryKey: [`/api/restaurants/${selectedRestaurant}/categories`],
     enabled: !!selectedRestaurant && !!user?.isAdmin,
   });
 

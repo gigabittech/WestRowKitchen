@@ -43,16 +43,7 @@ export default function SearchDropdown({
     restaurants: Restaurant[];
     menuItems: (MenuItem & { restaurant: Restaurant })[];
   }>({
-    queryKey: ["/api/search", query],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/search?q=${encodeURIComponent(query)}`,
-      );
-      if (!response.ok) {
-        throw new Error("Search failed");
-      }
-      return response.json();
-    },
+    queryKey: [`/api/search?q=${encodeURIComponent(query)}`],
     enabled: isVisible && query.length >= 2,
   });
 

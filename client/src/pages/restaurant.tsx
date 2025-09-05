@@ -79,34 +79,13 @@ export default function RestaurantPage() {
 
   // Fetch menu categories
   const { data: categories = [] } = useQuery({
-    queryKey: ["restaurant-categories", restaurant?.id],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/restaurants/${restaurant?.id}/categories`,
-        {
-          credentials: "include",
-        },
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch categories");
-      }
-      return response.json();
-    },
+    queryKey: [`/api/restaurants/${restaurant?.id}/categories`],
     enabled: !!restaurant?.id,
   });
 
   // Fetch menu items
   const { data: menuItems = [] } = useQuery({
-    queryKey: ["restaurant-menu", restaurant?.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/restaurants/${restaurant?.id}/menu`, {
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch menu");
-      }
-      return response.json();
-    },
+    queryKey: [`/api/restaurants/${restaurant?.id}/menu`],
     enabled: !!restaurant?.id,
   });
 
