@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ImageUploader } from "@/components/ImageUploader";
+import { LogoUploader } from "@/components/LogoUploader";
 import type { Restaurant, MenuItem, Order, User, Coupon, MenuCategory } from "@shared/schema";
 
 export default function Admin() {
@@ -1426,52 +1427,14 @@ export default function Admin() {
                 <h3 className="font-medium">Restaurant Logo</h3>
               </div>
               
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="image" className="text-sm font-medium">Logo File Name</Label>
-                  <Input 
-                    id="image"
-                    type="text"
-                    value={restaurantForm.image}
-                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, image: e.target.value }))}
-                    placeholder="logo-restaurant-name.png"
-                    data-testid="input-restaurant-logo"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter the filename of your logo uploaded to /assets (e.g., "pizza-palace-logo.png")
-                  </p>
-                </div>
-                
-                {/* Logo Preview */}
-                {restaurantForm.image && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Logo Preview</Label>
-                    <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/50">
-                      <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center overflow-hidden border">
-                        <img
-                          src={`/assets/${restaurantForm.image}`}
-                          alt="Restaurant logo preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.nextElementSibling?.classList.remove('hidden');
-                          }}
-                        />
-                        <div className="hidden text-xs text-muted-foreground p-2 text-center">
-                          Logo not found
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Preview</p>
-                        <p className="text-xs text-muted-foreground">
-                          This is how your logo will appear on restaurant cards
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <LogoUploader
+                value={restaurantForm.image}
+                onChange={(filename) => setRestaurantForm(prev => ({ ...prev, image: filename }))}
+                label="Restaurant Logo"
+              />
+              <p className="text-xs text-muted-foreground">
+                Upload a high-quality logo that represents your restaurant. This will be displayed on restaurant cards and profile pages.
+              </p>
             </div>
 
             {/* Form Actions */}

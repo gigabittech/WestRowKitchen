@@ -1,6 +1,9 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { sendOrderConfirmationEmail, sendOrderStatusEmail, testEmailConnection } from "./email";
@@ -32,6 +35,38 @@ try {
 } catch (error) {
   console.log("Stripe not configured, payment functionality disabled");
 }
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const assetsDir = path.join(process.cwd(), 'client/public/assets');
+      // Ensure assets directory exists
+      if (!fs.existsSync(assetsDir)) {
+        fs.mkdirSync(assetsDir, { recursive: true });
+      }
+      cb(null, assetsDir);
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename with original extension
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      const name = file.originalname.replace(ext, '').toLowerCase().replace(/[^a-z0-9]/g, '-');
+      cb(null, `${name}-${uniqueSuffix}${ext}`);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    // Only allow image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -217,6 +252,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching restaurant status:", error);
       res.status(500).json({ message: "Failed to fetch restaurant status" });
+    }
+  });
+
+  // Logo upload endpoint
+  app.post("/api/upload/logo", isAuthenticated, upload.single('logo'), async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Return just the filename (not the full path)
+      res.json({ 
+        success: true,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      res.status(500).json({ message: "Failed to upload logo" });
     }
   });
 
