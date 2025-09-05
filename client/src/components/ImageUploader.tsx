@@ -46,48 +46,27 @@ export function ImageUploader({ label, value, onChange, placeholder, restaurantI
     setUploading(true);
     
     try {
-      // Get upload URL from backend
-      const response = await fetch("/api/objects/upload", {
+      // Create form data for file upload
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('restaurantId', restaurantId || '');
+      formData.append('type', type || '');
+
+      // Upload file to local server
+      const response = await fetch("/api/upload/menu-item-image", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         credentials: "include",
-        body: JSON.stringify({
-          restaurantId,
-          fileName: file.name,
-          type,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get upload URL");
-      }
-
-      const { uploadURL } = await response.json();
-
-      // Upload file directly to object storage
-      const uploadResponse = await fetch(uploadURL, {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
-      });
-
-      if (!uploadResponse.ok) {
         throw new Error("Failed to upload file");
       }
 
-      // Extract the object path from the upload URL
-      const url = new URL(uploadURL);
-      const objectPath = url.pathname;
+      const { filePath } = await response.json();
       
-      // Convert to our API path format
-      const apiPath = `/objects${objectPath.split('/').slice(3).join('/')}`;
-      
-      setPreviewUrl(apiPath);
-      onChange(apiPath);
+      setPreviewUrl(filePath);
+      onChange(filePath);
       
       toast({
         title: "Upload successful",

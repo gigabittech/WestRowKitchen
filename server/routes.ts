@@ -279,6 +279,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Menu item image upload endpoint
+  app.post("/api/upload/menu-item-image", isAuthenticated, upload.single('image'), async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { restaurantId, type } = req.body;
+      let filePath: string;
+
+      if (restaurantId && type === 'menu-item') {
+        // Organize menu item images by restaurant
+        const restaurantDir = path.join(process.cwd(), 'client', 'public', 'assets', restaurantId);
+        
+        // Create restaurant directory if it doesn't exist
+        if (!fs.existsSync(restaurantDir)) {
+          fs.mkdirSync(restaurantDir, { recursive: true });
+        }
+
+        // Move file to restaurant directory
+        const newFileName = `${Date.now()}_${req.file.originalname}`;
+        const newFilePath = path.join(restaurantDir, newFileName);
+        fs.renameSync(req.file.path, newFilePath);
+        
+        filePath = `/assets/${restaurantId}/${newFileName}`;
+      } else {
+        // Default path for other images
+        filePath = `/assets/${req.file.filename}`;
+      }
+
+      res.json({ 
+        success: true,
+        filePath,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error("Error uploading menu item image:", error);
+      res.status(500).json({ message: "Failed to upload menu item image" });
+    }
+  });
+
   // Logo delete endpoint
   app.delete("/api/upload/logo/:filename", isAuthenticated, async (req: any, res) => {
     try {

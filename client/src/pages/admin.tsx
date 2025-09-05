@@ -444,7 +444,7 @@ export default function Admin() {
     e.preventDefault();
     const data = {
       ...menuItemForm,
-      price: parseFloat(menuItemForm.price),
+      price: menuItemForm.price, // Keep as string for validation
       preparationTime: menuItemForm.preparationTime ? parseInt(menuItemForm.preparationTime) : undefined,
     };
     
