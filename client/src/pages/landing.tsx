@@ -31,33 +31,12 @@ export default function Landing() {
 
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
-    queryKey: ["landing-restaurants", selectedCuisine],
-    queryFn: async () => {
-      const params = selectedCuisine !== "ALL" ? `?cuisine=${selectedCuisine}` : "";
-      const response = await fetch(`/api/restaurants${params}`, {
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch restaurants');
-      }
-      return response.json();
-    },
-    retry: false,
+    queryKey: ["/api/restaurants"],
   });
 
   // Fetch promotions
   const { data: promotions = [] } = useQuery<Promotion[]>({
-    queryKey: ["promotions"],
-    queryFn: async () => {
-      const response = await fetch("/api/promotions", {
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch promotions');
-      }
-      return response.json();
-    },
-    retry: false,
+    queryKey: ["/api/promotions"],
   });
 
   const featuredRestaurants = restaurants.slice(0, 6);
@@ -70,9 +49,7 @@ export default function Landing() {
       <title>West Row Kitchen - Food Delivery from Local Restaurants</title>
       <meta name="description" content="Order food delivery from the best local restaurants in your area. Fast delivery, fresh food, and amazing flavors at West Row Kitchen." />
       
-      <NavigationHeader 
-        isCartOpen={isCartOpen}
-        setIsCartOpen={setIsCartOpen}
+      <NavigationHeader
         cartItemCount={cartItems.length}
       />
 

@@ -28,30 +28,11 @@ export default function Home() {
   // Fetch restaurants
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
     queryKey: queryKeys.restaurants.all(),
-    queryFn: async () => {
-      const params = selectedCuisine !== "ALL" ? `?cuisine=${selectedCuisine}` : "";
-      const response = await fetch(`/api/restaurants${params}`, {
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch restaurants');
-      }
-      return response.json();
-    }
   });
 
   // Fetch recent orders
   const { data: recentOrders = [] } = useQuery<Order[]>({
     queryKey: queryKeys.orders.all(),
-    queryFn: async () => {
-      const response = await fetch("/api/orders", {
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
-      }
-      return response.json();
-    }
   });
 
   const categories = [

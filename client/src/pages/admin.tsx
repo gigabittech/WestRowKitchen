@@ -135,42 +135,22 @@ export default function Admin() {
 
   // Data fetching
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
-    queryKey: ["admin-restaurants"],
-    queryFn: async () => {
-      const response = await fetch("/api/restaurants", { credentials: "include" });
-      if (!response.ok) throw new Error('Failed to fetch restaurants');
-      return response.json();
-    },
+    queryKey: ["/api/restaurants"],
     enabled: !!user?.isAdmin,
   });
 
   const { data: allOrders = [] } = useQuery({
-    queryKey: ["admin-orders"],
-    queryFn: async () => {
-      const response = await fetch("/api/admin/orders", { credentials: "include" });
-      if (!response.ok) throw new Error('Failed to fetch orders');
-      return response.json();
-    },
+    queryKey: ["/api/admin/orders"],
     enabled: !!user?.isAdmin,
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ["admin-users"],
-    queryFn: async () => {
-      const response = await fetch("/api/admin/users", { credentials: "include" });
-      if (!response.ok) throw new Error('Failed to fetch users');
-      return response.json();
-    },
+    queryKey: ["/api/admin/users"],
     enabled: !!user?.isAdmin,
   });
 
   const { data: coupons = [] } = useQuery({
-    queryKey: ["admin-coupons"],
-    queryFn: async () => {
-      const response = await fetch("/api/admin/coupons", { credentials: "include" });
-      if (!response.ok) throw new Error('Failed to fetch coupons');
-      return response.json();
-    },
+    queryKey: ["/api/admin/coupons"],
     enabled: !!user?.isAdmin,
   });
 

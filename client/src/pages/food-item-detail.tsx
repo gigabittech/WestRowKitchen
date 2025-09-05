@@ -30,14 +30,7 @@ export default function FoodItemDetailPage() {
 
   // Fetch menu items for the restaurant
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
-    queryKey: ["restaurant-menu", restaurant?.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/restaurants/${restaurant?.id}/menu`, {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error('Failed to fetch menu');
-      return response.json();
-    },
+    queryKey: [`/api/restaurants/${restaurant?.id}/menu`],
     enabled: !!restaurant?.id,
   });
 
