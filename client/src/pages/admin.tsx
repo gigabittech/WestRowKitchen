@@ -38,7 +38,10 @@ import {
   ShoppingCart,
   Calendar,
   ChevronDown,
-  Activity
+  Activity,
+  Truck,
+  MapPin,
+  ImageIcon
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -299,14 +302,55 @@ export default function Admin() {
   // Event handlers
   const handleRestaurantSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Enhanced validation
+    if (!restaurantForm.name.trim()) {
+      toast({ title: "Error", description: "Restaurant name is required", variant: "destructive" });
+      return;
+    }
+    
+    if (restaurantForm.name.trim().length < 2) {
+      toast({ title: "Error", description: "Restaurant name must be at least 2 characters", variant: "destructive" });
+      return;
+    }
+    
+    if (!restaurantForm.cuisine.trim()) {
+      toast({ title: "Error", description: "Cuisine type is required", variant: "destructive" });
+      return;
+    }
+    
+    // Validate delivery fee if provided
+    if (restaurantForm.deliveryFee && (parseFloat(restaurantForm.deliveryFee) < 0 || parseFloat(restaurantForm.deliveryFee) > 50)) {
+      toast({ title: "Error", description: "Delivery fee must be between $0 and $50", variant: "destructive" });
+      return;
+    }
+    
+    // Validate minimum order if provided
+    if (restaurantForm.minimumOrder && (parseFloat(restaurantForm.minimumOrder) < 0 || parseFloat(restaurantForm.minimumOrder) > 100)) {
+      toast({ title: "Error", description: "Minimum order must be between $0 and $100", variant: "destructive" });
+      return;
+    }
+    
+    // Validate phone number format if provided
+    if (restaurantForm.phone && restaurantForm.phone.trim() && !/^[\d\s\(\)\-\+\.]+$/.test(restaurantForm.phone)) {
+      toast({ title: "Error", description: "Please enter a valid phone number", variant: "destructive" });
+      return;
+    }
+    
     const data = {
       ...restaurantForm,
-      deliveryFee: parseFloat(restaurantForm.deliveryFee),
-      minimumOrder: parseFloat(restaurantForm.minimumOrder),
+      name: restaurantForm.name.trim(),
+      description: restaurantForm.description.trim(),
+      cuisine: restaurantForm.cuisine.trim(),
+      deliveryTime: restaurantForm.deliveryTime.trim(),
+      address: restaurantForm.address.trim(),
+      phone: restaurantForm.phone.trim(),
+      deliveryFee: restaurantForm.deliveryFee ? parseFloat(restaurantForm.deliveryFee) : 0,
+      minimumOrder: restaurantForm.minimumOrder ? parseFloat(restaurantForm.minimumOrder) : 0,
     };
     
     if (restaurantDialog.mode === "edit" && restaurantDialog.data) {
-      updateRestaurantMutation.mutate({id: restaurantDialog.data.id, data});
+      updateRestaurantMutation.mutate({ id: restaurantDialog.data.id, ...data });
     } else {
       createRestaurantMutation.mutate(data);
     }
@@ -937,115 +981,259 @@ export default function Admin() {
 
       {/* Restaurant Dialog */}
       <Dialog open={restaurantDialog.open} onOpenChange={(open) => setRestaurantDialog({...restaurantDialog, open})}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {restaurantDialog.mode === "edit" ? "Edit Restaurant" : "Add New Restaurant"}
+            <DialogTitle className="text-xl font-semibold">
+              {restaurantDialog.mode === "edit" ? "Edit Restaurant" : "Create New Restaurant"}
             </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {restaurantDialog.mode === "edit" 
+                ? "Update restaurant information and settings" 
+                : "Fill in the details below to add a new restaurant to your platform"
+              }
+            </p>
           </DialogHeader>
-          <form onSubmit={handleRestaurantSubmit} className="grid grid-cols-2 gap-4">
-            <div className="space-y-4 col-span-2">
-              <div>
-                <Label htmlFor="name">Restaurant Name</Label>
-                <Input 
-                  id="name"
-                  value={restaurantForm.name}
-                  onChange={(e) => setRestaurantForm(prev => ({ ...prev, name: e.target.value }))}
-                  required
-                  data-testid="input-restaurant-name"
-                />
+          
+          <form onSubmit={handleRestaurantSubmit} className="space-y-6">
+            {/* Basic Information Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <Store className="w-4 h-4 text-primary" />
+                <h3 className="font-medium">Basic Information</h3>
               </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium">
+                    Restaurant Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input 
+                    id="name"
+                    value={restaurantForm.name}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter restaurant name"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    data-testid="input-restaurant-name"
+                    className="transition-colors focus:border-primary"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    The name that customers will see (2-100 characters)
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="cuisine" className="text-sm font-medium">
+                    Cuisine Type <span className="text-red-500">*</span>
+                  </Label>
+                  <Select value={restaurantForm.cuisine} onValueChange={(value) => setRestaurantForm(prev => ({ ...prev, cuisine: value }))}>
+                    <SelectTrigger data-testid="select-restaurant-cuisine">
+                      <SelectValue placeholder="Select cuisine type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Italian">Italian</SelectItem>
+                      <SelectItem value="Mexican">Mexican</SelectItem>
+                      <SelectItem value="Chinese">Chinese</SelectItem>
+                      <SelectItem value="Indian">Indian</SelectItem>
+                      <SelectItem value="American">American</SelectItem>
+                      <SelectItem value="Japanese">Japanese</SelectItem>
+                      <SelectItem value="Thai">Thai</SelectItem>
+                      <SelectItem value="Mediterranean">Mediterranean</SelectItem>
+                      <SelectItem value="Fast Food">Fast Food</SelectItem>
+                      <SelectItem value="Pizza">Pizza</SelectItem>
+                      <SelectItem value="Seafood">Seafood</SelectItem>
+                      <SelectItem value="Vegetarian">Vegetarian</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Primary cuisine category for filtering
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">Description</Label>
                 <Textarea 
                   id="description"
                   value={restaurantForm.description}
                   onChange={(e) => setRestaurantForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe your restaurant, specialties, and what makes it unique..."
+                  rows={3}
+                  maxLength={500}
                   data-testid="input-restaurant-description"
+                  className="resize-none"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Brief description that appears on your restaurant page (up to 500 characters)
+                </p>
               </div>
             </div>
-            <div>
-              <Label htmlFor="cuisine">Cuisine Type</Label>
-              <Input 
-                id="cuisine"
-                value={restaurantForm.cuisine}
-                onChange={(e) => setRestaurantForm(prev => ({ ...prev, cuisine: e.target.value }))}
-                placeholder="e.g., Italian, Mexican, Asian"
-                required
-                data-testid="input-restaurant-cuisine"
-              />
+
+            {/* Delivery & Pricing Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <Truck className="w-4 h-4 text-primary" />
+                <h3 className="font-medium">Delivery & Pricing</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="deliveryTime" className="text-sm font-medium">
+                    Estimated Delivery Time
+                  </Label>
+                  <Input 
+                    id="deliveryTime"
+                    value={restaurantForm.deliveryTime}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, deliveryTime: e.target.value }))}
+                    placeholder="25-35 min"
+                    pattern="[0-9]+-[0-9]+ min"
+                    data-testid="input-restaurant-delivery-time"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Format: "25-35 min"
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="deliveryFee" className="text-sm font-medium">
+                    Delivery Fee ($)
+                  </Label>
+                  <Input 
+                    id="deliveryFee"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="50"
+                    value={restaurantForm.deliveryFee}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, deliveryFee: e.target.value }))}
+                    placeholder="2.99"
+                    data-testid="input-restaurant-delivery-fee"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Fee charged for delivery ($0-$50)
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="minimumOrder" className="text-sm font-medium">
+                    Minimum Order ($)
+                  </Label>
+                  <Input 
+                    id="minimumOrder"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={restaurantForm.minimumOrder}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, minimumOrder: e.target.value }))}
+                    placeholder="15.00"
+                    data-testid="input-restaurant-minimum-order"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Minimum order value for delivery
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="deliveryTime">Delivery Time</Label>
-              <Input 
-                id="deliveryTime"
-                value={restaurantForm.deliveryTime}
-                onChange={(e) => setRestaurantForm(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                placeholder="25-35 min"
-                data-testid="input-restaurant-delivery-time"
-              />
+
+            {/* Contact Information Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <MapPin className="w-4 h-4 text-primary" />
+                <h3 className="font-medium">Contact Information</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="address" className="text-sm font-medium">
+                    Full Address
+                  </Label>
+                  <Textarea 
+                    id="address"
+                    value={restaurantForm.address}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="123 Main Street, City, State, ZIP Code"
+                    rows={2}
+                    data-testid="input-restaurant-address"
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Complete address including city and postal code
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium">
+                    Phone Number
+                  </Label>
+                  <Input 
+                    id="phone"
+                    type="tel"
+                    value={restaurantForm.phone}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="(555) 123-4567"
+                    pattern="[0-9\s\(\)\-\+\.]+"
+                    data-testid="input-restaurant-phone"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Contact number for customer inquiries
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="deliveryFee">Delivery Fee</Label>
-              <Input 
-                id="deliveryFee"
-                type="number"
-                step="0.01"
-                value={restaurantForm.deliveryFee}
-                onChange={(e) => setRestaurantForm(prev => ({ ...prev, deliveryFee: e.target.value }))}
-                placeholder="2.99"
-                data-testid="input-restaurant-delivery-fee"
-              />
+
+            {/* Restaurant Image Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <ImageIcon className="w-4 h-4 text-primary" />
+                <h3 className="font-medium">Restaurant Image</h3>
+              </div>
+              
+              <div className="space-y-2">
+                <ImageUploader
+                  label="Restaurant Cover Image"
+                  value={restaurantForm.image}
+                  onChange={(url) => setRestaurantForm(prev => ({ ...prev, image: url }))}
+                  placeholder="Upload a high-quality image of your restaurant or signature dish"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Upload a high-quality image that represents your restaurant. This will be displayed on your restaurant card and profile page.
+                </p>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="minimumOrder">Minimum Order</Label>
-              <Input 
-                id="minimumOrder"
-                type="number"
-                step="0.01"
-                value={restaurantForm.minimumOrder}
-                onChange={(e) => setRestaurantForm(prev => ({ ...prev, minimumOrder: e.target.value }))}
-                placeholder="15.00"
-                data-testid="input-restaurant-minimum-order"
-              />
-            </div>
-            <div className="col-span-2">
-              <Label htmlFor="address">Address</Label>
-              <Input 
-                id="address"
-                value={restaurantForm.address}
-                onChange={(e) => setRestaurantForm(prev => ({ ...prev, address: e.target.value }))}
-                data-testid="input-restaurant-address"
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input 
-                id="phone"
-                value={restaurantForm.phone}
-                onChange={(e) => setRestaurantForm(prev => ({ ...prev, phone: e.target.value }))}
-                data-testid="input-restaurant-phone"
-              />
-            </div>
-            <div>
-              <ImageUploader
-                label="Restaurant Image"
-                value={restaurantForm.image}
-                onChange={(url) => setRestaurantForm(prev => ({ ...prev, image: url }))}
-                placeholder="Upload an image for this restaurant"
-              />
-            </div>
-            <DialogFooter className="col-span-2">
-              <Button type="button" variant="outline" onClick={() => setRestaurantDialog({...restaurantDialog, open: false})}>
+
+            {/* Form Actions */}
+            <DialogFooter className="flex gap-2 pt-6 border-t">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setRestaurantDialog({...restaurantDialog, open: false});
+                  setRestaurantForm({
+                    name: "", description: "", cuisine: "", deliveryTime: "", 
+                    deliveryFee: "", minimumOrder: "", address: "", phone: "", image: ""
+                  });
+                }}
+                disabled={createRestaurantMutation.isPending || updateRestaurantMutation.isPending}
+              >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={createRestaurantMutation.isPending || updateRestaurantMutation.isPending}
+                disabled={createRestaurantMutation.isPending || updateRestaurantMutation.isPending || !restaurantForm.name || !restaurantForm.cuisine}
                 data-testid="button-save-restaurant"
+                className="min-w-[120px]"
               >
-                {(createRestaurantMutation.isPending || updateRestaurantMutation.isPending) ? "Saving..." : "Save Restaurant"}
+                {(createRestaurantMutation.isPending || updateRestaurantMutation.isPending) ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </div>
+                ) : (
+                  restaurantDialog.mode === "edit" ? "Update Restaurant" : "Create Restaurant"
+                )}
               </Button>
             </DialogFooter>
           </form>
