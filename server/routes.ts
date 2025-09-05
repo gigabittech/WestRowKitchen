@@ -129,6 +129,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Restaurant status management routes
+  app.put("/api/restaurants/:id/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { isOpen } = req.body;
+      if (typeof isOpen !== 'boolean') {
+        return res.status(400).json({ message: "isOpen must be a boolean" });
+      }
+
+      const restaurant = await storage.toggleRestaurantStatus(req.params.id, isOpen);
+      res.json(restaurant);
+    } catch (error) {
+      console.error("Error updating restaurant status:", error);
+      res.status(500).json({ message: "Failed to update restaurant status" });
+    }
+  });
+
+  app.put("/api/restaurants/:id/temporary-closure", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { isClosed } = req.body;
+      if (typeof isClosed !== 'boolean') {
+        return res.status(400).json({ message: "isClosed must be a boolean" });
+      }
+
+      const restaurant = await storage.setTemporaryClosure(req.params.id, isClosed);
+      res.json(restaurant);
+    } catch (error) {
+      console.error("Error updating temporary closure:", error);
+      res.status(500).json({ message: "Failed to update temporary closure" });
+    }
+  });
+
+  app.put("/api/restaurants/:id/operating-hours", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { operatingHours } = req.body;
+      const restaurant = await storage.updateOperatingHours(req.params.id, operatingHours);
+      res.json(restaurant);
+    } catch (error) {
+      console.error("Error updating operating hours:", error);
+      res.status(500).json({ message: "Failed to update operating hours" });
+    }
+  });
+
+  app.put("/api/restaurants/:id/special-hours", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { specialHours } = req.body;
+      const restaurant = await storage.updateSpecialHours(req.params.id, specialHours);
+      res.json(restaurant);
+    } catch (error) {
+      console.error("Error updating special hours:", error);
+      res.status(500).json({ message: "Failed to update special hours" });
+    }
+  });
+
+  app.get("/api/restaurants/:id/status", async (req, res) => {
+    try {
+      const status = await storage.getRestaurantStatus(req.params.id);
+      res.json(status);
+    } catch (error) {
+      console.error("Error fetching restaurant status:", error);
+      res.status(500).json({ message: "Failed to fetch restaurant status" });
+    }
+  });
+
   // Menu routes
   app.get("/api/restaurants/:id/categories", async (req, res) => {
     try {

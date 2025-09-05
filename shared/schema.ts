@@ -52,6 +52,11 @@ export const restaurants = pgTable("restaurants", {
   deliveryFee: decimal("delivery_fee", { precision: 10, scale: 2 }),
   minimumOrder: decimal("minimum_order", { precision: 10, scale: 2 }),
   isOpen: boolean("is_open").default(true),
+  isTemporarilyClosed: boolean("is_temporarily_closed").default(false),
+  operatingHours: jsonb("operating_hours"), // Store weekly hours
+  specialHours: jsonb("special_hours"), // Store special dates/holidays
+  autoScheduleEnabled: boolean("auto_schedule_enabled").default(true),
+  timezone: varchar("timezone", { length: 100 }).default("America/New_York"),
   address: text("address"),
   phone: varchar("phone", { length: 20 }),
   ownerId: varchar("owner_id").references(() => users.id),

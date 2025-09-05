@@ -268,6 +268,24 @@ export default function Admin() {
     onError: handleMutationError,
   });
 
+  // Restaurant status toggle mutation
+  const toggleRestaurantStatusMutation = useMutation({
+    mutationFn: async ({ restaurantId, isOpen }: { restaurantId: string; isOpen: boolean }) => {
+      const response = await apiRequest("PUT", `/api/restaurants/${restaurantId}/status`, { isOpen });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
+      toast({ title: "Success", description: "Restaurant status updated!" });
+    },
+    onError: handleMutationError,
+  });
+
+  // Toggle restaurant status function
+  const toggleRestaurantStatus = (restaurantId: string, isOpen: boolean) => {
+    toggleRestaurantStatusMutation.mutate({ restaurantId, isOpen });
+  };
+
   const createMenuItemMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest("POST", `/api/restaurants/${selectedRestaurant}/menu`, data);
@@ -715,7 +733,7 @@ export default function Admin() {
                                 Edit Details
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => {/* Toggle restaurant status */}}
+                                onClick={() => toggleRestaurantStatus(restaurant.id, !restaurant.isOpen)}
                                 data-testid={`menu-toggle-restaurant-${restaurant.id}`}
                               >
                                 {restaurant.isOpen ? (
@@ -762,9 +780,12 @@ export default function Admin() {
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-muted-foreground">Status</span>
-                              <Badge variant={restaurant.isOpen ? "default" : "destructive"} className="text-xs">
-                                {restaurant.isOpen ? "Open" : "Closed"}
-                              </Badge>
+                              <div className="flex items-center gap-1">
+                                <div className={`w-2 h-2 rounded-full ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <Badge variant={restaurant.isOpen ? "default" : "destructive"} className="text-xs">
+                                  {restaurant.isTemporarilyClosed ? "Temp Closed" : restaurant.isOpen ? "Open" : "Closed"}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                           <div className="space-y-2">

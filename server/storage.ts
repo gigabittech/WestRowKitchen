@@ -42,6 +42,18 @@ export interface IStorage {
   createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant>;
   updateRestaurant(id: string, restaurant: Partial<InsertRestaurant>): Promise<Restaurant>;
   deleteRestaurant(id: string): Promise<void>;
+  
+  // Restaurant status operations
+  toggleRestaurantStatus(id: string, isOpen: boolean): Promise<Restaurant>;
+  setTemporaryClosure(id: string, isClosed: boolean): Promise<Restaurant>;
+  updateOperatingHours(id: string, operatingHours: any): Promise<Restaurant>;
+  updateSpecialHours(id: string, specialHours: any): Promise<Restaurant>;
+  getRestaurantStatus(id: string): Promise<{
+    isOpen: boolean;
+    isTemporarilyClosed: boolean;
+    currentStatus: 'open' | 'closed' | 'temp_closed';
+    nextStatusChange?: string;
+  }>;
 
   // Menu operations
   getMenuCategories(restaurantId: string): Promise<MenuCategory[]>;
@@ -150,6 +162,167 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRestaurant(id: string): Promise<void> {
     await db.delete(restaurants).where(eq(restaurants.id, id));
+  }
+
+  // Restaurant status management
+  async toggleRestaurantStatus(id: string, isOpen: boolean): Promise<Restaurant> {
+    const [updated] = await db
+      .update(restaurants)
+      .set({ 
+        isOpen, 
+        updatedAt: new Date(),
+        // Reset temporary closure when manually changing status
+        isTemporarilyClosed: false 
+      })
+      .where(eq(restaurants.id, id))
+      .returning();
+    
+    if (!updated) {
+      throw new Error('Restaurant not found');
+    }
+    
+    return updated;
+  }
+
+  async setTemporaryClosure(id: string, isClosed: boolean): Promise<Restaurant> {
+    const [updated] = await db
+      .update(restaurants)
+      .set({ 
+        isTemporarilyClosed: isClosed,
+        updatedAt: new Date()
+      })
+      .where(eq(restaurants.id, id))
+      .returning();
+    
+    if (!updated) {
+      throw new Error('Restaurant not found');
+    }
+    
+    return updated;
+  }
+
+  async updateOperatingHours(id: string, operatingHours: any): Promise<Restaurant> {
+    const [updated] = await db
+      .update(restaurants)
+      .set({ 
+        operatingHours,
+        updatedAt: new Date()
+      })
+      .where(eq(restaurants.id, id))
+      .returning();
+    
+    if (!updated) {
+      throw new Error('Restaurant not found');
+    }
+    
+    return updated;
+  }
+
+  async updateSpecialHours(id: string, specialHours: any): Promise<Restaurant> {
+    const [updated] = await db
+      .update(restaurants)
+      .set({ 
+        specialHours,
+        updatedAt: new Date()
+      })
+      .where(eq(restaurants.id, id))
+      .returning();
+    
+    if (!updated) {
+      throw new Error('Restaurant not found');
+    }
+    
+    return updated;
+  }
+
+  async getRestaurantStatus(id: string): Promise<{
+    isOpen: boolean;
+    isTemporarilyClosed: boolean;
+    currentStatus: 'open' | 'closed' | 'temp_closed';
+    nextStatusChange?: string;
+  }> {
+    const restaurant = await this.getRestaurant(id);
+    if (!restaurant) {
+      throw new Error('Restaurant not found');
+    }
+
+    // If temporarily closed, always return closed
+    if (restaurant.isTemporarilyClosed) {
+      return {
+        isOpen: false,
+        isTemporarilyClosed: true,
+        currentStatus: 'temp_closed'
+      };
+    }
+
+    // If auto-schedule is disabled, use manual isOpen status
+    if (!restaurant.autoScheduleEnabled) {
+      return {
+        isOpen: restaurant.isOpen,
+        isTemporarilyClosed: false,
+        currentStatus: restaurant.isOpen ? 'open' : 'closed'
+      };
+    }
+
+    // Calculate status based on operating hours
+    const status = this.calculateRestaurantStatus(restaurant);
+    return {
+      isOpen: status.isCurrentlyOpen,
+      isTemporarilyClosed: false,
+      currentStatus: status.isCurrentlyOpen ? 'open' : 'closed',
+      nextStatusChange: status.nextStatusChange
+    };
+  }
+
+  private calculateRestaurantStatus(restaurant: Restaurant): {
+    isCurrentlyOpen: boolean;
+    nextStatusChange?: string;
+  } {
+    if (!restaurant.operatingHours) {
+      // No operating hours set, use manual status
+      return { isCurrentlyOpen: restaurant.isOpen };
+    }
+
+    const now = new Date();
+    const timezone = restaurant.timezone || 'America/New_York';
+    
+    try {
+      // Convert to restaurant timezone
+      const restaurantTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+      const dayOfWeek = restaurantTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const currentTime = restaurantTime.getHours() * 60 + restaurantTime.getMinutes();
+      
+      const operatingHours = restaurant.operatingHours as any;
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const todaySchedule = operatingHours[dayNames[dayOfWeek]];
+      
+      if (!todaySchedule || !todaySchedule.isOpen) {
+        return { isCurrentlyOpen: false };
+      }
+      
+      // Parse open and close times
+      const [openHour, openMin] = todaySchedule.openTime.split(':').map(Number);
+      const [closeHour, closeMin] = todaySchedule.closeTime.split(':').map(Number);
+      
+      const openTime = openHour * 60 + openMin;
+      const closeTime = closeHour * 60 + closeMin;
+      
+      // Handle overnight restaurants (close time is next day)
+      if (closeTime < openTime) {
+        // Restaurant is open overnight
+        const isCurrentlyOpen = currentTime >= openTime || currentTime <= closeTime;
+        return { isCurrentlyOpen };
+      } else {
+        // Normal operating hours
+        const isCurrentlyOpen = currentTime >= openTime && currentTime <= closeTime;
+        return { isCurrentlyOpen };
+      }
+      
+    } catch (error) {
+      console.error('Error calculating restaurant status:', error);
+      // Fallback to manual status
+      return { isCurrentlyOpen: restaurant.isOpen };
+    }
   }
 
   // Menu operations
