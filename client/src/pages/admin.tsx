@@ -673,8 +673,20 @@ export default function Admin() {
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
-                              <Store className="w-6 h-6 text-primary" />
+                            <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
+                              {restaurant.image ? (
+                                <img
+                                  src={`/assets/${restaurant.image}`}
+                                  alt={`${restaurant.name} logo`}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                              ) : null}
+                              <Store className={`w-6 h-6 text-primary ${restaurant.image ? 'hidden' : ''}`} />
                             </div>
                             <div>
                               <CardTitle className="text-lg font-semibold group-hover:text-primary transition-colors">
@@ -1386,23 +1398,58 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Restaurant Image Section */}
+            {/* Restaurant Logo Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b">
                 <ImageIcon className="w-4 h-4 text-primary" />
-                <h3 className="font-medium">Restaurant Image</h3>
+                <h3 className="font-medium">Restaurant Logo</h3>
               </div>
               
-              <div className="space-y-2">
-                <ImageUploader
-                  label="Restaurant Cover Image"
-                  value={restaurantForm.image}
-                  onChange={(url) => setRestaurantForm(prev => ({ ...prev, image: url }))}
-                  placeholder="Upload a high-quality image of your restaurant or signature dish"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Upload a high-quality image that represents your restaurant. This will be displayed on your restaurant card and profile page.
-                </p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="image" className="text-sm font-medium">Logo File Name</Label>
+                  <Input 
+                    id="image"
+                    type="text"
+                    value={restaurantForm.image}
+                    onChange={(e) => setRestaurantForm(prev => ({ ...prev, image: e.target.value }))}
+                    placeholder="logo-restaurant-name.png"
+                    data-testid="input-restaurant-logo"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter the filename of your logo uploaded to /assets (e.g., "pizza-palace-logo.png")
+                  </p>
+                </div>
+                
+                {/* Logo Preview */}
+                {restaurantForm.image && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Logo Preview</Label>
+                    <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/50">
+                      <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center overflow-hidden border">
+                        <img
+                          src={`/assets/${restaurantForm.image}`}
+                          alt="Restaurant logo preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <div className="hidden text-xs text-muted-foreground p-2 text-center">
+                          Logo not found
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Preview</p>
+                        <p className="text-xs text-muted-foreground">
+                          This is how your logo will appear on restaurant cards
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
