@@ -77,7 +77,7 @@ export default function Admin() {
   const getDefaultRestaurantForm = () => ({
     name: "", description: "", cuisine: "", deliveryTime: "", deliveryFee: "", 
     minimumOrder: "", address: "", phone: "", image: "", rating: "", reviewCount: "",
-    isOpen: true, isTemporarilyClosed: false,
+    isOpen: true, isTemporarilyClosed: false, timezone: "America/New_York",
     operatingHoursMode: "default" as "default" | "advanced",
     defaultOpen: "09:00", defaultClose: "21:00",
     operatingHours: {
@@ -394,6 +394,7 @@ export default function Admin() {
       isOpen: restaurantForm.isOpen,
       isTemporarilyClosed: restaurantForm.isTemporarilyClosed,
       operatingHours: restaurantForm.operatingHours,
+      timezone: restaurantForm.timezone,
     };
     
     if (restaurantDialog.mode === "edit" && restaurantDialog.data) {
@@ -454,6 +455,7 @@ export default function Admin() {
       reviewCount: restaurant.reviewCount?.toString() || "0",
       isOpen: restaurant.isOpen || false,
       isTemporarilyClosed: restaurant.isTemporarilyClosed || false,
+      timezone: restaurant.timezone || "America/New_York",
       operatingHoursMode: "advanced", // Always use advanced mode for editing existing restaurants
       defaultOpen: "09:00",
       defaultClose: "21:00", 
@@ -1476,7 +1478,7 @@ export default function Admin() {
                 <h3 className="font-medium">Contact Information</h3>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="address" className="text-sm font-medium">
                     Full Address
@@ -1510,6 +1512,33 @@ export default function Admin() {
                   />
                   <p className="text-xs text-muted-foreground">
                     Contact number for customer inquiries
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="timezone" className="text-sm font-medium">
+                    Timezone
+                  </Label>
+                  <Select value={restaurantForm.timezone} onValueChange={(value) => setRestaurantForm(prev => ({ ...prev, timezone: value }))}>
+                    <SelectTrigger data-testid="select-restaurant-timezone">
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="America/New_York">Eastern Time (EST/EDT)</SelectItem>
+                      <SelectItem value="America/Chicago">Central Time (CST/CDT)</SelectItem>
+                      <SelectItem value="America/Denver">Mountain Time (MST/MDT)</SelectItem>
+                      <SelectItem value="America/Phoenix">Arizona Time (MST)</SelectItem>
+                      <SelectItem value="America/Los_Angeles">Pacific Time (PST/PDT)</SelectItem>
+                      <SelectItem value="America/Anchorage">Alaska Time (AKST/AKDT)</SelectItem>
+                      <SelectItem value="Pacific/Honolulu">Hawaii Time (HST)</SelectItem>
+                      <SelectItem value="Europe/London">London Time (GMT/BST)</SelectItem>
+                      <SelectItem value="Europe/Paris">Central European Time</SelectItem>
+                      <SelectItem value="Asia/Tokyo">Japan Time (JST)</SelectItem>
+                      <SelectItem value="Australia/Sydney">Sydney Time (AEST/AEDT)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Used to calculate accurate opening/closing times
                   </p>
                 </div>
               </div>
