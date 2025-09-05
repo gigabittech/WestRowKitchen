@@ -130,7 +130,7 @@ export function MenuItemImageUploader({ value, onChange, label = "Menu Item Imag
           type="file"
           accept="image/*"
           onChange={handleFileInput}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          className="hidden"
           disabled={uploading}
         />
         
