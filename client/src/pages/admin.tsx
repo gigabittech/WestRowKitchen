@@ -2147,6 +2147,18 @@ export default function Admin() {
                 data-testid="input-coupon-user-limit"
               />
             </div>
+            <div className="col-span-2 flex items-center space-x-2">
+              <Switch
+                id="isActive"
+                checked={couponForm.isActive}
+                onCheckedChange={(checked) => setCouponForm(prev => ({ ...prev, isActive: checked }))}
+                data-testid="switch-coupon-status"
+              />
+              <Label htmlFor="isActive">Active Status</Label>
+              <span className="text-sm text-muted-foreground">
+                {couponForm.isActive ? "Coupon is active and can be used" : "Coupon is inactive and cannot be used"}
+              </span>
+            </div>
             <DialogFooter className="col-span-2">
               <Button type="button" variant="outline" onClick={() => setCouponDialog({...couponDialog, open: false})}>
                 Cancel
