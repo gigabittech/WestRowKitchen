@@ -2128,10 +2128,11 @@ export default function Admin() {
               </Button>
               <Button 
                 type="submit" 
-                disabled={createMenuItemMutation.isPending || !selectedRestaurant}
+                disabled={createMenuItemMutation.isPending || updateMenuItemMutation.isPending || !selectedRestaurant}
                 data-testid="button-save-menu-item"
               >
-                {createMenuItemMutation.isPending ? "Saving..." : "Save Menu Item"}
+                {(createMenuItemMutation.isPending || updateMenuItemMutation.isPending) ? "Saving..." : 
+                 menuItemDialog.mode === "edit" ? "Update Menu Item" : "Save Menu Item"}
               </Button>
             </DialogFooter>
           </form>
