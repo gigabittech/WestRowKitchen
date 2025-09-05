@@ -54,8 +54,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ImageUploader } from "@/components/ImageUploader";
 import { LogoUploader } from "@/components/LogoUploader";
+import { MenuItemImageUploader } from "@/components/MenuItemImageUploader";
 import type { Restaurant, MenuItem, Order, User, Coupon, MenuCategory } from "@shared/schema";
 
 export default function Admin() {
@@ -2107,13 +2107,11 @@ export default function Admin() {
               />
             </div>
             <div className="col-span-2">
-              <ImageUploader
+              <MenuItemImageUploader
                 label="Menu Item Image"
                 value={menuItemForm.image}
-                onChange={(url) => setMenuItemForm(prev => ({ ...prev, image: url }))}
-                placeholder="Upload an image for this menu item"
+                onChange={(filePath) => setMenuItemForm(prev => ({ ...prev, image: filePath }))}
                 restaurantId={selectedRestaurant}
-                type="menu-item"
               />
             </div>
             <div className="col-span-2 flex items-center space-x-2">
