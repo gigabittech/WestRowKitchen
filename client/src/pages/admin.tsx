@@ -2087,12 +2087,12 @@ export default function Admin() {
             </div>
             <div>
               <Label htmlFor="restaurantId">Restaurant (Optional)</Label>
-              <Select value={couponForm.restaurantId} onValueChange={(value) => setCouponForm(prev => ({ ...prev, restaurantId: value }))}>
+              <Select value={couponForm.restaurantId || "platform-wide"} onValueChange={(value) => setCouponForm(prev => ({ ...prev, restaurantId: value === "platform-wide" ? "" : value }))}>
                 <SelectTrigger data-testid="select-coupon-restaurant">
                   <SelectValue placeholder="Platform-wide" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Platform-wide</SelectItem>
+                  <SelectItem value="platform-wide">Platform-wide</SelectItem>
                   {restaurants.map((restaurant: Restaurant) => (
                     <SelectItem key={restaurant.id} value={restaurant.id}>
                       {restaurant.name}
