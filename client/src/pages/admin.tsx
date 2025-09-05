@@ -63,7 +63,7 @@ export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   
   // State management
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
@@ -108,6 +108,25 @@ export default function Admin() {
   const [restaurantDialog, setRestaurantDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as Restaurant | null});
   const [couponDialog, setCouponDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as Coupon | null});
   const [menuItemDialog, setMenuItemDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as MenuItem | null});
+
+  // Get current tab from URL
+  const getCurrentTab = () => {
+    if (location === "/admin/restaurants") return "restaurants";
+    if (location === "/admin/orders") return "orders";
+    if (location === "/admin/coupons") return "coupons";
+    if (location === "/admin/menu") return "menu";
+    if (location === "/admin/users") return "users";
+    return "overview";
+  };
+
+  // Handle tab change with navigation
+  const handleTabChange = (value: string) => {
+    if (value === "overview") {
+      setLocation("/admin");
+    } else {
+      setLocation(`/admin/${value}`);
+    }
+  };
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -217,6 +236,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
       setRestaurantForm(getDefaultRestaurantForm());
+      setLocation("/admin/restaurants");
       toast({ title: "Success", description: "Restaurant created successfully!" });
     },
     onError: handleMutationError,
@@ -232,6 +252,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
       setRestaurantForm(getDefaultRestaurantForm());
+      setLocation("/admin/restaurants");
       toast({ title: "Success", description: "Restaurant updated successfully!" });
     },
     onError: handleMutationError,
@@ -246,6 +267,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setDeleteDialog({open: false, id: "", type: "", name: ""});
+      setLocation("/admin/restaurants");
       toast({ title: "Success", description: "Restaurant deleted successfully!" });
     },
     onError: handleMutationError,
@@ -601,7 +623,7 @@ export default function Admin() {
           </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={getCurrentTab()} onValueChange={handleTabChange} className="space-y-6">
           <div className="overflow-x-auto">
             <TabsList className="inline-flex w-max min-w-full justify-start">
               <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>

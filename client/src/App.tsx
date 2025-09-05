@@ -55,6 +55,11 @@ function Router() {
           <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
           <Route path="/restaurant/:slug" component={Restaurant} />
           <Route path="/admin" component={Admin} />
+          <Route path="/admin/restaurants" component={Admin} />
+          <Route path="/admin/orders" component={Admin} />
+          <Route path="/admin/coupons" component={Admin} />
+          <Route path="/admin/menu" component={Admin} />
+          <Route path="/admin/users" component={Admin} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/stripe-checkout" component={StripeCheckout} />
           <Route path="/orders" component={Orders} />
