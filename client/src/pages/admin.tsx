@@ -2152,7 +2152,7 @@ export default function Admin() {
 
       {/* Category Dialog */}
       <Dialog open={categoryDialog.open} onOpenChange={(open) => setCategoryDialog({...categoryDialog, open})}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {categoryDialog.mode === "edit" ? "Edit Category" : "Add New Category"}
