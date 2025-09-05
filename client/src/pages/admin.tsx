@@ -826,7 +826,7 @@ export default function Admin() {
                       <TableHead>Phone</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Joined</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>Admin Access</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -844,13 +844,18 @@ export default function Admin() {
                           {new Date(user.createdAt!).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Switch
-                            checked={user.isAdmin || false}
-                            onCheckedChange={(checked) => 
-                              updateUserRoleMutation.mutate({ userId: user.id, isAdmin: checked })
-                            }
-                            data-testid={`switch-user-role-${user.id}`}
-                          />
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={user.isAdmin || false}
+                              onCheckedChange={(checked) => 
+                                updateUserRoleMutation.mutate({ userId: user.id, isAdmin: checked })
+                              }
+                              data-testid={`switch-user-role-${user.id}`}
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              {user.isAdmin ? "Enabled" : "Disabled"}
+                            </span>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
