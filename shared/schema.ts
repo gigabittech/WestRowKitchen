@@ -315,6 +315,9 @@ export const insertCouponSchema = createInsertSchema(coupons).omit({
   id: true,
   createdAt: true,
   currentUsage: true,
+}).extend({
+  startDate: z.string().transform((str) => new Date(str)),
+  endDate: z.string().transform((str) => new Date(str)),
 });
 
 export const insertCouponUsageSchema = createInsertSchema(couponUsage).omit({

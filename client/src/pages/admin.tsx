@@ -466,26 +466,16 @@ export default function Admin() {
 
   const handleCouponSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Debug logging
-    console.log('Form data:', couponForm);
-    console.log('Start date string:', couponForm.startDate);
-    console.log('End date string:', couponForm.endDate);
-    console.log('Start date parsed:', new Date(couponForm.startDate));
-    console.log('End date parsed:', new Date(couponForm.endDate));
-    
     const data = {
       ...couponForm,
       discountValue: couponForm.discountValue,
       minimumOrder: couponForm.minimumOrder || undefined,
       maxUsage: couponForm.maxUsage ? parseInt(couponForm.maxUsage) : undefined,
       userLimit: couponForm.userLimit ? parseInt(couponForm.userLimit) : undefined,
-      startDate: new Date(couponForm.startDate),
-      endDate: new Date(couponForm.endDate),
+      startDate: new Date(couponForm.startDate).toISOString(),
+      endDate: new Date(couponForm.endDate).toISOString(),
       restaurantId: couponForm.restaurantId || undefined,
     };
-    
-    console.log('Sending data:', data);
     
     if (couponDialog.mode === "edit" && couponDialog.data) {
       updateCouponMutation.mutate({ id: couponDialog.data.id, data });
