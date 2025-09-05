@@ -48,8 +48,12 @@ const upload = multer({
       cb(null, assetsDir);
     },
     filename: (req, file, cb) => {
-      // Keep original filename as requested
-      cb(null, file.originalname);
+      // Generate unique filename with timestamp
+      const timestamp = Date.now();
+      const originalName = file.originalname;
+      const extension = path.extname(originalName);
+      const baseName = path.basename(originalName, extension);
+      cb(null, `${timestamp}_${baseName}${extension}`);
     }
   }),
   fileFilter: (req, file, cb) => {
@@ -294,34 +298,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { restaurantId, type } = req.body;
-      let filePath: string;
-
+      
       if (restaurantId && type === 'menu-item') {
-        // Organize menu item images by restaurant
+        // Create restaurant directory and move file there
         const restaurantDir = path.join(process.cwd(), 'client', 'public', 'assets', restaurantId);
         
-        // Create restaurant directory if it doesn't exist
         if (!fs.existsSync(restaurantDir)) {
           fs.mkdirSync(restaurantDir, { recursive: true });
         }
 
-        // Move file to restaurant directory
-        const newFileName = `${Date.now()}_${req.file.originalname}`;
-        const newFilePath = path.join(restaurantDir, newFileName);
-        fs.renameSync(req.file.path, newFilePath);
+        // Move file from general assets to restaurant directory
+        const oldPath = req.file.path;
+        const newPath = path.join(restaurantDir, req.file.filename);
+        fs.renameSync(oldPath, newPath);
         
-        filePath = `/assets/${restaurantId}/${newFileName}`;
+        const filePath = `/assets/${restaurantId}/${req.file.filename}`;
+        
+        res.json({ 
+          success: true,
+          filePath,
+          originalName: req.file.originalname,
+          size: req.file.size
+        });
       } else {
         // Default path for other images
-        filePath = `/assets/${req.file.filename}`;
+        const filePath = `/assets/${req.file.filename}`;
+        res.json({ 
+          success: true,
+          filePath,
+          originalName: req.file.originalname,
+          size: req.file.size
+        });
       }
-
-      res.json({ 
-        success: true,
-        filePath,
-        originalName: req.file.originalname,
-        size: req.file.size
-      });
     } catch (error) {
       console.error("Error uploading menu item image:", error);
       res.status(500).json({ message: "Failed to upload menu item image" });
