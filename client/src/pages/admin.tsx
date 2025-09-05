@@ -730,7 +730,7 @@ export default function Admin() {
                             <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
                               {restaurant.image ? (
                                 <img
-                                  src={restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`}
+                                  src={restaurant.image.startsWith('/assets/') || restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`}
                                   alt={`${restaurant.name} logo`}
                                   className="w-full h-full object-cover rounded-lg"
                                   onError={(e) => {

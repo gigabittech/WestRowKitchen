@@ -6,15 +6,27 @@ import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
 
+// Import restaurant logos
+import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
+import PappisPizzaLogo from "@assets/Pappi's Pizza Logo_1755170145362.png";
+import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png";
+
 interface RestaurantCardProps {
   restaurant: Restaurant;
   onAddToCart?: (item: any) => void;
 }
 
 export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
+  // Restaurant logo mapping
+  const logoMap: Record<string, string> = {
+    "My Lai Kitchen": MyLaiLogo,
+    "Pappi's Pizza": PappisPizzaLogo,
+    "Cheeky's Burgers": CheekysBurgersLogo,
+  };
+
   const getDefaultImage = () => {
-    // Fallback image if restaurant logo fails to load
-    return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&w=400&h=250&fit=crop";
+    // Use logoMap first, then fallback to external image
+    return logoMap[restaurant.name] || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&w=400&h=250&fit=crop";
   };
 
   return (
@@ -23,7 +35,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
         <div className="relative bg-white">
           <div className="w-full h-48 flex items-center justify-center bg-gray-50">
             <img 
-              src={restaurant.image ? (restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`) : getDefaultImage()} 
+              src={restaurant.image ? (restaurant.image.startsWith('/assets/') || restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`) : getDefaultImage()} 
               alt={restaurant.name}
               className="max-w-full max-h-full object-contain p-4"
               onError={(e) => {

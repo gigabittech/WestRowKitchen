@@ -128,7 +128,7 @@ export default function SearchDropdown({
                       const restaurantSlug = createSlug(restaurant.name);
                       // Use actual restaurant image from database, fallback to logoMap if needed
                       const restaurantImage = restaurant.image 
-                        ? (restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`)
+                        ? (restaurant.image.startsWith('/assets/') || restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`)
                         : logoMap[restaurant.name];
 
                       return (

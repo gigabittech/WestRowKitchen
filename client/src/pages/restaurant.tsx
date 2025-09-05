@@ -174,7 +174,7 @@ export default function RestaurantPage() {
             <div className="w-24 h-24 bg-white rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden border-4 border-white/20">
               {restaurant && (restaurant.image || logoMap[restaurant.name]) ? (
                 <img
-                  src={restaurant.image ? (restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`) : logoMap[restaurant.name]}
+                  src={restaurant.image ? (restaurant.image.startsWith('/assets/') || restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`) : logoMap[restaurant.name]}
                   alt={restaurant.name}
                   className="w-16 h-16 object-contain"
                   onError={(e) => {
