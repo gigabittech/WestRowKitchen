@@ -147,7 +147,7 @@ export function LogoUploader({ value, onChange, label = "Logo" }: LogoUploaderPr
           type="file"
           accept="image/*"
           onChange={handleFileInput}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          className="hidden"
           disabled={uploading}
         />
         
