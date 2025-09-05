@@ -29,7 +29,8 @@ export default function OrderDetail() {
   } = useQuery<Order & { items?: any[]; appliedCoupon?: any }>({
     queryKey: ["/api/orders/detail", id],
     enabled: !!user?.id && !!id,
-    staleTime: 1000 * 60 * 5,
+    staleTime: Infinity,
+    refetchOnMount: false,
   });
 
   const getStatusColor = (status: string) => {

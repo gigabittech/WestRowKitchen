@@ -26,8 +26,9 @@ export default function Orders() {
   } = useQuery<Order[]>({
     queryKey: queryKeys.orders.all(),
     enabled: !!user?.id, // Only run when user is authenticated
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: Infinity, // Never refetch automatically
     refetchOnWindowFocus: false, // Disable aggressive refetching
+    refetchOnMount: false, // Don't refetch when component mounts
   });
 
   // Cancel order mutation with optimistic updates

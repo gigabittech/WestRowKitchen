@@ -29,44 +29,33 @@ import UniversalCartSidebar from "@/components/universal-cart-sidebar";
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Show loading state instead of conditional routing to prevent rerenders
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <>
-          <Route path="/" component={Landing} />
-          <Route path="/auth" component={AuthPage} />
-          <Route path="/restaurants" component={Restaurants} />
-          <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
-          <Route path="/restaurant/:slug" component={Restaurant} />
-          <Route path="/checkout" component={Checkout} />
-          <Route path="/stripe-checkout" component={StripeCheckout} />
-          <Route path="/terms" component={Terms} />
-          <Route path="/privacy" component={Privacy} />
-          <Route path="/refund" component={Refund} />
-          <Route path="/help" component={Help} />
-          <Route path="/contact" component={Contact} />
-          <Route path="/faq" component={FAQ} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/auth" component={AuthPage} />
-          <Route path="/restaurants" component={Restaurants} />
-          <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
-          <Route path="/restaurant/:slug" component={Restaurant} />
-          <Route path="/admin" component={Admin} />
-          <Route path="/checkout" component={Checkout} />
-          <Route path="/stripe-checkout" component={StripeCheckout} />
-          <Route path="/orders" component={Orders} />
-          <Route path="/orders/:id" component={OrderDetail} />
-          <Route path="/terms" component={Terms} />
-          <Route path="/privacy" component={Privacy} />
-          <Route path="/refund" component={Refund} />
-          <Route path="/help" component={Help} />
-          <Route path="/contact" component={Contact} />
-          <Route path="/faq" component={FAQ} />
-        </>
-      )}
+      {/* Public routes - always available */}
+      <Route path="/auth" component={AuthPage} />
+      <Route path="/restaurants" component={Restaurants} />
+      <Route path="/restaurant/:restaurantSlug/item/:itemId" component={FoodItemDetail} />
+      <Route path="/restaurant/:slug" component={Restaurant} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/stripe-checkout" component={StripeCheckout} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/refund" component={Refund} />
+      <Route path="/help" component={Help} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/faq" component={FAQ} />
+      
+      {/* Conditional routes based on authentication */}
+      <Route path="/" component={isAuthenticated ? Home : Landing} />
+      {isAuthenticated && <Route path="/admin" component={Admin} />}
+      {isAuthenticated && <Route path="/orders" component={Orders} />}
+      {isAuthenticated && <Route path="/orders/:id" component={OrderDetail} />}
+      
       <Route component={NotFound} />
     </Switch>
   );
