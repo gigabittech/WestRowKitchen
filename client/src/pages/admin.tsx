@@ -105,10 +105,15 @@ export default function Admin() {
     name: "", description: "", price: "", categoryId: "", preparationTime: "", image: "", isAvailable: true
   });
 
+  const [categoryForm, setCategoryForm] = useState({
+    name: "", description: "", displayOrder: ""
+  });
+
   // Dialog states
   const [restaurantDialog, setRestaurantDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as Restaurant | null});
   const [couponDialog, setCouponDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as Coupon | null});
   const [menuItemDialog, setMenuItemDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as MenuItem | null});
+  const [categoryDialog, setCategoryDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as MenuCategory | null});
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -289,6 +294,59 @@ export default function Admin() {
     onError: handleMutationError,
   });
 
+  const updateMenuItemMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PUT", `/api/menu-items/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-menu-items", selectedRestaurant] });
+      setMenuItemDialog({open: false, mode: "create", data: null});
+      setMenuItemForm({name: "", description: "", price: "", categoryId: "", preparationTime: "", image: "", isAvailable: true});
+      toast({ title: "Success", description: "Menu item updated successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
+  const createCategoryMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", `/api/restaurants/${selectedRestaurant}/categories`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
+      setCategoryDialog({open: false, mode: "create", data: null});
+      setCategoryForm({name: "", description: "", displayOrder: ""});
+      toast({ title: "Success", description: "Category created successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PUT", `/api/categories/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
+      setCategoryDialog({open: false, mode: "create", data: null});
+      setCategoryForm({name: "", description: "", displayOrder: ""});
+      toast({ title: "Success", description: "Category updated successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/categories/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
+      toast({ title: "Success", description: "Category deleted successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
   function handleMutationError(error: any) {
     if (isUnauthorizedError(error)) {
       toast({
@@ -390,7 +448,26 @@ export default function Admin() {
       preparationTime: menuItemForm.preparationTime ? parseInt(menuItemForm.preparationTime) : undefined,
     };
     
-    createMenuItemMutation.mutate(data);
+    if (menuItemDialog.mode === "edit" && menuItemDialog.data) {
+      updateMenuItemMutation.mutate({ id: menuItemDialog.data.id, data });
+    } else {
+      createMenuItemMutation.mutate(data);
+    }
+  };
+
+  const handleCategorySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const data = {
+      ...categoryForm,
+      displayOrder: categoryForm.displayOrder ? parseInt(categoryForm.displayOrder) : undefined,
+      restaurantId: selectedRestaurant,
+    };
+    
+    if (categoryDialog.mode === "edit" && categoryDialog.data) {
+      updateCategoryMutation.mutate({ id: categoryDialog.data.id, data });
+    } else {
+      createCategoryMutation.mutate(data);
+    }
   };
 
   const openEditRestaurant = (restaurant: Restaurant) => {
@@ -435,7 +512,12 @@ export default function Admin() {
   const confirmDelete = () => {
     if (deleteDialog.type === "restaurant") {
       deleteRestaurantMutation.mutate(deleteDialog.id);
+    } else if (deleteDialog.type === "category") {
+      deleteCategoryMutation.mutate(deleteDialog.id);
+    } else if (deleteDialog.type === "menu-item") {
+      // Add menu item deletion if not already implemented
     }
+    setDeleteDialog({open: false, id: "", type: "", name: ""});
   };
 
   // Filter functions
@@ -1112,7 +1194,73 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 {selectedRestaurant ? (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-6">
+                    {/* Categories Management Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Tag className="w-5 h-5 text-primary" />
+                          Menu Categories
+                        </h3>
+                        <Button
+                          onClick={() => setCategoryDialog({open: true, mode: "create", data: null})}
+                          size="sm"
+                          variant="outline"
+                          data-testid="button-add-category"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Category
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {categories.map((category: MenuCategory) => (
+                          <Card key={category.id} className="p-3" data-testid={`category-${category.id}`}>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-medium">{category.name}</h4>
+                                {category.description && (
+                                  <p className="text-xs text-muted-foreground mt-1">{category.description}</p>
+                                )}
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setCategoryForm({
+                                      name: category.name,
+                                      description: category.description || "",
+                                      displayOrder: category.displayOrder?.toString() || ""
+                                    });
+                                    setCategoryDialog({open: true, mode: "edit", data: category});
+                                  }}
+                                  data-testid={`button-edit-category-${category.id}`}
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => openDeleteDialog(category.id, "category", category.name)}
+                                  data-testid={`button-delete-category-${category.id}`}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Menu Items Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Package className="w-5 h-5 text-primary" />
+                        Menu Items
+                      </h3>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {menuItems.map((item: MenuItem) => (
                       <Card key={item.id} data-testid={`menu-item-${item.id}`}>
                         <CardContent className="p-4">
@@ -1158,6 +1306,8 @@ export default function Admin() {
                         </CardContent>
                       </Card>
                     ))}
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -1981,6 +2131,80 @@ export default function Admin() {
                 data-testid="button-save-menu-item"
               >
                 {createMenuItemMutation.isPending ? "Saving..." : "Save Menu Item"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Dialog */}
+      <Dialog open={categoryDialog.open} onOpenChange={(open) => setCategoryDialog({...categoryDialog, open})}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {categoryDialog.mode === "edit" ? "Edit Category" : "Add New Category"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCategorySubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="categoryName">Category Name</Label>
+              <Input 
+                id="categoryName"
+                value={categoryForm.name}
+                onChange={(e) => setCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Appetizers, Main Courses, Desserts"
+                required
+                data-testid="input-category-name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="categoryDescription">Description (optional)</Label>
+              <Textarea 
+                id="categoryDescription"
+                value={categoryForm.description}
+                onChange={(e) => setCategoryForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of this category"
+                rows={3}
+                data-testid="input-category-description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="displayOrder">Display Order (optional)</Label>
+              <Input 
+                id="displayOrder"
+                type="number"
+                min="0"
+                value={categoryForm.displayOrder}
+                onChange={(e) => setCategoryForm(prev => ({ ...prev, displayOrder: e.target.value }))}
+                placeholder="1"
+                data-testid="input-category-display-order"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Lower numbers appear first (1, 2, 3...)
+              </p>
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => setCategoryDialog({open: false, mode: "create", data: null})}
+                data-testid="button-cancel-category"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+                data-testid="button-save-category"
+              >
+                {(createCategoryMutation.isPending || updateCategoryMutation.isPending) ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </div>
+                ) : (
+                  categoryDialog.mode === "edit" ? "Update Category" : "Create Category"
+                )}
               </Button>
             </DialogFooter>
           </form>
