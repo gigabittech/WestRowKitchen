@@ -76,6 +76,9 @@ export default function Admin() {
   const getDefaultRestaurantForm = () => ({
     name: "", description: "", cuisine: "", deliveryTime: "", deliveryFee: "", 
     minimumOrder: "", address: "", phone: "", image: "", rating: "", reviewCount: "",
+    isOpen: true, // Restaurant open/closed status
+    isTemporarilyClosed: false, // Temporary closure status
+    timezone: "America/New_York", // Restaurant timezone
     operatingHoursMode: "default" as "default" | "advanced",
     defaultOpen: "09:00", defaultClose: "21:00",
     operatingHours: {
@@ -414,6 +417,9 @@ export default function Admin() {
       image: restaurant.image || "",
       rating: restaurant.rating?.toString() || "0",
       reviewCount: restaurant.reviewCount?.toString() || "0",
+      isOpen: restaurant.isOpen ?? true, // Restaurant open/closed status
+      isTemporarilyClosed: restaurant.isTemporarilyClosed ?? false, // Temporary closure status
+      timezone: restaurant.timezone || "America/New_York", // Restaurant timezone
       operatingHoursMode: "advanced", // Always use advanced mode for editing existing restaurants
       defaultOpen: "09:00",
       defaultClose: "21:00", 
@@ -1412,6 +1418,77 @@ export default function Admin() {
                   />
                   <p className="text-xs text-muted-foreground">
                     Total number of customer reviews
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Restaurant Status & Settings Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <Settings className="w-4 h-4 text-primary" />
+                <h3 className="font-medium">Restaurant Status & Settings</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Switch
+                      checked={restaurantForm.isOpen}
+                      onCheckedChange={(checked) => setRestaurantForm(prev => ({ ...prev, isOpen: checked }))}
+                      data-testid="switch-restaurant-open"
+                    />
+                    Restaurant Open
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Controls if the restaurant accepts orders
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Switch
+                      checked={restaurantForm.isTemporarilyClosed}
+                      onCheckedChange={(checked) => setRestaurantForm(prev => ({ ...prev, isTemporarilyClosed: checked }))}
+                      data-testid="switch-restaurant-temporarily-closed"
+                    />
+                    Temporarily Closed
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Mark as temporarily closed for maintenance
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="timezone" className="text-sm font-medium">
+                    Timezone
+                  </Label>
+                  <Select value={restaurantForm.timezone} onValueChange={(value) => setRestaurantForm(prev => ({ ...prev, timezone: value }))}>
+                    <SelectTrigger data-testid="select-restaurant-timezone">
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="America/New_York">Eastern Time (New York)</SelectItem>
+                      <SelectItem value="America/Chicago">Central Time (Chicago)</SelectItem>
+                      <SelectItem value="America/Denver">Mountain Time (Denver)</SelectItem>
+                      <SelectItem value="America/Los_Angeles">Pacific Time (Los Angeles)</SelectItem>
+                      <SelectItem value="America/Anchorage">Alaska Time (Anchorage)</SelectItem>
+                      <SelectItem value="Pacific/Honolulu">Hawaii Time (Honolulu)</SelectItem>
+                      <SelectItem value="Europe/London">GMT (London)</SelectItem>
+                      <SelectItem value="Europe/Paris">CET (Paris)</SelectItem>
+                      <SelectItem value="Europe/Berlin">CET (Berlin)</SelectItem>
+                      <SelectItem value="Europe/Rome">CET (Rome)</SelectItem>
+                      <SelectItem value="Asia/Tokyo">JST (Tokyo)</SelectItem>
+                      <SelectItem value="Asia/Shanghai">CST (Shanghai)</SelectItem>
+                      <SelectItem value="Asia/Kolkata">IST (Kolkata)</SelectItem>
+                      <SelectItem value="Asia/Dubai">GST (Dubai)</SelectItem>
+                      <SelectItem value="Asia/Dhaka">BST (Dhaka)</SelectItem>
+                      <SelectItem value="Australia/Sydney">AEDT (Sydney)</SelectItem>
+                      <SelectItem value="Australia/Melbourne">AEDT (Melbourne)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Restaurant's local timezone for operating hours
                   </p>
                 </div>
               </div>
