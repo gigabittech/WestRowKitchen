@@ -6,7 +6,11 @@ import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { sendOrderConfirmationEmail, sendOrderStatusEmail, testEmailConnection } from "./email";
+import {
+  sendOrderConfirmationEmail,
+  sendOrderStatusEmail,
+  testEmailConnection,
+} from "./email";
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req: any, res: any, next: any) => {
@@ -15,23 +19,26 @@ const isAuthenticated = (req: any, res: any, next: any) => {
   }
   next();
 };
-import { 
+import {
   insertRestaurantSchema,
   insertMenuCategorySchema,
   insertMenuItemSchema,
   insertOrderSchema,
   insertOrderItemSchema,
   insertPromotionSchema,
-  insertCouponSchema
+  insertCouponSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
 // Initialize Stripe with test keys for now
 let stripe: Stripe | null = null;
 try {
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_4eC39HqLyjWDarjtT1zdp7dc", {
-    apiVersion: "2025-08-27.basil",
-  });
+  stripe = new Stripe(
+    process.env.STRIPE_SECRET_KEY || "sk_test_4eC39HqLyjWDarjtT1zdp7dc",
+    {
+      apiVersion: "2025-08-27.basil",
+    },
+  );
 } catch (error) {
   console.log("Stripe not configured, payment functionality disabled");
 }
@@ -40,7 +47,7 @@ try {
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      const assetsDir = path.join(process.cwd(), 'client/public/assets');
+      const assetsDir = path.join(process.cwd(), "client/public/assets");
       // Ensure assets directory exists
       if (!fs.existsSync(assetsDir)) {
         fs.mkdirSync(assetsDir, { recursive: true });
@@ -53,20 +60,20 @@ const upload = multer({
       const originalName = file.originalname;
       const extension = path.extname(originalName);
       const baseName = path.basename(originalName, extension);
-      cb(null, `${timestamp}_${baseName}${extension}`);
-    }
+      cb(null, `${baseName}${extension}`);
+    },
   }),
   fileFilter: (req, file, cb) => {
     // Only allow image files
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'));
+      cb(new Error("Only image files are allowed"));
     }
   },
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -107,7 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -120,7 +127,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(restaurant);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error creating restaurant:", error);
       res.status(500).json({ message: "Failed to create restaurant" });
@@ -131,17 +140,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const restaurantData = insertRestaurantSchema.partial().parse(req.body);
-      const restaurant = await storage.updateRestaurant(req.params.id, restaurantData);
+      const restaurant = await storage.updateRestaurant(
+        req.params.id,
+        restaurantData,
+      );
       res.json(restaurant);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error updating restaurant:", error);
       res.status(500).json({ message: "Failed to update restaurant" });
@@ -152,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -166,85 +180,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Restaurant status management routes
-  app.put("/api/restaurants/:id/status", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+  app.put(
+    "/api/restaurants/:id/status",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
+
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const { isOpen } = req.body;
+        if (typeof isOpen !== "boolean") {
+          return res.status(400).json({ message: "isOpen must be a boolean" });
+        }
+
+        const restaurant = await storage.toggleRestaurantStatus(
+          req.params.id,
+          isOpen,
+        );
+        res.json(restaurant);
+      } catch (error) {
+        console.error("Error updating restaurant status:", error);
+        res.status(500).json({ message: "Failed to update restaurant status" });
       }
+    },
+  );
 
-      const { isOpen } = req.body;
-      if (typeof isOpen !== 'boolean') {
-        return res.status(400).json({ message: "isOpen must be a boolean" });
+  app.put(
+    "/api/restaurants/:id/temporary-closure",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
+
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const { isClosed } = req.body;
+        if (typeof isClosed !== "boolean") {
+          return res
+            .status(400)
+            .json({ message: "isClosed must be a boolean" });
+        }
+
+        const restaurant = await storage.setTemporaryClosure(
+          req.params.id,
+          isClosed,
+        );
+        res.json(restaurant);
+      } catch (error) {
+        console.error("Error updating temporary closure:", error);
+        res.status(500).json({ message: "Failed to update temporary closure" });
       }
+    },
+  );
 
-      const restaurant = await storage.toggleRestaurantStatus(req.params.id, isOpen);
-      res.json(restaurant);
-    } catch (error) {
-      console.error("Error updating restaurant status:", error);
-      res.status(500).json({ message: "Failed to update restaurant status" });
-    }
-  });
+  app.put(
+    "/api/restaurants/:id/operating-hours",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-  app.put("/api/restaurants/:id/temporary-closure", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const { operatingHours } = req.body;
+        const restaurant = await storage.updateOperatingHours(
+          req.params.id,
+          operatingHours,
+        );
+        res.json(restaurant);
+      } catch (error) {
+        console.error("Error updating operating hours:", error);
+        res.status(500).json({ message: "Failed to update operating hours" });
       }
+    },
+  );
 
-      const { isClosed } = req.body;
-      if (typeof isClosed !== 'boolean') {
-        return res.status(400).json({ message: "isClosed must be a boolean" });
+  app.put(
+    "/api/restaurants/:id/special-hours",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
+
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const { specialHours } = req.body;
+        const restaurant = await storage.updateSpecialHours(
+          req.params.id,
+          specialHours,
+        );
+        res.json(restaurant);
+      } catch (error) {
+        console.error("Error updating special hours:", error);
+        res.status(500).json({ message: "Failed to update special hours" });
       }
-
-      const restaurant = await storage.setTemporaryClosure(req.params.id, isClosed);
-      res.json(restaurant);
-    } catch (error) {
-      console.error("Error updating temporary closure:", error);
-      res.status(500).json({ message: "Failed to update temporary closure" });
-    }
-  });
-
-  app.put("/api/restaurants/:id/operating-hours", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const { operatingHours } = req.body;
-      const restaurant = await storage.updateOperatingHours(req.params.id, operatingHours);
-      res.json(restaurant);
-    } catch (error) {
-      console.error("Error updating operating hours:", error);
-      res.status(500).json({ message: "Failed to update operating hours" });
-    }
-  });
-
-  app.put("/api/restaurants/:id/special-hours", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const { specialHours } = req.body;
-      const restaurant = await storage.updateSpecialHours(req.params.id, specialHours);
-      res.json(restaurant);
-    } catch (error) {
-      console.error("Error updating special hours:", error);
-      res.status(500).json({ message: "Failed to update special hours" });
-    }
-  });
+    },
+  );
 
   app.get("/api/restaurants/:id/status", async (req, res) => {
     try {
@@ -257,86 +301,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Logo upload endpoint
-  app.post("/api/upload/logo", isAuthenticated, upload.single('logo'), async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.post(
+    "/api/upload/logo",
+    isAuthenticated,
+    upload.single("logo"),
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
 
-      // Return just the filename (not the full path)
-      res.json({ 
-        success: true,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size
-      });
-    } catch (error) {
-      console.error("Error uploading logo:", error);
-      res.status(500).json({ message: "Failed to upload logo" });
-    }
-  });
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        // Return just the filename (not the full path)
+        res.json({
+          success: true,
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: req.file.size,
+        });
+      } catch (error) {
+        console.error("Error uploading logo:", error);
+        res.status(500).json({ message: "Failed to upload logo" });
+      }
+    },
+  );
 
   // Menu item image upload endpoint
-  app.post("/api/upload/menu-item-image", isAuthenticated, upload.single('image'), async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.post(
+    "/api/upload/menu-item-image",
+    isAuthenticated,
+    upload.single("image"),
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
 
-      // Return the file path in the assets directory
-      const filePath = `/assets/${req.file.filename}`;
-      
-      res.json({ 
-        success: true,
-        filePath,
-        originalName: req.file.originalname,
-        size: req.file.size
-      });
-    } catch (error) {
-      console.error("Error uploading menu item image:", error);
-      res.status(500).json({ message: "Failed to upload menu item image" });
-    }
-  });
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        // Return the file path in the assets directory
+        const filePath = `/assets/${req.file.filename}`;
+
+        res.json({
+          success: true,
+          filePath,
+          originalName: req.file.originalname,
+          size: req.file.size,
+        });
+      } catch (error) {
+        console.error("Error uploading menu item image:", error);
+        res.status(500).json({ message: "Failed to upload menu item image" });
+      }
+    },
+  );
 
   // Logo delete endpoint
-  app.delete("/api/upload/logo/:filename", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.delete(
+    "/api/upload/logo/:filename",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-      const filename = req.params.filename;
-      const filePath = path.join(process.cwd(), 'client', 'public', 'assets', filename);
-      
-      // Check if file exists and delete it
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        res.json({ success: true, message: "File deleted successfully" });
-      } else {
-        res.status(404).json({ message: "File not found" });
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const filename = req.params.filename;
+        const filePath = path.join(
+          process.cwd(),
+          "client",
+          "public",
+          "assets",
+          filename,
+        );
+
+        // Check if file exists and delete it
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          res.json({ success: true, message: "File deleted successfully" });
+        } else {
+          res.status(404).json({ message: "File not found" });
+        }
+      } catch (error) {
+        console.error("Error deleting logo:", error);
+        res.status(500).json({ message: "Failed to delete logo" });
       }
-    } catch (error) {
-      console.error("Error deleting logo:", error);
-      res.status(500).json({ message: "Failed to delete logo" });
-    }
-  });
+    },
+  );
 
   // Menu routes
   app.get("/api/restaurants/:id/categories", async (req, res) => {
@@ -349,34 +413,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/restaurants/:id/categories", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.post(
+    "/api/restaurants/:id/categories",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-      const categoryData = insertMenuCategorySchema.parse({
-        ...req.body,
-        restaurantId: req.params.id,
-      });
-      const category = await storage.createMenuCategory(categoryData);
-      res.status(201).json(category);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const categoryData = insertMenuCategorySchema.parse({
+          ...req.body,
+          restaurantId: req.params.id,
+        });
+        const category = await storage.createMenuCategory(categoryData);
+        res.status(201).json(category);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: error.errors });
+        }
+        console.error("Error creating menu category:", error);
+        res.status(500).json({ message: "Failed to create menu category" });
       }
-      console.error("Error creating menu category:", error);
-      res.status(500).json({ message: "Failed to create menu category" });
-    }
-  });
+    },
+  );
 
   app.get("/api/restaurants/:id/menu", async (req, res) => {
     try {
       const { categoryId } = req.query;
-      const menuItems = await storage.getMenuItems(req.params.id, categoryId as string);
+      const menuItems = await storage.getMenuItems(
+        req.params.id,
+        categoryId as string,
+      );
       res.json(menuItems);
     } catch (error) {
       console.error("Error fetching menu items:", error);
@@ -384,35 +457,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/restaurants/:id/menu", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.post(
+    "/api/restaurants/:id/menu",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-      const itemData = insertMenuItemSchema.parse({
-        ...req.body,
-        restaurantId: req.params.id,
-      });
-      const item = await storage.createMenuItem(itemData);
-      res.status(201).json(item);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const itemData = insertMenuItemSchema.parse({
+          ...req.body,
+          restaurantId: req.params.id,
+        });
+        const item = await storage.createMenuItem(itemData);
+        res.status(201).json(item);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return res
+            .status(400)
+            .json({ message: "Invalid data", errors: error.errors });
+        }
+        console.error("Error creating menu item:", error);
+        res.status(500).json({ message: "Failed to create menu item" });
       }
-      console.error("Error creating menu item:", error);
-      res.status(500).json({ message: "Failed to create menu item" });
-    }
-  });
+    },
+  );
 
   app.put("/api/menu/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -422,7 +501,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(item);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error updating menu item:", error);
       res.status(500).json({ message: "Failed to update menu item" });
@@ -433,7 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -450,11 +531,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/orders", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
+
       const orderSchema = insertOrderSchema.extend({
         items: z.array(insertOrderItemSchema.omit({ orderId: true })),
       });
-      
+
       // Create a safer schema that explicitly includes all needed fields
       const safeOrderSchema = z.object({
         userId: z.string(),
@@ -476,17 +557,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actualDeliveryTime: z.string().nullable().optional(),
         items: z.array(insertOrderItemSchema.omit({ orderId: true })),
       });
-      
+
       const { items, ...orderData } = safeOrderSchema.parse({
         ...req.body,
         userId,
       });
-      
 
       const order = await storage.createOrder(orderData);
-      
+
       const orderItems = await storage.createOrderItems(
-        items.map(item => ({ ...item, orderId: order.id }))
+        items.map((item) => ({ ...item, orderId: order.id })),
       );
 
       // Track coupon usage if a coupon was applied
@@ -497,7 +577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await storage.applyCoupon(coupon.id, userId, order.id);
           }
         } catch (couponError) {
-          console.error('Failed to track coupon usage:', couponError);
+          console.error("Failed to track coupon usage:", couponError);
           // Don't fail the order if coupon tracking fails
         }
       }
@@ -506,28 +586,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const user = await storage.getUser(userId);
         const restaurant = await storage.getRestaurant(orderData.restaurantId);
-        
+
         if (user && restaurant) {
           const orderWithItems = {
             ...order,
             items: orderItems,
-            subtotal: orderItems.reduce((sum: number, item: any) => sum + (parseFloat(item.unitPrice) * item.quantity), 0),
+            subtotal: orderItems.reduce(
+              (sum: number, item: any) =>
+                sum + parseFloat(item.unitPrice) * item.quantity,
+              0,
+            ),
             deliveryFee: 2.99,
             serviceFee: 0,
             tax: 0,
-            total: orderItems.reduce((sum: number, item: any) => sum + (parseFloat(item.unitPrice) * item.quantity), 0) + 2.99
+            total:
+              orderItems.reduce(
+                (sum: number, item: any) =>
+                  sum + parseFloat(item.unitPrice) * item.quantity,
+                0,
+              ) + 2.99,
           };
-          
+
           await sendOrderConfirmationEmail(orderWithItems, restaurant, user);
         }
       } catch (emailError) {
-        console.error('Failed to send order confirmation email:', emailError);
+        console.error("Failed to send order confirmation email:", emailError);
       }
 
       res.status(201).json({ order, items: orderItems });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error creating order:", error);
       res.status(500).json({ message: "Failed to create order" });
@@ -551,23 +642,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const orderId = req.params.id;
       const order = await storage.getOrderById(orderId);
-      
+
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
-      
+
       // Check if user owns this order or is admin
       const user = await storage.getUser(userId);
       if (order.userId !== userId && !user?.isAdmin) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       // Get order items with menu item details
       const orderItems = await storage.getOrderItemsWithDetails(orderId);
-      
+
       // Get applied coupon if any
       const appliedCoupon = await storage.getOrderCoupon(orderId);
-      
+
       res.json({ ...order, items: orderItems, appliedCoupon });
     } catch (error) {
       console.error("Error fetching order:", error);
@@ -575,53 +666,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/restaurants/:id/orders", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.get(
+    "/api/restaurants/:id/orders",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-      const orders = await storage.getRestaurantOrders(req.params.id);
-      res.json(orders);
-    } catch (error) {
-      console.error("Error fetching restaurant orders:", error);
-      res.status(500).json({ message: "Failed to fetch restaurant orders" });
-    }
-  });
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const orders = await storage.getRestaurantOrders(req.params.id);
+        res.json(orders);
+      } catch (error) {
+        console.error("Error fetching restaurant orders:", error);
+        res.status(500).json({ message: "Failed to fetch restaurant orders" });
+      }
+    },
+  );
 
   app.put("/api/orders/:id/status", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const { status } = z.object({ status: z.string() }).parse(req.body);
       const order = await storage.updateOrderStatus(req.params.id, status);
-      
+
       // Send order status update email
       try {
         if (order) {
           const orderUser = await storage.getUser(order.userId);
           const restaurant = await storage.getRestaurant(order.restaurantId);
-          
+
           if (orderUser && restaurant) {
             await sendOrderStatusEmail(order, restaurant, orderUser, status);
           }
         }
       } catch (emailError) {
-        console.error('Failed to send order status email:', emailError);
+        console.error("Failed to send order status email:", emailError);
       }
-      
+
       res.json(order);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error updating order status:", error);
       res.status(500).json({ message: "Failed to update order status" });
@@ -640,7 +737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
-      
+
       if (order.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -648,13 +745,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For customer cancellations, only allow if order is pending
       if (status === "cancelled") {
         if (order.status !== "pending") {
-          return res.status(400).json({ 
-            message: "Orders can only be cancelled while pending" 
+          return res.status(400).json({
+            message: "Orders can only be cancelled while pending",
           });
         }
       } else {
-        return res.status(400).json({ 
-          message: "Customers can only cancel orders" 
+        return res.status(400).json({
+          message: "Customers can only cancel orders",
         });
       }
 
@@ -662,7 +759,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedOrder);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error updating order status:", error);
       res.status(500).json({ message: "Failed to update order status" });
@@ -673,26 +772,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/search", async (req, res) => {
     try {
       const { q: query } = req.query;
-      
-      if (!query || typeof query !== 'string' || query.length < 2) {
+
+      if (!query || typeof query !== "string" || query.length < 2) {
         return res.json({ restaurants: [], menuItems: [] });
       }
 
       // Search restaurants
       const restaurants = await storage.getRestaurants();
       const searchTerm = query.toLowerCase();
-      const filteredRestaurants = restaurants.filter((restaurant) => 
-        restaurant.name.toLowerCase().includes(searchTerm) ||
-        restaurant.cuisine.toLowerCase().includes(searchTerm) ||
-        (restaurant.description && restaurant.description.toLowerCase().includes(searchTerm))
-      ).slice(0, 5);
+      const filteredRestaurants = restaurants
+        .filter(
+          (restaurant) =>
+            restaurant.name.toLowerCase().includes(searchTerm) ||
+            restaurant.cuisine.toLowerCase().includes(searchTerm) ||
+            (restaurant.description &&
+              restaurant.description.toLowerCase().includes(searchTerm)),
+        )
+        .slice(0, 5);
 
       // Search menu items
       const menuItems = await storage.searchMenuItems(query);
 
       res.json({
         restaurants: filteredRestaurants,
-        menuItems: menuItems.slice(0, 5)
+        menuItems: menuItems.slice(0, 5),
       });
     } catch (error) {
       console.error("Error searching:", error);
@@ -712,42 +815,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get the original order with items
       const orderDetail = await storage.getOrderById(orderId);
-      
+
       if (!orderDetail || orderDetail.userId !== userId) {
         return res.status(404).json({ message: "Order not found" });
       }
-      
+
       // Get order items with details
       const orderItems = await storage.getOrderItemsWithDetails(orderId);
 
       // Check if the restaurant is still active
       const restaurant = await storage.getRestaurant(orderDetail.restaurantId);
       if (!restaurant) {
-        return res.status(400).json({ message: "Restaurant is no longer available" });
+        return res
+          .status(400)
+          .json({ message: "Restaurant is no longer available" });
       }
 
       // Prepare cart items from order items
-      const cartItems = orderItems?.map((item: any) => ({
-        id: item.menuItem.id,
-        name: item.menuItem.name,
-        price: parseFloat(item.unitPrice),
-        quantity: item.quantity,
-        restaurantId: orderDetail.restaurantId,
-        restaurantName: restaurant.name,
-        description: item.menuItem.description || "",
-        category: item.menuItem.category || "Unknown"
-      })) || [];
+      const cartItems =
+        orderItems?.map((item: any) => ({
+          id: item.menuItem.id,
+          name: item.menuItem.name,
+          price: parseFloat(item.unitPrice),
+          quantity: item.quantity,
+          restaurantId: orderDetail.restaurantId,
+          restaurantName: restaurant.name,
+          description: item.menuItem.description || "",
+          category: item.menuItem.category || "Unknown",
+        })) || [];
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: "Items ready to be added to cart",
         cartItems,
         restaurantInfo: {
           id: restaurant.id,
-          name: restaurant.name
-        }
+          name: restaurant.name,
+        },
       });
-
     } catch (error) {
       console.error("Error processing reorder:", error);
       res.status(500).json({ message: "Failed to process reorder" });
@@ -758,7 +863,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/promotions", async (req, res) => {
     try {
       const { restaurantId } = req.query;
-      const promotions = await storage.getActivePromotions(restaurantId as string);
+      const promotions = await storage.getActivePromotions(
+        restaurantId as string,
+      );
       res.json(promotions);
     } catch (error) {
       console.error("Error fetching promotions:", error);
@@ -770,7 +877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -780,7 +887,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(promotion);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error creating promotion:", error);
       res.status(500).json({ message: "Failed to create promotion" });
@@ -802,7 +911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/coupons/validate", async (req, res) => {
     try {
       const { code, restaurantId, orderAmount } = req.body;
-      
+
       if (!req.isAuthenticated()) {
         return res.status(401).json({ message: "Authentication required" });
       }
@@ -812,12 +921,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not found" });
       }
 
-      const validation = await storage.validateCoupon(code, userId, restaurantId, orderAmount);
-      
+      const validation = await storage.validateCoupon(
+        code,
+        userId,
+        restaurantId,
+        orderAmount,
+      );
+
       if (!validation.valid) {
-        return res.status(400).json({ 
-          valid: false, 
-          error: validation.error 
+        return res.status(400).json({
+          valid: false,
+          error: validation.error,
         });
       }
 
@@ -826,7 +940,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validation.coupon) {
         const coupon = validation.coupon;
         if (coupon.discountType === "percentage") {
-          discountAmount = orderAmount * (parseFloat(coupon.discountValue || "0") / 100);
+          discountAmount =
+            orderAmount * (parseFloat(coupon.discountValue || "0") / 100);
         } else if (coupon.discountType === "fixed") {
           discountAmount = parseFloat(coupon.discountValue || "0");
         } else if (coupon.discountType === "free_delivery") {
@@ -838,7 +953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         valid: true,
         coupon: validation.coupon,
-        discountAmount: discountAmount.toFixed(2)
+        discountAmount: discountAmount.toFixed(2),
       });
     } catch (error) {
       console.error("Error validating coupon:", error);
@@ -868,7 +983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -878,7 +993,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(coupon);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error creating coupon:", error);
       res.status(500).json({ message: "Failed to create coupon" });
@@ -889,7 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -906,7 +1023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -916,36 +1033,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(coupon);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Invalid data", errors: error.errors });
       }
       console.error("Error updating coupon:", error);
       res.status(500).json({ message: "Failed to update coupon" });
     }
   });
 
-  app.delete("/api/admin/coupons/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.delete(
+    "/api/admin/coupons/:id",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-      await storage.deleteCoupon(req.params.id);
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting coupon:", error);
-      res.status(500).json({ message: "Failed to delete coupon" });
-    }
-  });
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        await storage.deleteCoupon(req.params.id);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error deleting coupon:", error);
+        res.status(500).json({ message: "Failed to delete coupon" });
+      }
+    },
+  );
 
   // User management for admins
   app.get("/api/admin/users", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -963,7 +1086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -980,7 +1103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -995,30 +1118,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  app.get("/api/restaurants/:id/stats", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const user = await storage.getUser(userId);
-      
-      if (!user?.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+  app.get(
+    "/api/restaurants/:id/stats",
+    isAuthenticated,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await storage.getUser(userId);
 
-      const stats = await storage.getRestaurantStats(req.params.id);
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching restaurant stats:", error);
-      res.status(500).json({ message: "Failed to fetch restaurant stats" });
-    }
-  });
+        if (!user?.isAdmin) {
+          return res.status(403).json({ message: "Admin access required" });
+        }
+
+        const stats = await storage.getRestaurantStats(req.params.id);
+        res.json(stats);
+      } catch (error) {
+        console.error("Error fetching restaurant stats:", error);
+        res.status(500).json({ message: "Failed to fetch restaurant stats" });
+      }
+    },
+  );
 
   // Object storage routes
   const { ObjectStorageService } = await import("./objectStorage");
-  
+
   app.get("/objects/:objectPath(*)", async (req, res) => {
     const objectStorageService = new ObjectStorageService();
     try {
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const objectFile = await objectStorageService.getObjectEntityFile(
+        req.path,
+      );
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       console.error("Error accessing object:", error);
@@ -1029,9 +1158,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     const objectStorageService = new ObjectStorageService();
     const { restaurantId, fileName, type } = req.body;
-    
+
     try {
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL(restaurantId, fileName, type);
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL(
+        restaurantId,
+        fileName,
+        type,
+      );
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
@@ -1043,7 +1176,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       if (!stripe) {
-        return res.status(500).json({ message: "Stripe not configured. Please set STRIPE_SECRET_KEY environment variable." });
+        return res
+          .status(500)
+          .json({
+            message:
+              "Stripe not configured. Please set STRIPE_SECRET_KEY environment variable.",
+          });
       }
 
       const { amount } = req.body;
