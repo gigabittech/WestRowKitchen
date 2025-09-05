@@ -38,9 +38,18 @@ export function isRestaurantOpen(
     return false;
   }
 
-  // If no operating hours defined, assume closed
+  // If no operating hours defined, use default hours (9 AM - 9 PM daily)
   if (!operatingHours) {
-    return false;
+    const defaultHours: OperatingHours = {
+      monday: { open: "09:00", close: "21:00", closed: false },
+      tuesday: { open: "09:00", close: "21:00", closed: false },
+      wednesday: { open: "09:00", close: "21:00", closed: false },
+      thursday: { open: "09:00", close: "21:00", closed: false },
+      friday: { open: "09:00", close: "21:00", closed: false },
+      saturday: { open: "09:00", close: "21:00", closed: false },
+      sunday: { open: "09:00", close: "21:00", closed: false },
+    };
+    operatingHours = defaultHours;
   }
 
   try {
