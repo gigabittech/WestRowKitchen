@@ -95,7 +95,7 @@ export default function Admin() {
   const [restaurantForm, setRestaurantForm] = useState(getDefaultRestaurantForm());
   
   const [couponForm, setCouponForm] = useState({
-    code: "", title: "", description: "", discountType: "percentage" as const,
+    code: "", title: "", description: "", discountType: "percentage" as "percentage" | "fixed" | "free_delivery",
     discountValue: "", minimumOrder: "", maxUsage: "", userLimit: "",
     startDate: "", endDate: "", restaurantId: "", isActive: true
   });
@@ -453,7 +453,7 @@ export default function Admin() {
 
   const openEditRestaurant = (restaurant: Restaurant) => {
     // Get existing operating hours or use default structure
-    const existingHours = restaurant.operatingHours || {
+    const existingHours = (restaurant.operatingHours as OperatingHours) || {
       monday: { open: "09:00", close: "21:00", closed: false },
       tuesday: { open: "09:00", close: "21:00", closed: false },
       wednesday: { open: "09:00", close: "21:00", closed: false },
