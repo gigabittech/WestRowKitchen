@@ -297,39 +297,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const { restaurantId, type } = req.body;
+      // Just return the file path in the assets directory
+      const filePath = `/assets/${req.file.filename}`;
       
-      if (restaurantId && type === 'menu-item') {
-        // Create restaurant directory and move file there
-        const restaurantDir = path.join(process.cwd(), 'client', 'public', 'assets', restaurantId);
-        
-        if (!fs.existsSync(restaurantDir)) {
-          fs.mkdirSync(restaurantDir, { recursive: true });
-        }
-
-        // Move file from general assets to restaurant directory
-        const oldPath = req.file.path;
-        const newPath = path.join(restaurantDir, req.file.filename);
-        fs.renameSync(oldPath, newPath);
-        
-        const filePath = `/assets/${restaurantId}/${req.file.filename}`;
-        
-        res.json({ 
-          success: true,
-          filePath,
-          originalName: req.file.originalname,
-          size: req.file.size
-        });
-      } else {
-        // Default path for other images
-        const filePath = `/assets/${req.file.filename}`;
-        res.json({ 
-          success: true,
-          filePath,
-          originalName: req.file.originalname,
-          size: req.file.size
-        });
-      }
+      res.json({ 
+        success: true,
+        filePath,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
     } catch (error) {
       console.error("Error uploading menu item image:", error);
       res.status(500).json({ message: "Failed to upload menu item image" });
