@@ -48,11 +48,8 @@ const upload = multer({
       cb(null, assetsDir);
     },
     filename: (req, file, cb) => {
-      // Generate unique filename with original extension
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const ext = path.extname(file.originalname);
-      const name = file.originalname.replace(ext, '').toLowerCase().replace(/[^a-z0-9]/g, '-');
-      cb(null, `${name}-${uniqueSuffix}${ext}`);
+      // Keep original filename as requested
+      cb(null, file.originalname);
     }
   }),
   fileFilter: (req, file, cb) => {
@@ -279,6 +276,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading logo:", error);
       res.status(500).json({ message: "Failed to upload logo" });
+    }
+  });
+
+  // Logo delete endpoint
+  app.delete("/api/upload/logo/:filename", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const filename = req.params.filename;
+      const filePath = path.join(process.cwd(), 'client', 'public', 'assets', filename);
+      
+      // Check if file exists and delete it
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        res.json({ success: true, message: "File deleted successfully" });
+      } else {
+        res.status(404).json({ message: "File not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting logo:", error);
+      res.status(500).json({ message: "Failed to delete logo" });
     }
   });
 

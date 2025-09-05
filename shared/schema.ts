@@ -261,7 +261,10 @@ export const couponUsageRelations = relations(couponUsage, ({ one }) => ({
 }));
 
 // Insert schemas
-export const insertRestaurantSchema = createInsertSchema(restaurants).omit({
+export const insertRestaurantSchema = createInsertSchema(restaurants, {
+  deliveryFee: z.string().optional().transform((val) => val ? parseFloat(val) : undefined),
+  minimumOrder: z.string().optional().transform((val) => val ? parseFloat(val) : undefined),
+}).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

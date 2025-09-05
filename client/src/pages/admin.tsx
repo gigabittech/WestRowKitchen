@@ -72,11 +72,25 @@ export default function Admin() {
     open: false, id: "", type: "", name: ""
   });
   
-  // Form states
-  const [restaurantForm, setRestaurantForm] = useState({
+  // Helper function to get default restaurant form
+  const getDefaultRestaurantForm = () => ({
     name: "", description: "", cuisine: "", deliveryTime: "", deliveryFee: "", 
-    minimumOrder: "", address: "", phone: "", image: ""
+    minimumOrder: "", address: "", phone: "", image: "", 
+    operatingHoursMode: "default" as "default" | "advanced",
+    defaultOpen: "09:00", defaultClose: "21:00",
+    operatingHours: {
+      monday: { open: "09:00", close: "21:00", closed: false },
+      tuesday: { open: "09:00", close: "21:00", closed: false },
+      wednesday: { open: "09:00", close: "21:00", closed: false },
+      thursday: { open: "09:00", close: "21:00", closed: false },
+      friday: { open: "09:00", close: "21:00", closed: false },
+      saturday: { open: "09:00", close: "21:00", closed: false },
+      sunday: { open: "09:00", close: "21:00", closed: false },
+    }
   });
+
+  // Form states
+  const [restaurantForm, setRestaurantForm] = useState(getDefaultRestaurantForm());
   
   const [couponForm, setCouponForm] = useState({
     code: "", title: "", description: "", discountType: "percentage" as const,
@@ -359,15 +373,16 @@ export default function Admin() {
     }
     
     const data = {
-      ...restaurantForm,
       name: restaurantForm.name.trim(),
       description: restaurantForm.description.trim(),
       cuisine: restaurantForm.cuisine.trim(),
       deliveryTime: restaurantForm.deliveryTime.trim(),
       address: restaurantForm.address.trim(),
       phone: restaurantForm.phone.trim(),
+      image: restaurantForm.image,
       deliveryFee: restaurantForm.deliveryFee ? parseFloat(restaurantForm.deliveryFee) : 0,
       minimumOrder: restaurantForm.minimumOrder ? parseFloat(restaurantForm.minimumOrder) : 0,
+      operatingHours: restaurantForm.operatingHours,
     };
     
     if (restaurantDialog.mode === "edit" && restaurantDialog.data) {
@@ -1420,6 +1435,153 @@ export default function Admin() {
               </div>
             </div>
 
+            {/* Operating Hours Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <Clock className="w-4 h-4 text-primary" />
+                <h3 className="font-medium">Operating Hours</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Hours Setup</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={restaurantForm.operatingHoursMode === "default" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setRestaurantForm(prev => ({ ...prev, operatingHoursMode: "default" }))}
+                    >
+                      Default (Same Daily)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={restaurantForm.operatingHoursMode === "advanced" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setRestaurantForm(prev => ({ ...prev, operatingHoursMode: "advanced" }))}
+                    >
+                      Advanced (Per Day)
+                    </Button>
+                  </div>
+                </div>
+
+                {restaurantForm.operatingHoursMode === "default" ? (
+                  <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-2">
+                      <Label htmlFor="defaultOpen" className="text-sm font-medium">Opening Time</Label>
+                      <Input
+                        id="defaultOpen"
+                        type="time"
+                        value={restaurantForm.defaultOpen}
+                        onChange={(e) => {
+                          const time = e.target.value;
+                          setRestaurantForm(prev => ({ 
+                            ...prev, 
+                            defaultOpen: time,
+                            operatingHours: {
+                              monday: { ...prev.operatingHours.monday, open: time },
+                              tuesday: { ...prev.operatingHours.tuesday, open: time },
+                              wednesday: { ...prev.operatingHours.wednesday, open: time },
+                              thursday: { ...prev.operatingHours.thursday, open: time },
+                              friday: { ...prev.operatingHours.friday, open: time },
+                              saturday: { ...prev.operatingHours.saturday, open: time },
+                              sunday: { ...prev.operatingHours.sunday, open: time },
+                            }
+                          }));
+                        }}
+                        data-testid="input-default-open"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="defaultClose" className="text-sm font-medium">Closing Time</Label>
+                      <Input
+                        id="defaultClose"
+                        type="time"
+                        value={restaurantForm.defaultClose}
+                        onChange={(e) => {
+                          const time = e.target.value;
+                          setRestaurantForm(prev => ({ 
+                            ...prev, 
+                            defaultClose: time,
+                            operatingHours: {
+                              monday: { ...prev.operatingHours.monday, close: time },
+                              tuesday: { ...prev.operatingHours.tuesday, close: time },
+                              wednesday: { ...prev.operatingHours.wednesday, close: time },
+                              thursday: { ...prev.operatingHours.thursday, close: time },
+                              friday: { ...prev.operatingHours.friday, close: time },
+                              saturday: { ...prev.operatingHours.saturday, close: time },
+                              sunday: { ...prev.operatingHours.sunday, close: time },
+                            }
+                          }));
+                        }}
+                        data-testid="input-default-close"
+                      />
+                    </div>
+                    <div className="col-span-2 text-xs text-muted-foreground">
+                      All days will use the same hours: {restaurantForm.defaultOpen} - {restaurantForm.defaultClose}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {Object.entries(restaurantForm.operatingHours).map(([day, hours]) => (
+                      <div key={day} className="flex items-center gap-4 p-3 border rounded-lg">
+                        <div className="w-20 text-sm font-medium capitalize">{day}</div>
+                        <div className="flex items-center gap-2 flex-1">
+                          <Switch
+                            checked={!hours.closed}
+                            onCheckedChange={(checked) => 
+                              setRestaurantForm(prev => ({
+                                ...prev,
+                                operatingHours: {
+                                  ...prev.operatingHours,
+                                  [day]: { ...hours, closed: !checked }
+                                }
+                              }))
+                            }
+                          />
+                          {!hours.closed ? (
+                            <>
+                              <Input
+                                type="time"
+                                value={hours.open}
+                                onChange={(e) => 
+                                  setRestaurantForm(prev => ({
+                                    ...prev,
+                                    operatingHours: {
+                                      ...prev.operatingHours,
+                                      [day]: { ...hours, open: e.target.value }
+                                    }
+                                  }))
+                                }
+                                className="w-32"
+                              />
+                              <span className="text-muted-foreground">to</span>
+                              <Input
+                                type="time"
+                                value={hours.close}
+                                onChange={(e) => 
+                                  setRestaurantForm(prev => ({
+                                    ...prev,
+                                    operatingHours: {
+                                      ...prev.operatingHours,
+                                      [day]: { ...hours, close: e.target.value }
+                                    }
+                                  }))
+                                }
+                                className="w-32"
+                              />
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">Closed</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Restaurant Logo Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b">
@@ -1444,10 +1606,7 @@ export default function Admin() {
                 variant="outline" 
                 onClick={() => {
                   setRestaurantDialog({...restaurantDialog, open: false});
-                  setRestaurantForm({
-                    name: "", description: "", cuisine: "", deliveryTime: "", 
-                    deliveryFee: "", minimumOrder: "", address: "", phone: "", image: ""
-                  });
+                  setRestaurantForm(getDefaultRestaurantForm());
                 }}
                 disabled={createRestaurantMutation.isPending || updateRestaurantMutation.isPending}
               >

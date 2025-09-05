@@ -97,7 +97,29 @@ export function LogoUploader({ value, onChange, label = "Logo" }: LogoUploaderPr
     }
   };
 
-  const handleRemove = () => {
+  const handleRemove = async () => {
+    if (value) {
+      try {
+        const response = await fetch(`/api/upload/logo/${value}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          toast({
+            title: "Success",
+            description: "Logo deleted successfully",
+          });
+        } else {
+          // Even if delete fails, still remove from form since file might not exist
+          console.warn('Failed to delete file from server, but removing from form');
+        }
+      } catch (error) {
+        console.error('Error deleting logo:', error);
+        // Even if delete fails, still remove from form
+      }
+    }
+
     onChange("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
