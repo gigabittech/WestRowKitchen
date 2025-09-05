@@ -347,6 +347,17 @@ export default function Admin() {
     onError: handleMutationError,
   });
 
+  const deleteMenuItemMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/menu-items/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-menu-items", selectedRestaurant] });
+      toast({ title: "Success", description: "Menu item deleted successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
   function handleMutationError(error: any) {
     if (isUnauthorizedError(error)) {
       toast({
@@ -516,7 +527,7 @@ export default function Admin() {
     } else if (deleteDialog.type === "category") {
       deleteCategoryMutation.mutate(deleteDialog.id);
     } else if (deleteDialog.type === "menu-item") {
-      // Add menu item deletion if not already implemented
+      deleteMenuItemMutation.mutate(deleteDialog.id);
     }
     setDeleteDialog({open: false, id: "", type: "", name: ""});
   };
@@ -1214,7 +1225,7 @@ export default function Admin() {
                         </Button>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
                         {categories.map((category: MenuCategory) => (
                           <Card key={category.id} className="p-3" data-testid={`category-${category.id}`}>
                             <div className="flex items-center justify-between">
@@ -1261,7 +1272,7 @@ export default function Admin() {
                         <Package className="w-5 h-5 text-primary" />
                         Menu Items
                       </h3>
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {menuItems.map((item: MenuItem) => (
                       <Card key={item.id} data-testid={`menu-item-${item.id}`}>
                         <CardContent className="p-4">
