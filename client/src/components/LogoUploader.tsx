@@ -176,7 +176,7 @@ export function LogoUploader({ value, onChange, label = "Logo" }: LogoUploaderPr
           <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/50">
             <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center overflow-hidden border">
               <img
-                src={`/assets/${value}`}
+                src={value.startsWith('/assets/') ? value : `/assets/${value}`}
                 alt="Logo preview"
                 className="w-full h-full object-cover"
                 onError={(e) => {
