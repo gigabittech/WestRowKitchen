@@ -945,7 +945,10 @@ export default function Admin() {
                             size="sm"
                             variant="outline"
                             className="flex-1"
-                            onClick={() => {/* View menu items */}}
+                            onClick={() => {
+                              setSelectedRestaurant(restaurant.id);
+                              setActiveTab("menu");
+                            }}
                             data-testid={`button-view-menu-${restaurant.id}`}
                           >
                             <Eye className="w-3 h-3 mr-1" />
