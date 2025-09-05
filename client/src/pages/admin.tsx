@@ -2053,7 +2053,7 @@ export default function Admin() {
 
       {/* Menu Item Dialog */}
       <Dialog open={menuItemDialog.open} onOpenChange={(open) => setMenuItemDialog({...menuItemDialog, open})}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {menuItemDialog.mode === "edit" ? "Edit Menu Item" : "Add New Menu Item"}
