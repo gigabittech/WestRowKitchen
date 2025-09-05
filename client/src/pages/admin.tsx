@@ -419,6 +419,17 @@ export default function Admin() {
   };
 
   const openEditRestaurant = (restaurant: Restaurant) => {
+    // Get existing operating hours or use default structure
+    const existingHours = restaurant.operatingHours || {
+      monday: { open: "09:00", close: "21:00", closed: false },
+      tuesday: { open: "09:00", close: "21:00", closed: false },
+      wednesday: { open: "09:00", close: "21:00", closed: false },
+      thursday: { open: "09:00", close: "21:00", closed: false },
+      friday: { open: "09:00", close: "21:00", closed: false },
+      saturday: { open: "09:00", close: "21:00", closed: false },
+      sunday: { open: "09:00", close: "21:00", closed: false }
+    };
+
     setRestaurantForm({
       name: restaurant.name,
       description: restaurant.description || "",
@@ -428,7 +439,11 @@ export default function Admin() {
       minimumOrder: restaurant.minimumOrder || "",
       address: restaurant.address || "",
       phone: restaurant.phone || "",
-      image: restaurant.image || ""
+      image: restaurant.image || "",
+      operatingHoursMode: "advanced", // Always use advanced mode for editing existing restaurants
+      defaultOpen: "09:00",
+      defaultClose: "21:00", 
+      operatingHours: existingHours
     });
     setRestaurantDialog({open: true, mode: "edit", data: restaurant});
   };
