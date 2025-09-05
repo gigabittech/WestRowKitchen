@@ -51,7 +51,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import type { Restaurant, MenuItem, Order, User, Coupon, MenuCategory } from "@shared/schema";
 
-export default function Admin() {
+export default function AdminImproved() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -77,9 +77,14 @@ export default function Admin() {
     startDate: "", endDate: "", restaurantId: "", isActive: true
   });
 
+  const [menuItemForm, setMenuItemForm] = useState({
+    name: "", description: "", price: "", categoryId: "", preparationTime: "", image: ""
+  });
+
   // Dialog states
   const [restaurantDialog, setRestaurantDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as Restaurant | null});
   const [couponDialog, setCouponDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as Coupon | null});
+  const [menuItemDialog, setMenuItemDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as MenuItem | null});
 
   // Redirect if not authenticated or not admin
   useEffect(() => {

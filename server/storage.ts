@@ -553,6 +553,11 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedUser;
   }
+
+  // Admin order management
+  async getAllOrders(): Promise<Order[]> {
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
 }
 
 export const storage = new DatabaseStorage();
