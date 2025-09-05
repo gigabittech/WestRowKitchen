@@ -398,20 +398,21 @@ export default function Admin() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header Section */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Comprehensive platform management</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-gray-600 text-sm sm:text-base">Comprehensive platform management</p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button 
               onClick={() => setRestaurantDialog({open: true, mode: "create", data: null})}
               className="bg-primary hover:bg-primary/90"
               data-testid="button-add-restaurant"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Restaurant
+              <span className="hidden sm:inline">Add Restaurant</span>
+              <span className="sm:hidden">Restaurant</span>
             </Button>
             <Button 
               onClick={() => setCouponDialog({open: true, mode: "create", data: null})}
@@ -419,7 +420,8 @@ export default function Admin() {
               data-testid="button-add-coupon"
             >
               <Tag className="w-4 h-4 mr-2" />
-              Add Coupon
+              <span className="hidden sm:inline">Add Coupon</span>
+              <span className="sm:hidden">Coupon</span>
             </Button>
           </div>
         </div>
@@ -626,21 +628,21 @@ export default function Admin() {
           <TabsContent value="orders">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3">
                   <CardTitle>Order Management</CardTitle>
-                  <div className="flex gap-2">
-                    <div className="relative">
+                  <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                    <div className="relative w-full sm:w-auto">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search orders..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8"
+                        className="pl-8 w-full sm:w-48"
                         data-testid="input-search-orders"
                       />
                     </div>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-32" data-testid="select-order-status">
+                      <SelectTrigger className="w-full sm:w-32" data-testid="select-order-status">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
