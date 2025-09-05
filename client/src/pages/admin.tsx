@@ -65,6 +65,7 @@ export default function Admin() {
   const [, setLocation] = useLocation();
   
   // State management
+  const [activeTab, setActiveTab] = useState("overview");
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -659,7 +660,7 @@ export default function Admin() {
           </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="overflow-x-auto">
             <TabsList className="inline-flex w-max min-w-full justify-start">
               <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
