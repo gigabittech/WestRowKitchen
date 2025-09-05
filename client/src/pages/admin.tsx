@@ -485,8 +485,8 @@ export default function Admin() {
                           </div>
                           <div className="text-right">
                             <div className="font-bold">${parseFloat(order.totalAmount).toFixed(2)}</div>
-                            <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
-                              {order.status}
+                            <Badge variant={order.status === 'delivered' ? 'default' : order.status === 'cancelled' ? 'destructive' : 'secondary'}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             </Badge>
                           </div>
                         </div>
@@ -651,7 +651,11 @@ export default function Admin() {
                               onValueChange={(status) => updateOrderStatusMutation.mutate({ orderId: order.id, status })}
                             >
                               <SelectTrigger className="w-32">
-                                <SelectValue />
+                                <SelectValue>
+                                  <Badge variant={order.status === 'cancelled' ? 'destructive' : order.status === 'delivered' ? 'default' : 'secondary'}>
+                                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                  </Badge>
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="pending">Pending</SelectItem>
