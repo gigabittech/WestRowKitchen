@@ -239,6 +239,32 @@ export default function Admin() {
     onError: handleMutationError,
   });
 
+  const updateCouponMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PUT", `/api/admin/coupons/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
+      setCouponDialog({open: false, mode: "create", data: null});
+      setCouponForm({code: "", title: "", description: "", discountType: "percentage", discountValue: "", minimumOrder: "", maxUsage: "", userLimit: "", startDate: "", endDate: "", restaurantId: "", isActive: true});
+      toast({ title: "Success", description: "Coupon updated successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
+  const deleteCouponMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/admin/coupons/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
+      setDeleteDialog({open: false, id: "", type: "", name: ""});
+      toast({ title: "Success", description: "Coupon deleted successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
       const response = await apiRequest("PUT", `/api/orders/${orderId}/status`, { status });
@@ -449,7 +475,29 @@ export default function Admin() {
       restaurantId: couponForm.restaurantId || undefined,
     };
     
-    createCouponMutation.mutate(data);
+    if (couponDialog.mode === "edit" && couponDialog.data) {
+      updateCouponMutation.mutate({ id: couponDialog.data.id, data });
+    } else {
+      createCouponMutation.mutate(data);
+    }
+  };
+
+  const openEditCoupon = (coupon: Coupon) => {
+    setCouponForm({
+      code: coupon.code,
+      title: coupon.title,
+      description: coupon.description || "",
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue.toString(),
+      minimumOrder: coupon.minimumOrder?.toString() || "",
+      maxUsage: coupon.maxUsage?.toString() || "",
+      userLimit: coupon.userLimit?.toString() || "",
+      startDate: coupon.startDate ? new Date(coupon.startDate).toISOString().split('T')[0] : "",
+      endDate: coupon.endDate ? new Date(coupon.endDate).toISOString().split('T')[0] : "",
+      restaurantId: coupon.restaurantId || "",
+      isActive: coupon.isActive
+    });
+    setCouponDialog({open: true, mode: "edit", data: coupon});
   };
 
   const handleMenuItemSubmit = (e: React.FormEvent) => {
@@ -529,6 +577,8 @@ export default function Admin() {
       deleteCategoryMutation.mutate(deleteDialog.id);
     } else if (deleteDialog.type === "menu-item") {
       deleteMenuItemMutation.mutate(deleteDialog.id);
+    } else if (deleteDialog.type === "coupon") {
+      deleteCouponMutation.mutate(deleteDialog.id);
     }
     setDeleteDialog({open: false, id: "", type: "", name: ""});
   };
@@ -1117,7 +1167,16 @@ export default function Admin() {
           <TabsContent value="coupons">
             <Card>
               <CardHeader>
-                <CardTitle>Coupon Management</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Coupon Management</CardTitle>
+                  <Button
+                    onClick={() => setCouponDialog({open: true, mode: "create", data: null})}
+                    data-testid="button-add-coupon-tab"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Coupon
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -1131,6 +1190,7 @@ export default function Admin() {
                       <TableHead>Usage</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Valid Until</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1166,6 +1226,26 @@ export default function Admin() {
                           </TableCell>
                           <TableCell>
                             {new Date(coupon.endDate).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openEditCoupon(coupon)}
+                                data-testid={`button-edit-coupon-${coupon.id}`}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openDeleteDialog(coupon.id, "coupon", coupon.code)}
+                                data-testid={`button-delete-coupon-${coupon.id}`}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -1921,7 +2001,9 @@ export default function Admin() {
       <Dialog open={couponDialog.open} onOpenChange={(open) => setCouponDialog({...couponDialog, open})}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Create New Coupon</DialogTitle>
+            <DialogTitle>
+              {couponDialog.mode === "edit" ? "Edit Coupon" : "Create New Coupon"}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCouponSubmit} className="grid grid-cols-2 gap-4">
             <div>
@@ -2059,10 +2141,17 @@ export default function Admin() {
               </Button>
               <Button 
                 type="submit" 
-                disabled={createCouponMutation.isPending}
+                disabled={createCouponMutation.isPending || updateCouponMutation.isPending}
                 data-testid="button-save-coupon"
               >
-                {createCouponMutation.isPending ? "Creating..." : "Create Coupon"}
+                {(createCouponMutation.isPending || updateCouponMutation.isPending) ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </div>
+                ) : (
+                  couponDialog.mode === "edit" ? "Update Coupon" : "Create Coupon"
+                )}
               </Button>
             </DialogFooter>
           </form>
