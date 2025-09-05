@@ -26,20 +26,30 @@ interface SearchDropdownProps {
   onItemClick: () => void;
 }
 
-export default function SearchDropdown({ query, isVisible, onClose, onItemClick }: SearchDropdownProps) {
+export default function SearchDropdown({
+  query,
+  isVisible,
+  onClose,
+  onItemClick,
+}: SearchDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [, navigate] = useLocation();
-  
+
   // Fetch search results for both restaurants and food items
-  const { data: searchResults = { restaurants: [], menuItems: [] }, isLoading } = useQuery<{
+  const {
+    data: searchResults = { restaurants: [], menuItems: [] },
+    isLoading,
+  } = useQuery<{
     restaurants: Restaurant[];
     menuItems: (MenuItem & { restaurant: Restaurant })[];
   }>({
     queryKey: ["/api/search", query],
     queryFn: async () => {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(
+        `/api/search?q=${encodeURIComponent(query)}`,
+      );
       if (!response.ok) {
-        throw new Error('Search failed');
+        throw new Error("Search failed");
       }
       return response.json();
     },
@@ -48,30 +58,34 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
 
   // Popular search suggestions when no query
   const popularSearches = [
-    { type: 'cuisine', label: 'Vietnamese Food', icon: Utensils },
-    { type: 'cuisine', label: 'Italian Pizza', icon: Utensils },
-    { type: 'cuisine', label: 'American Burgers', icon: Utensils },
-    { type: 'restaurant', label: 'Fast Delivery', icon: Clock },
+    { type: "cuisine", label: "Vietnamese Food", icon: Utensils },
+    { type: "cuisine", label: "Italian Pizza", icon: Utensils },
+    { type: "cuisine", label: "American Burgers", icon: Utensils },
+    { type: "restaurant", label: "Fast Delivery", icon: Clock },
   ];
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         onClose();
       }
     };
 
     if (isVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isVisible, onClose]);
 
   if (!isVisible) return null;
 
   return (
-    <div 
+    <div
       ref={dropdownRef}
       className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50"
       data-testid="search-dropdown"
@@ -84,12 +98,21 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
               <p className="text-gray-500 text-sm">Searching...</p>
             </div>
-          ) : (searchResults.restaurants.length > 0 || searchResults.menuItems.length > 0) ? (
+          ) : searchResults.restaurants.length > 0 ||
+            searchResults.menuItems.length > 0 ? (
             <>
               <div className="px-4 py-2 border-b border-gray-100">
                 <p className="text-sm text-gray-600 flex items-center">
                   <Search className="w-4 h-4 mr-2" />
-                  {searchResults.restaurants.length + searchResults.menuItems.length} result{(searchResults.restaurants.length + searchResults.menuItems.length) !== 1 ? 's' : ''} found
+                  {searchResults.restaurants.length +
+                    searchResults.menuItems.length}{" "}
+                  result
+                  {searchResults.restaurants.length +
+                    searchResults.menuItems.length !==
+                  1
+                    ? "s"
+                    : ""}{" "}
+                  found
                 </p>
               </div>
               <div className="max-h-80 overflow-y-auto">
@@ -97,15 +120,17 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                 {searchResults.restaurants.length > 0 && (
                   <div>
                     <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Restaurants</p>
+                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                        Restaurants
+                      </p>
                     </div>
                     {searchResults.restaurants.map((restaurant) => {
                       const restaurantSlug = createSlug(restaurant.name);
                       const logo = logoMap[restaurant.name];
-                      
+
                       return (
-                        <div 
-                          key={restaurant.id} 
+                        <div
+                          key={restaurant.id}
                           className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
                           onMouseDown={(e) => {
                             e.preventDefault();
@@ -136,12 +161,13 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                               <Badge variant="secondary" className="text-xs">
                                 {restaurant.cuisine}
                               </Badge>
-                              {restaurant.rating && restaurant.rating !== "0.00" && (
-                                <div className="flex items-center text-xs text-gray-500">
-                                  <Star className="w-3 h-3 fill-current text-yellow-400 mr-1" />
-                                  {restaurant.rating}
-                                </div>
-                              )}
+                              {restaurant.rating &&
+                                restaurant.rating !== "0.00" && (
+                                  <div className="flex items-center text-xs text-gray-500">
+                                    <Star className="w-3 h-3 fill-current text-yellow-400 mr-1" />
+                                    {restaurant.rating}
+                                  </div>
+                                )}
                               {restaurant.deliveryTime && (
                                 <div className="flex items-center text-xs text-gray-500">
                                   <Clock className="w-3 h-3 mr-1" />
@@ -160,21 +186,25 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                 {searchResults.menuItems.length > 0 && (
                   <div>
                     <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Food Items</p>
+                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                        Food Items
+                      </p>
                     </div>
                     {searchResults.menuItems.map((item) => {
                       const restaurantSlug = createSlug(item.restaurant.name);
                       const itemSlug = createSlug(item.name);
                       const foodImage = getFoodImage(item.name);
-                      
+
                       return (
-                        <div 
-                          key={item.id} 
+                        <div
+                          key={item.id}
                           className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
                           onMouseDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            navigate(`/restaurant/${restaurantSlug}/food/${itemSlug}?id=${item.id}`);
+                            navigate(
+                              `/restaurant/${restaurantSlug}/item/${item.id}`,
+                            );
                             onItemClick();
                           }}
                           data-testid={`search-result-food-${item.id}`}
@@ -215,7 +245,10 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
                 )}
               </div>
               <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-                <Link href={`/restaurants?search=${encodeURIComponent(query)}`} onClick={onItemClick}>
+                <Link
+                  href={`/restaurants?search=${encodeURIComponent(query)}`}
+                  onClick={onItemClick}
+                >
                   <div className="text-sm text-primary hover:text-primary/80 cursor-pointer font-medium flex items-center justify-between">
                     <span>View all results for "{query}"</span>
                     <span>→</span>
@@ -227,7 +260,9 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
             <div className="px-4 py-6 text-center">
               <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
               <p className="text-gray-500 text-sm">No results found</p>
-              <p className="text-gray-400 text-xs mt-1">Try searching with different keywords</p>
+              <p className="text-gray-400 text-xs mt-1">
+                Try searching with different keywords
+              </p>
             </div>
           )}
         </div>
@@ -235,18 +270,20 @@ export default function SearchDropdown({ query, isVisible, onClose, onItemClick 
         // Popular Searches
         <div>
           <div className="px-4 py-2 border-b border-gray-100">
-            <p className="text-sm text-gray-600 font-medium">Popular searches</p>
+            <p className="text-sm text-gray-600 font-medium">
+              Popular searches
+            </p>
           </div>
           <div className="py-2">
             {popularSearches.map((item, index) => (
-              <Link 
+              <Link
                 key={index}
                 href={`/restaurants?search=${encodeURIComponent(item.label)}`}
                 onClick={onItemClick}
               >
-                <div 
+                <div
                   className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center space-x-3"
-                  data-testid={`popular-search-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  data-testid={`popular-search-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
                 >
                   <item.icon className="w-5 h-5 text-gray-400" />
                   <span className="text-gray-700">{item.label}</span>

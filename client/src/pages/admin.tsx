@@ -209,11 +209,7 @@ export default function Admin() {
     <div className="min-h-screen bg-background">
       <title>Admin Dashboard - West Row Kitchen</title>
       
-      <NavigationHeader 
-        isCartOpen={false}
-        setIsCartOpen={() => {}}
-        cartItemCount={0}
-      />
+      <NavigationHeader />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
