@@ -487,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.put("/api/menu/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/menu-items/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
