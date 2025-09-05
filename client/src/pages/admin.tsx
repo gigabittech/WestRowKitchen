@@ -494,8 +494,8 @@ export default function Admin() {
       minimumOrder: coupon.minimumOrder?.toString() || "",
       maxUsage: coupon.maxUsage?.toString() || "",
       userLimit: coupon.userLimit?.toString() || "",
-      startDate: coupon.startDate ? new Date(coupon.startDate).toISOString().split('T')[0] : "",
-      endDate: coupon.endDate ? new Date(coupon.endDate).toISOString().split('T')[0] : "",
+      startDate: coupon.startDate ? new Date(coupon.startDate).toISOString().slice(0, 16) : "",
+      endDate: coupon.endDate ? new Date(coupon.endDate).toISOString().slice(0, 16) : "",
       restaurantId: coupon.restaurantId || "",
       isActive: coupon.isActive
     });
