@@ -15,7 +15,7 @@ export interface OperatingHours {
 }
 
 /**
- * Checks if a restaurant is currently open based on exact status logic rules
+ * Checks if a restaurant is currently open based on operating hours
  * @param isOpen - Whether the restaurant is open (manual override)
  * @param operatingHours - The restaurant's operating hours
  * @param isTemporarilyClosed - Whether the restaurant is temporarily closed
@@ -28,20 +28,19 @@ export function isRestaurantOpen(
   isTemporarilyClosed: boolean = false,
   timezone: string = "America/New_York"
 ): boolean {
-  // Rule 1: If is_open = false → Always CLOSED
+  // If restaurant is manually set to closed, it's closed regardless of hours
   if (!isOpen) {
     return false;
   }
 
-  // Rule 2: If is_temporarily_closed = true → Always CLOSED
+  // If temporarily closed, restaurant is closed
   if (isTemporarilyClosed) {
     return false;
   }
 
-  // Rule 3: If is_open = true AND is_temporarily_closed = false → Check operating_hours
-  // If no operating hours defined, assume open (restaurant is manually marked as open)
+  // If no operating hours defined, assume closed
   if (!operatingHours) {
-    return true;
+    return false;
   }
 
   try {
@@ -63,13 +62,8 @@ export function isRestaurantOpen(
     // Get today's hours
     const todayHours = operatingHours[currentDay];
     
-    // Check if restaurant is closed today based on the 'closed' property
-    if (todayHours?.closed === true) {
-      return false;
-    }
-
-    // If no hours for today or invalid hours, assume closed
-    if (!todayHours || !todayHours.open || !todayHours.close) {
+    // If restaurant is closed today
+    if (todayHours.closed) {
       return false;
     }
 
