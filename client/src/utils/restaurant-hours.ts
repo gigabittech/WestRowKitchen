@@ -15,7 +15,7 @@ export interface OperatingHours {
 }
 
 /**
- * Checks if a restaurant is currently open based on operating hours
+ * Checks if a restaurant is currently open based on exact status logic rules
  * @param isOpen - Whether the restaurant is open (manual override)
  * @param operatingHours - The restaurant's operating hours
  * @param isTemporarilyClosed - Whether the restaurant is temporarily closed
@@ -28,28 +28,20 @@ export function isRestaurantOpen(
   isTemporarilyClosed: boolean = false,
   timezone: string = "America/New_York"
 ): boolean {
-  // If restaurant is manually set to closed, it's closed regardless of hours
+  // Rule 1: If is_open = false → Always CLOSED
   if (!isOpen) {
     return false;
   }
 
-  // If temporarily closed, restaurant is closed
+  // Rule 2: If is_temporarily_closed = true → Always CLOSED
   if (isTemporarilyClosed) {
     return false;
   }
 
-  // If no operating hours defined, use default hours (9 AM - 9 PM daily)
+  // Rule 3: If is_open = true AND is_temporarily_closed = false → Check operating_hours
+  // If no operating hours defined, assume open (restaurant is manually marked as open)
   if (!operatingHours) {
-    const defaultHours: OperatingHours = {
-      monday: { open: "09:00", close: "21:00", closed: false },
-      tuesday: { open: "09:00", close: "21:00", closed: false },
-      wednesday: { open: "09:00", close: "21:00", closed: false },
-      thursday: { open: "09:00", close: "21:00", closed: false },
-      friday: { open: "09:00", close: "21:00", closed: false },
-      saturday: { open: "09:00", close: "21:00", closed: false },
-      sunday: { open: "09:00", close: "21:00", closed: false },
-    };
-    operatingHours = defaultHours;
+    return true;
   }
 
   try {
@@ -71,8 +63,13 @@ export function isRestaurantOpen(
     // Get today's hours
     const todayHours = operatingHours[currentDay];
     
-    // If restaurant is closed today
-    if (todayHours.closed) {
+    // Check if restaurant is closed today based on the 'closed' property
+    if (todayHours?.closed === true) {
+      return false;
+    }
+
+    // If no hours for today or invalid hours, assume closed
+    if (!todayHours || !todayHours.open || !todayHours.close) {
       return false;
     }
 
