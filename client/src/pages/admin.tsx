@@ -41,7 +41,9 @@ import {
   Activity,
   Truck,
   MapPin,
-  ImageIcon
+  ImageIcon,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -350,7 +352,7 @@ export default function Admin() {
     };
     
     if (restaurantDialog.mode === "edit" && restaurantDialog.data) {
-      updateRestaurantMutation.mutate({ id: restaurantDialog.data.id, ...data });
+      updateRestaurantMutation.mutate({ id: restaurantDialog.data.id, data });
     } else {
       createRestaurantMutation.mutate(data);
     }
@@ -607,63 +609,263 @@ export default function Admin() {
           <TabsContent value="restaurants">
             <Card>
               <CardHeader>
-                <CardTitle>Restaurant Management</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-xl">Restaurant Management</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Manage your restaurant partners and their settings
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => setRestaurantDialog({open: true, mode: "create", data: null})}
+                      className="bg-primary hover:bg-primary/90"
+                      data-testid="button-add-restaurant-main"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Restaurant
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {restaurants.map((restaurant: Restaurant) => (
-                    <Card key={restaurant.id} className="hover:shadow-md transition-shadow" data-testid={`restaurant-card-${restaurant.id}`}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{restaurant.name}</CardTitle>
-                          <div className="flex gap-1">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => openEditRestaurant(restaurant)}
-                              data-testid={`button-edit-restaurant-${restaurant.id}`}
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => openDeleteDialog(restaurant.id, "restaurant", restaurant.name)}
-                              data-testid={`button-delete-restaurant-${restaurant.id}`}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Cuisine:</span>
-                            <Badge variant="secondary">{restaurant.cuisine}</Badge>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Rating:</span>
-                            <div className="flex items-center">
-                              <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
-                              {restaurant.rating}
+              <CardContent className="space-y-6">
+                {/* Search and Filter Controls */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search restaurants by name, cuisine, or location..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                      data-testid="input-search-restaurants"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-restaurant-status">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Restaurants</SelectItem>
+                      <SelectItem value="open">Open Only</SelectItem>
+                      <SelectItem value="closed">Closed Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Restaurant Grid */}
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {restaurants
+                    .filter((restaurant: Restaurant) => {
+                      const matchesSearch = searchTerm === "" || 
+                        restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (restaurant.address && restaurant.address.toLowerCase().includes(searchTerm.toLowerCase()));
+                      
+                      const matchesStatus = statusFilter === "all" || 
+                        (statusFilter === "open" && restaurant.isOpen) ||
+                        (statusFilter === "closed" && !restaurant.isOpen);
+                      
+                      return matchesSearch && matchesStatus;
+                    })
+                    .map((restaurant: Restaurant) => (
+                    <Card key={restaurant.id} className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary" data-testid={`restaurant-card-${restaurant.id}`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg flex items-center justify-center">
+                              <Store className="w-6 h-6 text-primary" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg font-semibold group-hover:text-primary transition-colors">
+                                {restaurant.name}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground flex items-center mt-1">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                {restaurant.address || "No address provided"}
+                              </p>
                             </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Status:</span>
-                            <Badge variant={restaurant.isOpen ? "default" : "destructive"}>
-                              {restaurant.isOpen ? "Open" : "Closed"}
-                            </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => openEditRestaurant(restaurant)}
+                                data-testid={`menu-edit-restaurant-${restaurant.id}`}
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {/* Toggle restaurant status */}}
+                                data-testid={`menu-toggle-restaurant-${restaurant.id}`}
+                              >
+                                {restaurant.isOpen ? (
+                                  <>
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                    Close Restaurant
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Open Restaurant
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => openDeleteDialog(restaurant.id, "restaurant", restaurant.name)}
+                                className="text-destructive focus:text-destructive"
+                                data-testid={`menu-delete-restaurant-${restaurant.id}`}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Restaurant
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Restaurant Info Grid */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Cuisine</span>
+                              <Badge variant="secondary" className="text-xs">
+                                {restaurant.cuisine}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Rating</span>
+                              <div className="flex items-center">
+                                <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
+                                <span className="text-sm font-medium">{restaurant.rating}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Status</span>
+                              <Badge variant={restaurant.isOpen ? "default" : "destructive"} className="text-xs">
+                                {restaurant.isOpen ? "Open" : "Closed"}
+                              </Badge>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Delivery Fee:</span>
-                            <span>${restaurant.deliveryFee}</span>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Delivery</span>
+                              <span className="text-sm font-medium">${restaurant.deliveryFee}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Min Order</span>
+                              <span className="text-sm font-medium">${restaurant.minimumOrder}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Delivery Time</span>
+                              <span className="text-sm font-medium">{restaurant.deliveryTime || "N/A"}</span>
+                            </div>
                           </div>
+                        </div>
+
+                        {/* Restaurant Description */}
+                        {restaurant.description && (
+                          <div className="pt-2 border-t">
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {restaurant.description}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Contact Information */}
+                        <div className="pt-2 border-t">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Contact</span>
+                            <span className="font-medium">
+                              {restaurant.phone || "No phone provided"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => openEditRestaurant(restaurant)}
+                            data-testid={`button-quick-edit-${restaurant.id}`}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => {/* View menu items */}}
+                            data-testid={`button-view-menu-${restaurant.id}`}
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            Menu
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
+
+                {/* Empty State */}
+                {restaurants.length === 0 && (
+                  <div className="text-center py-12">
+                    <Store className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No restaurants yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Get started by adding your first restaurant partner
+                    </p>
+                    <Button
+                      onClick={() => setRestaurantDialog({open: true, mode: "create", data: null})}
+                      data-testid="button-add-first-restaurant"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Restaurant
+                    </Button>
+                  </div>
+                )}
+
+                {/* Filtered Empty State */}
+                {restaurants.length > 0 && restaurants.filter((restaurant: Restaurant) => {
+                  const matchesSearch = searchTerm === "" || 
+                    restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (restaurant.address && restaurant.address.toLowerCase().includes(searchTerm.toLowerCase()));
+                  
+                  const matchesStatus = statusFilter === "all" || 
+                    (statusFilter === "open" && restaurant.isOpen) ||
+                    (statusFilter === "closed" && !restaurant.isOpen);
+                  
+                  return matchesSearch && matchesStatus;
+                }).length === 0 && (
+                  <div className="text-center py-12">
+                    <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No restaurants found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Try adjusting your search terms or filters
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setStatusFilter("all");
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
