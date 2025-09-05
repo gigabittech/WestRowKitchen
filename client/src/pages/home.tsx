@@ -67,7 +67,7 @@ export default function Home() {
               <Card className="p-4">
                 <div className="flex items-center space-x-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{recentOrders.length}</div>
+                    <div className="text-2xl font-bold text-primary">{recentOrders?.length || 0}</div>
                     <div className="text-sm text-gray-500">Orders</div>
                   </div>
                   <div className="text-center">
