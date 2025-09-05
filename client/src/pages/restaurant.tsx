@@ -23,6 +23,7 @@ import { useCart } from "@/contexts/CartContext";
 import { getFoodImage } from "@/utils/food-images";
 import { MenuItemCardSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { isRestaurantOpen, type OperatingHours } from "@/utils/restaurant-hours";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -51,6 +52,14 @@ export default function RestaurantPage() {
   const restaurant = restaurants.find((r) => slugMatches(slug || "", r.name));
 
   const restaurantLoading = restaurantsLoading;
+
+  // Check if restaurant is currently open based on is_open flag and operating hours
+  const isCurrentlyOpen = restaurant ? isRestaurantOpen(
+    restaurant.isOpen || false,
+    restaurant.operatingHours as OperatingHours,
+    restaurant.isTemporarilyClosed || false,
+    restaurant.timezone || "America/New_York"
+  ) : false;
   
   // Set document title based on restaurant
   useDocumentTitle(restaurant ? `${restaurant.name} - West Row Kitchen` : "Restaurant - West Row Kitchen");
@@ -204,14 +213,14 @@ export default function RestaurantPage() {
             <div className="text-white space-y-4 max-w-2xl">
               <div className="flex items-center space-x-3 mb-2">
                 <Badge
-                  variant={restaurant?.isOpen ? "default" : "destructive"}
+                  variant={isCurrentlyOpen ? "default" : "destructive"}
                   className={`text-sm font-medium px-3 py-1 ${
-                    restaurant?.isOpen
+                    isCurrentlyOpen
                       ? "bg-green-500 hover:bg-green-600 text-white"
                       : "bg-red-500 hover:bg-red-600 text-white"
                   }`}
                 >
-                  {restaurant?.isOpen ? "OPEN" : "CLOSED"}
+                  {isCurrentlyOpen ? "OPEN" : "CLOSED"}
                 </Badge>
                 <div className="flex items-center bg-black/30 backdrop-blur-sm rounded-full px-3 py-1">
                   <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />

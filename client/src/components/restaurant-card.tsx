@@ -5,6 +5,7 @@ import { Star, Clock, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
+import { isRestaurantOpen, getNextOpeningTime, type OperatingHours } from "@/utils/restaurant-hours";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -29,6 +30,14 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
     return logoMap[restaurant.name] || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&w=400&h=250&fit=crop";
   };
 
+  // Check if restaurant is currently open based on is_open flag and operating hours
+  const isCurrentlyOpen = isRestaurantOpen(
+    restaurant.isOpen || false,
+    restaurant.operatingHours as OperatingHours,
+    restaurant.isTemporarilyClosed || false,
+    restaurant.timezone || "America/New_York"
+  );
+
   return (
     <Link href={`/restaurant/${createSlug(restaurant.name)}`}>
       <Card className="restaurant-card bg-white rounded-2xl shadow-lg overflow-hidden border-0 cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
@@ -46,10 +55,10 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           </div>
           <div className="absolute top-4 right-4">
             <Badge 
-              variant={restaurant.isOpen ? "default" : "destructive"}
-              className={restaurant.isOpen ? "bg-primary hover:bg-primary/90 text-white shadow-md" : ""}
+              variant={isCurrentlyOpen ? "default" : "destructive"}
+              className={isCurrentlyOpen ? "bg-primary hover:bg-primary/90 text-white shadow-md" : ""}
             >
-              {restaurant.isOpen ? "OPEN" : "CLOSED"}
+              {isCurrentlyOpen ? "OPEN" : "CLOSED"}
             </Badge>
           </div>
         </div>
