@@ -262,8 +262,14 @@ export const couponUsageRelations = relations(couponUsage, ({ one }) => ({
 
 // Insert schemas
 export const insertRestaurantSchema = createInsertSchema(restaurants, {
-  deliveryFee: z.string().optional().transform((val) => val ? parseFloat(val) : undefined),
-  minimumOrder: z.string().optional().transform((val) => val ? parseFloat(val) : undefined),
+  deliveryFee: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === "string") return val ? parseFloat(val) : undefined;
+    return val;
+  }),
+  minimumOrder: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === "string") return val ? parseFloat(val) : undefined;
+    return val;
+  }),
 }).omit({
   id: true,
   createdAt: true,
