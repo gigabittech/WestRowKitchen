@@ -49,6 +49,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ImageUploader } from "@/components/ImageUploader";
 import type { Restaurant, MenuItem, Order, User, Coupon, MenuCategory } from "@shared/schema";
 
 export default function Admin() {
@@ -77,9 +78,14 @@ export default function Admin() {
     startDate: "", endDate: "", restaurantId: "", isActive: true
   });
 
+  const [menuItemForm, setMenuItemForm] = useState({
+    name: "", description: "", price: "", categoryId: "", preparationTime: "", image: "", isAvailable: true
+  });
+
   // Dialog states
   const [restaurantDialog, setRestaurantDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as Restaurant | null});
   const [couponDialog, setCouponDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as Coupon | null});
+  const [menuItemDialog, setMenuItemDialog] = useState({open: false, mode: "create" as "create" | "edit", data: null as MenuItem | null});
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -257,6 +263,20 @@ export default function Admin() {
     onError: handleMutationError,
   });
 
+  const createMenuItemMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", `/api/restaurants/${selectedRestaurant}/menu`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-menu-items", selectedRestaurant] });
+      setMenuItemDialog({open: false, mode: "create", data: null});
+      setMenuItemForm({name: "", description: "", price: "", categoryId: "", preparationTime: "", image: "", isAvailable: true});
+      toast({ title: "Success", description: "Menu item created successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
   function handleMutationError(error: any) {
     if (isUnauthorizedError(error)) {
       toast({
@@ -304,6 +324,17 @@ export default function Admin() {
     };
     
     createCouponMutation.mutate(data);
+  };
+
+  const handleMenuItemSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const data = {
+      ...menuItemForm,
+      price: parseFloat(menuItemForm.price),
+      preparationTime: menuItemForm.preparationTime ? parseInt(menuItemForm.preparationTime) : undefined,
+    };
+    
+    createMenuItemMutation.mutate(data);
   };
 
   const openEditRestaurant = (restaurant: Restaurant) => {
@@ -760,18 +791,30 @@ export default function Admin() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Menu Items Management</CardTitle>
-                  <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-                    <SelectTrigger className="w-64" data-testid="select-restaurant-menu">
-                      <SelectValue placeholder="Select restaurant" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {restaurants.map((restaurant: Restaurant) => (
-                        <SelectItem key={restaurant.id} value={restaurant.id}>
-                          {restaurant.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
+                      <SelectTrigger className="w-64" data-testid="select-restaurant-menu">
+                        <SelectValue placeholder="Select restaurant" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {restaurants.map((restaurant: Restaurant) => (
+                          <SelectItem key={restaurant.id} value={restaurant.id}>
+                            {restaurant.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedRestaurant && (
+                      <Button
+                        onClick={() => setMenuItemDialog({open: true, mode: "create", data: null})}
+                        size="sm"
+                        data-testid="button-add-menu-item"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Item
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -790,10 +833,31 @@ export default function Admin() {
                           <div className="flex justify-between items-center">
                             <span className="font-bold text-primary">${parseFloat(item.price).toFixed(2)}</span>
                             <div className="flex gap-1">
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  setMenuItemForm({
+                                    name: item.name,
+                                    description: item.description || "",
+                                    price: item.price,
+                                    categoryId: item.categoryId,
+                                    preparationTime: item.preparationTime?.toString() || "",
+                                    image: item.image || "",
+                                    isAvailable: item.isAvailable ?? true
+                                  });
+                                  setMenuItemDialog({open: true, mode: "edit", data: item});
+                                }}
+                                data-testid={`button-edit-menu-item-${item.id}`}
+                              >
                                 <Edit className="w-3 h-3" />
                               </Button>
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => openDeleteDialog(item.id, "menu-item", item.name)}
+                                data-testid={`button-delete-menu-item-${item.id}`}
+                              >
                                 <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
@@ -963,12 +1027,11 @@ export default function Admin() {
               />
             </div>
             <div>
-              <Label htmlFor="image">Image URL</Label>
-              <Input 
-                id="image"
+              <ImageUploader
+                label="Restaurant Image"
                 value={restaurantForm.image}
-                onChange={(e) => setRestaurantForm(prev => ({ ...prev, image: e.target.value }))}
-                data-testid="input-restaurant-image"
+                onChange={(url) => setRestaurantForm(prev => ({ ...prev, image: url }))}
+                placeholder="Upload an image for this restaurant"
               />
             </div>
             <DialogFooter className="col-span-2">
@@ -1133,6 +1196,104 @@ export default function Admin() {
                 data-testid="button-save-coupon"
               >
                 {createCouponMutation.isPending ? "Creating..." : "Create Coupon"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Menu Item Dialog */}
+      <Dialog open={menuItemDialog.open} onOpenChange={(open) => setMenuItemDialog({...menuItemDialog, open})}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {menuItemDialog.mode === "edit" ? "Edit Menu Item" : "Add New Menu Item"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleMenuItemSubmit} className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name">Item Name</Label>
+              <Input 
+                id="name"
+                value={menuItemForm.name}
+                onChange={(e) => setMenuItemForm(prev => ({ ...prev, name: e.target.value }))}
+                required
+                data-testid="input-menu-item-name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="price">Price</Label>
+              <Input 
+                id="price"
+                type="number"
+                step="0.01"
+                value={menuItemForm.price}
+                onChange={(e) => setMenuItemForm(prev => ({ ...prev, price: e.target.value }))}
+                required
+                data-testid="input-menu-item-price"
+              />
+            </div>
+            <div className="col-span-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea 
+                id="description"
+                value={menuItemForm.description}
+                onChange={(e) => setMenuItemForm(prev => ({ ...prev, description: e.target.value }))}
+                data-testid="input-menu-item-description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="categoryId">Category</Label>
+              <Select value={menuItemForm.categoryId} onValueChange={(value) => setMenuItemForm(prev => ({ ...prev, categoryId: value }))}>
+                <SelectTrigger data-testid="select-menu-item-category">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category: MenuCategory) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="preparationTime">Preparation Time (minutes)</Label>
+              <Input 
+                id="preparationTime"
+                type="number"
+                value={menuItemForm.preparationTime}
+                onChange={(e) => setMenuItemForm(prev => ({ ...prev, preparationTime: e.target.value }))}
+                placeholder="15"
+                data-testid="input-menu-item-prep-time"
+              />
+            </div>
+            <div className="col-span-2">
+              <ImageUploader
+                label="Menu Item Image"
+                value={menuItemForm.image}
+                onChange={(url) => setMenuItemForm(prev => ({ ...prev, image: url }))}
+                placeholder="Upload an image for this menu item"
+              />
+            </div>
+            <div className="col-span-2 flex items-center space-x-2">
+              <Switch
+                checked={menuItemForm.isAvailable}
+                onCheckedChange={(checked) => setMenuItemForm(prev => ({ ...prev, isAvailable: checked }))}
+                data-testid="switch-menu-item-available"
+              />
+              <Label htmlFor="isAvailable">Available for ordering</Label>
+            </div>
+            <DialogFooter className="col-span-2">
+              <Button type="button" variant="outline" onClick={() => setMenuItemDialog({...menuItemDialog, open: false})}>
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createMenuItemMutation.isPending || !selectedRestaurant}
+                data-testid="button-save-menu-item"
+              >
+                {createMenuItemMutation.isPending ? "Saving..." : "Save Menu Item"}
               </Button>
             </DialogFooter>
           </form>
