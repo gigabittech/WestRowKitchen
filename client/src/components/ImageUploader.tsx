@@ -10,9 +10,11 @@ interface ImageUploaderProps {
   value?: string;
   onChange: (url: string) => void;
   placeholder?: string;
+  restaurantId?: string;
+  type?: string;
 }
 
-export function ImageUploader({ label, value, onChange, placeholder }: ImageUploaderProps) {
+export function ImageUploader({ label, value, onChange, placeholder, restaurantId, type }: ImageUploaderProps) {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>(value || "");
@@ -47,7 +49,15 @@ export function ImageUploader({ label, value, onChange, placeholder }: ImageUplo
       // Get upload URL from backend
       const response = await fetch("/api/objects/upload", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
+        body: JSON.stringify({
+          restaurantId,
+          fileName: file.name,
+          type,
+        }),
       });
 
       if (!response.ok) {

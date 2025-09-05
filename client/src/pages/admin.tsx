@@ -2112,6 +2112,8 @@ export default function Admin() {
                 value={menuItemForm.image}
                 onChange={(url) => setMenuItemForm(prev => ({ ...prev, image: url }))}
                 placeholder="Upload an image for this menu item"
+                restaurantId={selectedRestaurant}
+                type="menu-item"
               />
             </div>
             <div className="col-span-2 flex items-center space-x-2">
