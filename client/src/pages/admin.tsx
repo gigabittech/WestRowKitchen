@@ -213,6 +213,7 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
       setRestaurantForm(getDefaultRestaurantForm());
       toast({ title: "Success", description: "Restaurant created successfully!" });
@@ -227,6 +228,7 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
       setRestaurantForm(getDefaultRestaurantForm());
       toast({ title: "Success", description: "Restaurant updated successfully!" });
@@ -241,6 +243,7 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       setDeleteDialog({open: false, id: "", type: "", name: ""});
       toast({ title: "Success", description: "Restaurant deleted successfully!" });
     },
@@ -292,6 +295,7 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-restaurants"] });
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       toast({ title: "Success", description: "Restaurant status updated!" });
     },
