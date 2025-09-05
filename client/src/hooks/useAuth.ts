@@ -7,7 +7,6 @@ import { getQueryFn } from "@/lib/queryClient";
 export function useAuth() {
   const { data: user, isLoading, refetch, error } = useQuery<User>({
     queryKey: queryKeys.user(),
-    queryFn: getQueryFn({ on401: "returnNull" }), // Return null on 401 instead of throwing
     retry: false,
   });
 
