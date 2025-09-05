@@ -457,14 +457,16 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-            <TabsTrigger value="restaurants" data-testid="tab-restaurants">Restaurants</TabsTrigger>
-            <TabsTrigger value="orders" data-testid="tab-orders">Orders</TabsTrigger>
-            <TabsTrigger value="coupons" data-testid="tab-coupons">Coupons</TabsTrigger>
-            <TabsTrigger value="menu" data-testid="tab-menu">Menu Items</TabsTrigger>
-            <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="inline-flex w-max min-w-full justify-start">
+              <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
+              <TabsTrigger value="restaurants" data-testid="tab-restaurants">Restaurants</TabsTrigger>
+              <TabsTrigger value="orders" data-testid="tab-orders">Orders</TabsTrigger>
+              <TabsTrigger value="coupons" data-testid="tab-coupons">Coupons</TabsTrigger>
+              <TabsTrigger value="menu" data-testid="tab-menu">Menu Items</TabsTrigger>
+              <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview">
             <div className="grid md:grid-cols-2 gap-6">
