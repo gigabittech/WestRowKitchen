@@ -60,10 +60,23 @@ export function ImageUploader({ label, value, onChange, placeholder, restaurantI
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Upload failed:", errorText);
         throw new Error("Failed to upload file");
       }
 
-      const { filePath } = await response.json();
+      const responseText = await response.text();
+      console.log("Response:", responseText);
+      
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Failed to parse JSON:", responseText);
+        throw new Error("Invalid server response");
+      }
+
+      const { filePath } = responseData;
       
       setPreviewUrl(filePath);
       onChange(filePath);

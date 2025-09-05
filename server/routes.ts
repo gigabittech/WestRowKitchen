@@ -286,26 +286,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Menu item image upload endpoint
   app.post("/api/upload/menu-item-image", isAuthenticated, upload.single('image'), async (req: any, res) => {
     try {
+      console.log("File upload request received");
       const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user?.isAdmin) {
+        console.log("Admin access denied");
         return res.status(403).json({ message: "Admin access required" });
       }
 
       if (!req.file) {
+        console.log("No file uploaded");
         return res.status(400).json({ message: "No file uploaded" });
       }
 
+      console.log("File uploaded successfully:", req.file);
+      
       // Just return the file path in the assets directory
       const filePath = `/assets/${req.file.filename}`;
       
-      res.json({ 
+      const response = { 
         success: true,
         filePath,
         originalName: req.file.originalname,
         size: req.file.size
-      });
+      };
+      
+      console.log("Sending response:", response);
+      res.json(response);
     } catch (error) {
       console.error("Error uploading menu item image:", error);
       res.status(500).json({ message: "Failed to upload menu item image" });
