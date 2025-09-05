@@ -286,7 +286,7 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-menu-items", selectedRestaurant] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
       setMenuItemDialog({open: false, mode: "create", data: null});
       setMenuItemForm({name: "", description: "", price: "", categoryId: "", preparationTime: "", image: "", isAvailable: true});
       toast({ title: "Success", description: "Menu item created successfully!" });
@@ -300,7 +300,7 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-menu-items", selectedRestaurant] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
       setMenuItemDialog({open: false, mode: "create", data: null});
       setMenuItemForm({name: "", description: "", price: "", categoryId: "", preparationTime: "", image: "", isAvailable: true});
       toast({ title: "Success", description: "Menu item updated successfully!" });
@@ -352,7 +352,7 @@ export default function Admin() {
       await apiRequest("DELETE", `/api/menu-items/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-menu-items", selectedRestaurant] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
       toast({ title: "Success", description: "Menu item deleted successfully!" });
     },
     onError: handleMutationError,
