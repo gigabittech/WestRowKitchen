@@ -76,6 +76,7 @@ export default function Admin() {
   const getDefaultRestaurantForm = () => ({
     name: "", description: "", cuisine: "", deliveryTime: "", deliveryFee: "", 
     minimumOrder: "", address: "", phone: "", image: "", rating: "", reviewCount: "",
+    isOpen: true, isTemporarilyClosed: false,
     operatingHoursMode: "default" as "default" | "advanced",
     defaultOpen: "09:00", defaultClose: "21:00",
     operatingHours: {
@@ -385,6 +386,8 @@ export default function Admin() {
       minimumOrder: restaurantForm.minimumOrder ? parseFloat(restaurantForm.minimumOrder) : 0,
       rating: restaurantForm.rating ? parseFloat(restaurantForm.rating) : 0,
       reviewCount: restaurantForm.reviewCount ? parseInt(restaurantForm.reviewCount) : 0,
+      isOpen: restaurantForm.isOpen,
+      isTemporarilyClosed: restaurantForm.isTemporarilyClosed,
       operatingHours: restaurantForm.operatingHours,
     };
     
@@ -444,6 +447,8 @@ export default function Admin() {
       image: restaurant.image || "",
       rating: restaurant.rating?.toString() || "0",
       reviewCount: restaurant.reviewCount?.toString() || "0",
+      isOpen: restaurant.isOpen || false,
+      isTemporarilyClosed: restaurant.isTemporarilyClosed || false,
       operatingHoursMode: "advanced", // Always use advanced mode for editing existing restaurants
       defaultOpen: "09:00",
       defaultClose: "21:00", 
@@ -1489,6 +1494,50 @@ export default function Admin() {
                   <p className="text-xs text-muted-foreground">
                     Contact number for customer inquiries
                   </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Restaurant Status Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <Store className="w-4 h-4 text-primary" />
+                <h3 className="font-medium">Restaurant Status</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="isOpen" className="text-sm font-medium">
+                      Restaurant Open
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Master switch - if off, restaurant is closed regardless of hours
+                    </p>
+                  </div>
+                  <Switch
+                    id="isOpen"
+                    checked={restaurantForm.isOpen}
+                    onCheckedChange={(checked) => setRestaurantForm(prev => ({ ...prev, isOpen: checked }))}
+                    data-testid="switch-restaurant-is-open"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="isTemporarilyClosed" className="text-sm font-medium">
+                      Temporarily Closed
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Override for temporary closures (maintenance, events, etc.)
+                    </p>
+                  </div>
+                  <Switch
+                    id="isTemporarilyClosed"
+                    checked={restaurantForm.isTemporarilyClosed}
+                    onCheckedChange={(checked) => setRestaurantForm(prev => ({ ...prev, isTemporarilyClosed: checked }))}
+                    data-testid="switch-restaurant-temporarily-closed"
+                  />
                 </div>
               </div>
             </div>
