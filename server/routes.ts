@@ -489,18 +489,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/menu-items/:id", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("PUT /api/menu-items/:id called with ID:", req.params.id);
+      console.log("Request body:", req.body);
+      
       const userId = req.user.id;
       const user = await storage.getUser(userId);
 
       if (!user?.isAdmin) {
+        console.log("Admin access denied for user:", userId);
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const itemData = insertMenuItemSchema.partial().parse(req.body);
+      console.log("Parsed item data:", itemData);
+      
       const item = await storage.updateMenuItem(req.params.id, itemData);
+      console.log("Updated item:", item);
+      
       res.json(item);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Validation error:", error.errors);
         return res
           .status(400)
           .json({ message: "Invalid data", errors: error.errors });
@@ -510,7 +519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/menu/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/menu-items/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
