@@ -119,19 +119,30 @@ export default function Restaurants() {
                   <CardContent className="p-0">
                     <div className="relative">
                       <div className="h-48 bg-gradient-to-br from-primary/10 to-secondary/20 rounded-t-lg flex items-center justify-center overflow-hidden">
-                        {logoMap[restaurant.name] ? (
+                        {restaurant.image || logoMap[restaurant.name] ? (
                           <img 
-                            src={logoMap[restaurant.name]} 
+                            src={restaurant.image || logoMap[restaurant.name]} 
                             alt={restaurant.name}
                             className="w-32 h-32 object-contain"
+                            onError={(e) => {
+                              // If image fails to load, hide it and show fallback
+                              e.currentTarget.style.display = 'none';
+                              const fallback = e.currentTarget.parentElement?.querySelector('.fallback-logo');
+                              if (fallback) {
+                                (fallback as HTMLElement).style.display = 'flex';
+                              }
+                            }}
                           />
-                        ) : (
-                          <div className="w-32 h-32 bg-gray-300 rounded-lg flex items-center justify-center">
-                            <span className="text-gray-500 text-lg font-semibold">
-                              {restaurant.name.substring(0, 2)}
-                            </span>
-                          </div>
-                        )}
+                        ) : null}
+                        <div 
+                          className={`w-32 h-32 bg-gray-300 rounded-lg flex items-center justify-center fallback-logo ${
+                            restaurant.image || logoMap[restaurant.name] ? 'hidden' : ''
+                          }`}
+                        >
+                          <span className="text-gray-500 text-lg font-semibold">
+                            {restaurant.name.substring(0, 2)}
+                          </span>
+                        </div>
                       </div>
                       <Badge 
                         className="absolute top-3 left-3 bg-primary hover:bg-primary/90 shadow-md"
