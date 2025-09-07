@@ -33,15 +33,6 @@ export function getRestaurantStatus(restaurantData: any): RestaurantStatusResult
   const currentTime = now.toTimeString().slice(0, 5);
   
   const todayHours = restaurantData.operatingHours?.[currentDay];
-  
-  // No hours defined for today
-  if (!todayHours) {
-    return {
-      status: 'closed',
-      isOpen: false,
-      reason: 'no_hours'
-    };
-  }
 
   // Closed today
   if (todayHours.closed) {
@@ -50,6 +41,15 @@ export function getRestaurantStatus(restaurantData: any): RestaurantStatusResult
       isOpen: false,
       reason: 'outside_hours',
       nextOpeningTime: getNextOpeningTime(restaurantData.operatingHours)
+    };
+  }
+  
+  // No hours defined for today
+  if (!todayHours) {
+    return {
+      status: 'closed',
+      isOpen: false,
+      reason: 'no_hours'
     };
   }
 
