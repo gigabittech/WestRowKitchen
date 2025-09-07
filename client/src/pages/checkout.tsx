@@ -713,6 +713,8 @@ export default function Checkout() {
             {/* Restaurant Status Warning */}
             {(() => {
               const restaurantIds = [...new Set(cartItems.map((item) => item.restaurantId))];
+              
+              // Single restaurant scenario
               if (restaurantIds.length === 1) {
                 const restaurantId = restaurantIds[0];
                 const restaurant = restaurants.find(r => r.id === restaurantId);
@@ -751,6 +753,117 @@ export default function Checkout() {
                   );
                 }
               }
+              
+              // Multiple restaurant scenario
+              if (restaurantIds.length > 1) {
+                const restaurantStatuses_local = restaurantIds.map(id => {
+                  const restaurant = restaurants.find(r => r.id === id);
+                  const status = restaurantStatuses.get(id);
+                  const itemCount = cartItems.filter(item => item.restaurantId === id).length;
+                  return { 
+                    id, 
+                    restaurant, 
+                    status, 
+                    itemCount,
+                    items: cartItems.filter(item => item.restaurantId === id)
+                  };
+                });
+                
+                const closedRestaurants = restaurantStatuses_local.filter(r => !r.status?.isOpen);
+                const openRestaurants = restaurantStatuses_local.filter(r => r.status?.isOpen);
+                
+                return (
+                  <Card className="border-orange-200 bg-orange-50">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                        <div className="w-full">
+                          <h3 className="font-semibold text-orange-900 mb-1">
+                            Multiple Restaurants in Cart
+                          </h3>
+                          <p className="text-sm text-orange-700 mb-3">
+                            You can only place orders from one restaurant at a time. Please choose which restaurant to order from:
+                          </p>
+                          
+                          <div className="space-y-3">
+                            {restaurantStatuses_local.map(({ id, restaurant, status, itemCount, items }) => (
+                              <div key={id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-2 h-2 rounded-full ${status?.isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                  <div>
+                                    <div className="font-medium text-gray-900">
+                                      {restaurant?.name || 'Unknown Restaurant'}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      {itemCount} item{itemCount > 1 ? 's' : ''} • {status?.isOpen ? 'Open' : 'Closed'}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  {status?.isOpen ? (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        // Remove items from other restaurants
+                                        const otherItems = cartItems.filter(item => item.restaurantId !== id);
+                                        otherItems.forEach(item => removeFromCart(item.id));
+                                        toast({
+                                          title: "Cart Updated",
+                                          description: `Kept items from ${restaurant?.name}. Other items removed.`,
+                                        });
+                                      }}
+                                      className="text-green-700 border-green-300 hover:bg-green-100"
+                                    >
+                                      Keep These Items
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        // Remove items from this closed restaurant
+                                        items.forEach(item => removeFromCart(item.id));
+                                        toast({
+                                          title: "Items Removed",
+                                          description: `Removed items from ${restaurant?.name} (closed).`,
+                                        });
+                                      }}
+                                      className="text-red-700 border-red-300 hover:bg-red-100"
+                                    >
+                                      Remove Items
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {closedRestaurants.length > 0 && openRestaurants.length > 0 && (
+                            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                              <p className="text-sm text-blue-700">
+                                💡 <strong>Quick tip:</strong> You can keep items from {openRestaurants[0].restaurant?.name} (open) and remove items from closed restaurants to proceed with your order.
+                              </p>
+                            </div>
+                          )}
+                          
+                          <div className="flex gap-2 mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => clearCart()}
+                              className="text-gray-700 border-gray-300 hover:bg-gray-100"
+                            >
+                              Clear All Items
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              
               return null;
             })()}
             
