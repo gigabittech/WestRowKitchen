@@ -135,11 +135,37 @@ export default function Restaurants() {
                           </span>
                         </div>
                       </div>
-                      <Badge 
-                        className="absolute top-3 left-3 bg-primary hover:bg-primary/90 shadow-md"
-                      >
-                        OPEN
-                      </Badge>
+                      {(() => {
+                        // Restaurant status function
+                        function getRestaurantStatus(restaurantData: any) {
+                          if (restaurantData.isTemporarilyClosed) return 'closed';
+                          if (!restaurantData.isOpen) return 'closed';
+                          
+                          const now = new Date();
+                          const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                          const currentTime = now.toTimeString().slice(0, 5);
+                          
+                          const todayHours = restaurantData.operatingHours?.[currentDay];
+                          if (!todayHours || todayHours.closed) return 'closed';
+                          
+                          return (currentTime >= todayHours.open && currentTime <= todayHours.close) ? 'open' : 'closed';
+                        }
+                        
+                        const status = getRestaurantStatus(restaurant);
+                        const isOpen = status === 'open';
+                        
+                        return (
+                          <Badge 
+                            className={`absolute top-3 left-3 shadow-md ${
+                              isOpen 
+                                ? 'bg-primary hover:bg-primary/90' 
+                                : 'bg-destructive hover:bg-destructive/90'
+                            }`}
+                          >
+                            {isOpen ? 'OPEN' : 'CLOSED'}
+                          </Badge>
+                        );
+                      })()}
                     </div>
                     
                     <div className="p-4">

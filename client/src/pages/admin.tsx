@@ -939,12 +939,34 @@ export default function Admin() {
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-muted-foreground">Status</span>
-                              <div className="flex items-center gap-1">
-                                <div className={`w-2 h-2 rounded-full ${restaurant.isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                <Badge variant={restaurant.isOpen ? "default" : "destructive"} className="text-xs">
-                                  {restaurant.isTemporarilyClosed ? "Temp Closed" : restaurant.isOpen ? "Open" : "Closed"}
-                                </Badge>
-                              </div>
+                              {(() => {
+                                // Restaurant status function
+                                function getRestaurantStatus(restaurantData: any) {
+                                  if (restaurantData.isTemporarilyClosed) return 'closed';
+                                  if (!restaurantData.isOpen) return 'closed';
+                                  
+                                  const now = new Date();
+                                  const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                                  const currentTime = now.toTimeString().slice(0, 5);
+                                  
+                                  const todayHours = restaurantData.operatingHours?.[currentDay];
+                                  if (!todayHours || todayHours.closed) return 'closed';
+                                  
+                                  return (currentTime >= todayHours.open && currentTime <= todayHours.close) ? 'open' : 'closed';
+                                }
+                                
+                                const status = getRestaurantStatus(restaurant);
+                                const isOpen = status === 'open';
+                                
+                                return (
+                                  <div className="flex items-center gap-1">
+                                    <div className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                    <Badge variant={isOpen ? "default" : "destructive"} className="text-xs">
+                                      {restaurant.isTemporarilyClosed ? "Temp Closed" : isOpen ? "Open" : "Closed"}
+                                    </Badge>
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                           <div className="space-y-2">
