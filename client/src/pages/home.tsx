@@ -15,6 +15,7 @@ import { ShoppingBag, Clock, Star, TrendingUp } from "lucide-react";
 import type { Restaurant, Order } from "@shared/schema";
 import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
+import { getRestaurantStatus } from "@/utils/restaurant-status";
 
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
@@ -182,7 +183,14 @@ export default function Home() {
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {restaurants.map((restaurant: Restaurant) => (
+              {restaurants
+                .sort((a, b) => {
+                  // Sort by open status first (open restaurants first)
+                  const statusA = getRestaurantStatus(a).isOpen ? 1 : 0;
+                  const statusB = getRestaurantStatus(b).isOpen ? 1 : 0;
+                  return statusB - statusA; // Open restaurants (1) come before closed (0)
+                })
+                .map((restaurant: Restaurant) => (
                 <RestaurantCard 
                   key={restaurant.id} 
                   restaurant={restaurant}

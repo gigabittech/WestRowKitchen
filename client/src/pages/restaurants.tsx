@@ -60,6 +60,11 @@ export default function Restaurants() {
     const matchesCuisine = selectedCuisine === "ALL" || restaurant.cuisine === selectedCuisine;
     
     return matchesSearch && matchesCuisine;
+  }).sort((a, b) => {
+    // Sort by open status first (open restaurants first)
+    const statusA = restaurantStatuses.get(a.id)?.isOpen ? 1 : 0;
+    const statusB = restaurantStatuses.get(b.id)?.isOpen ? 1 : 0;
+    return statusB - statusA; // Open restaurants (1) come before closed (0)
   });
 
   const cuisineTypes = ["ALL", "Vietnamese", "Italian", "American", "Mexican", "Chinese", "Thai"];
