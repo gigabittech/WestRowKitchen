@@ -8,6 +8,7 @@ import type { Restaurant, MenuItem } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
 import { getFoodImage } from "@/utils/food-images";
 import { getRestaurantStatus, getStatusMessage } from "@/utils/restaurant-status";
+import { useRestaurantsStatus } from "@/hooks/useRestaurantStatus";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -47,6 +48,9 @@ export default function SearchDropdown({
     queryKey: [`/api/search?q=${encodeURIComponent(query)}`],
     enabled: isVisible && query.length >= 2,
   });
+
+  // Get real-time status for restaurant search results
+  const restaurantStatuses = useRestaurantsStatus(searchResults.restaurants);
 
   // Popular search suggestions when no query
   const popularSearches = [
@@ -119,15 +123,15 @@ export default function SearchDropdown({
                     {searchResults.restaurants
                       .sort((a, b) => {
                         // Sort open restaurants first
-                        const aStatus = getRestaurantStatus(a);
-                        const bStatus = getRestaurantStatus(b);
-                        if (aStatus.isOpen && !bStatus.isOpen) return -1;
-                        if (!aStatus.isOpen && bStatus.isOpen) return 1;
+                        const aStatus = restaurantStatuses.get(a.id);
+                        const bStatus = restaurantStatuses.get(b.id);
+                        if (aStatus?.isOpen && !bStatus?.isOpen) return -1;
+                        if (!aStatus?.isOpen && bStatus?.isOpen) return 1;
                         return 0;
                       })
                       .map((restaurant) => {
                       const restaurantSlug = createSlug(restaurant.name);
-                      const statusResult = getRestaurantStatus(restaurant);
+                      const statusResult = restaurantStatuses.get(restaurant.id);
                       // Use actual restaurant image from database, fallback to logoMap if needed
                       const restaurantImage = restaurant.image 
                         ? (restaurant.image.startsWith('/assets/') || restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`)
@@ -137,7 +141,7 @@ export default function SearchDropdown({
                         <div
                           key={restaurant.id}
                           className={`flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0 ${
-                            !statusResult.isOpen ? 'opacity-70' : ''
+                            !statusResult?.isOpen ? 'opacity-70' : ''
                           }`}
                           onMouseDown={(e) => {
                             e.preventDefault();
@@ -186,10 +190,10 @@ export default function SearchDropdown({
                                 {restaurant.cuisine}
                               </Badge>
                               <Badge 
-                                variant={statusResult.isOpen ? "default" : "destructive"} 
+                                variant={statusResult?.isOpen ? "default" : "destructive"} 
                                 className="text-xs"
                               >
-                                {statusResult.isOpen ? "OPEN" : "CLOSED"}
+                                {statusResult?.isOpen ? "OPEN" : "CLOSED"}
                               </Badge>
                               {restaurant.rating &&
                                 restaurant.rating !== "0.00" && (

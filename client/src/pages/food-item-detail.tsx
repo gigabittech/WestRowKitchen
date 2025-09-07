@@ -15,6 +15,7 @@ import { useCart } from "@/contexts/CartContext";
 import { FoodDetailSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getRestaurantStatus, getStatusMessage } from "@/utils/restaurant-status";
+import { useRestaurantStatus } from "@/hooks/useRestaurantStatus";
 
 export default function FoodItemDetailPage() {
   const { restaurantSlug, itemId } = useParams<{ restaurantSlug: string; itemId: string }>();
@@ -38,8 +39,8 @@ export default function FoodItemDetailPage() {
   const foodItem = menuItems.find((item: MenuItem) => item.id === itemId);
   const isLoading = restaurantsLoading || menuLoading;
   
-  // Get restaurant status
-  const restaurantStatus = restaurant ? getRestaurantStatus(restaurant) : { status: 'closed', isOpen: false };
+  // Get real-time restaurant status using hook
+  const restaurantStatus = useRestaurantStatus(restaurant);
   const statusMessage = getStatusMessage(restaurantStatus);
   
   // Set document title based on food item and restaurant

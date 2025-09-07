@@ -12,6 +12,7 @@ import { Clock, Star, MapPin, Search } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
+import { useRestaurantsStatus } from "@/hooks/useRestaurantStatus";
 import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -46,6 +47,9 @@ export default function Restaurants() {
   const { data: restaurants = [], isLoading } = useQuery<Restaurant[]>({
     queryKey: ["/api/restaurants"],
   });
+
+  // Get real-time status for all restaurants
+  const restaurantStatuses = useRestaurantsStatus(restaurants);
 
   const filteredRestaurants = restaurants.filter((restaurant: Restaurant) => {
     const matchesSearch = searchTerm === "" || 
@@ -136,23 +140,8 @@ export default function Restaurants() {
                         </div>
                       </div>
                       {(() => {
-                        // Restaurant status function
-                        function getRestaurantStatus(restaurantData: any) {
-                          if (restaurantData.isTemporarilyClosed) return 'closed';
-                          if (!restaurantData.isOpen) return 'closed';
-                          
-                          const now = new Date();
-                          const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-                          const currentTime = now.toTimeString().slice(0, 5);
-                          
-                          const todayHours = restaurantData.operatingHours?.[currentDay];
-                          if (!todayHours || todayHours.closed) return 'closed';
-                          
-                          return (currentTime >= todayHours.open && currentTime <= todayHours.close) ? 'open' : 'closed';
-                        }
-                        
-                        const status = getRestaurantStatus(restaurant);
-                        const isOpen = status === 'open';
+                        const status = restaurantStatuses.get(restaurant.id);
+                        const isOpen = status?.isOpen || false;
                         
                         return (
                           <Badge 

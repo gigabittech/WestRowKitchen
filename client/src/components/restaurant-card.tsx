@@ -5,6 +5,7 @@ import { Star, Clock, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import type { Restaurant } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
+import { useRestaurantStatus } from "@/hooks/useRestaurantStatus";
 import { isRestaurantOpen, getNextOpeningTime, type OperatingHours } from "@/utils/restaurant-hours";
 
 // Import restaurant logos
@@ -30,24 +31,9 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
     return logoMap[restaurant.name] || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&w=400&h=250&fit=crop";
   };
 
-  // Simple restaurant status function  
-  function getRestaurantStatus(restaurantData: any) {
-    if (restaurantData.isTemporarilyClosed) return 'closed';
-    if (!restaurantData.isOpen) return 'closed';
-    
-    const now = new Date();
-    const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const currentTime = now.toTimeString().slice(0, 5);
-    
-    const todayHours = restaurantData.operatingHours?.[currentDay];
-    if (!todayHours || todayHours.closed) return 'closed';
-    
-    return (currentTime >= todayHours.open && currentTime <= todayHours.close) ? 'open' : 'closed';
-  }
-
-  // Check if restaurant is currently open
-  const status = getRestaurantStatus(restaurant);
-  const isCurrentlyOpen = status === 'open';
+  // Use real-time restaurant status hook
+  const restaurantStatus = useRestaurantStatus(restaurant);
+  const isCurrentlyOpen = restaurantStatus.isOpen;
 
   return (
     <Link href={`/restaurant/${createSlug(restaurant.name)}`}>

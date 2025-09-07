@@ -25,6 +25,7 @@ import { MenuItemCardSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { isRestaurantOpen, type OperatingHours } from "@/utils/restaurant-hours";
 import { getRestaurantStatus, getStatusMessage } from "@/utils/restaurant-status";
+import { useRestaurantStatus } from "@/hooks/useRestaurantStatus";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -54,8 +55,8 @@ export default function RestaurantPage() {
 
   const restaurantLoading = restaurantsLoading;
 
-  // Get restaurant status using new utility
-  const restaurantStatus = restaurant ? getRestaurantStatus(restaurant) : { status: 'closed', isOpen: false };
+  // Get real-time restaurant status using hook
+  const restaurantStatus = useRestaurantStatus(restaurant);
   const statusMessage = getStatusMessage(restaurantStatus);
   
   // Set document title based on restaurant

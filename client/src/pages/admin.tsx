@@ -56,6 +56,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { LogoUploader } from "@/components/LogoUploader";
 import { MenuItemImageUploader } from "@/components/MenuItemImageUploader";
+import { useRestaurantsStatus } from "@/hooks/useRestaurantStatus";
 import type { Restaurant, MenuItem, Order, User, Coupon, MenuCategory } from "@shared/schema";
 
 export default function Admin() {
@@ -162,6 +163,9 @@ export default function Admin() {
     queryKey: ["/api/admin/coupons"],
     enabled: !!user?.isAdmin,
   });
+
+  // Get real-time status for all restaurants in admin
+  const restaurantStatuses = useRestaurantsStatus(restaurants);
 
   const { data: menuItems = [] } = useQuery({
     queryKey: [`/api/restaurants/${selectedRestaurant}/menu`],
@@ -940,23 +944,8 @@ export default function Admin() {
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-muted-foreground">Status</span>
                               {(() => {
-                                // Restaurant status function
-                                function getRestaurantStatus(restaurantData: any) {
-                                  if (restaurantData.isTemporarilyClosed) return 'closed';
-                                  if (!restaurantData.isOpen) return 'closed';
-                                  
-                                  const now = new Date();
-                                  const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-                                  const currentTime = now.toTimeString().slice(0, 5);
-                                  
-                                  const todayHours = restaurantData.operatingHours?.[currentDay];
-                                  if (!todayHours || todayHours.closed) return 'closed';
-                                  
-                                  return (currentTime >= todayHours.open && currentTime <= todayHours.close) ? 'open' : 'closed';
-                                }
-                                
-                                const status = getRestaurantStatus(restaurant);
-                                const isOpen = status === 'open';
+                                const status = restaurantStatuses.get(restaurant.id);
+                                const isOpen = status?.isOpen || false;
                                 
                                 return (
                                   <div className="flex items-center gap-1">
