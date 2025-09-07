@@ -206,18 +206,25 @@ export class DatabaseStorage implements IStorage {
       return await db
         .select()
         .from(restaurants)
-        .where(like(restaurants.cuisine, `%${cuisine}%`))
+        .where(and(
+          like(restaurants.cuisine, `%${cuisine}%`),
+          eq(restaurants.isDeleted, false)
+        ))
         .orderBy(desc(restaurants.rating));
     }
     
     return await db
       .select()
       .from(restaurants)
+      .where(eq(restaurants.isDeleted, false))
       .orderBy(desc(restaurants.rating));
   }
 
   async getRestaurant(id: string): Promise<Restaurant | undefined> {
-    const [restaurant] = await db.select().from(restaurants).where(eq(restaurants.id, id));
+    const [restaurant] = await db
+      .select()
+      .from(restaurants)
+      .where(and(eq(restaurants.id, id), eq(restaurants.isDeleted, false)));
     return restaurant;
   }
 
@@ -412,7 +419,10 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(menuCategories)
-      .where(eq(menuCategories.restaurantId, restaurantId))
+      .where(and(
+        eq(menuCategories.restaurantId, restaurantId),
+        eq(menuCategories.isDeleted, false)
+      ))
       .orderBy(asc(menuCategories.sortOrder));
   }
 
@@ -440,7 +450,8 @@ export class DatabaseStorage implements IStorage {
         .from(menuItems)
         .where(and(
           eq(menuItems.restaurantId, restaurantId),
-          eq(menuItems.categoryId, categoryId)
+          eq(menuItems.categoryId, categoryId),
+          eq(menuItems.isDeleted, false)
         ))
         .orderBy(asc(menuItems.sortOrder));
     }
@@ -448,7 +459,10 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(menuItems)
-      .where(eq(menuItems.restaurantId, restaurantId))
+      .where(and(
+        eq(menuItems.restaurantId, restaurantId),
+        eq(menuItems.isDeleted, false)
+      ))
       .orderBy(asc(menuItems.sortOrder));
   }
 
@@ -533,7 +547,9 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         like(sql`LOWER(${menuItems.name})`, searchTerm),
         eq(menuItems.isAvailable, true),
-        eq(restaurants.isOpen, true)
+        eq(menuItems.isDeleted, false),
+        eq(restaurants.isOpen, true),
+        eq(restaurants.isDeleted, false)
       ))
       .orderBy(asc(menuItems.name))
       .limit(10);
@@ -795,7 +811,11 @@ export class DatabaseStorage implements IStorage {
 
   // Admin coupon management
   async getAllCoupons(): Promise<Coupon[]> {
-    return await db.select().from(coupons).orderBy(desc(coupons.createdAt));
+    return await db
+      .select()
+      .from(coupons)
+      .where(eq(coupons.isDeleted, false))
+      .orderBy(desc(coupons.createdAt));
   }
 
   async createCoupon(coupon: InsertCoupon): Promise<Coupon> {
@@ -820,10 +840,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(coupons.id, id));
   }
 
-  // User management
-  async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(desc(users.createdAt));
-  }
+  // User management (duplicate function removed - using the one with isDeleted filter above)
 
   async updateUserRole(id: string, isAdmin: boolean): Promise<User | undefined> {
     const [updatedUser] = await db
