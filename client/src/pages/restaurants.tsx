@@ -16,16 +16,7 @@ import { useCart } from "@/contexts/CartContext";
 import { RestaurantCardSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
-// Import restaurant logos
-import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
-import PappisPizzaLogo from "@assets/Pappi's Pizza Logo_1755170145362.png";
-import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png";
-
-const logoMap: Record<string, string> = {
-  "My Lai Kitchen": MyLaiLogo,
-  "Pappi's Pizza": PappisPizzaLogo,
-  "Cheeky's Burgers": CheekysBurgersLogo,
-};
+// Restaurant logos are now served from the database
 
 export default function Restaurants() {
   const [selectedCuisine, setSelectedCuisine] = useState("ALL");
@@ -119,9 +110,9 @@ export default function Restaurants() {
                   <CardContent className="p-0">
                     <div className="relative">
                       <div className="h-48 bg-gradient-to-br from-primary/10 to-secondary/20 rounded-t-lg flex items-center justify-center overflow-hidden">
-                        {restaurant.image || logoMap[restaurant.name] ? (
+                        {restaurant.image ? (
                           <img 
-                            src={restaurant.image || logoMap[restaurant.name]} 
+                            src={restaurant.image} 
                             alt={restaurant.name}
                             className="w-32 h-32 object-contain"
                             onError={(e) => {
@@ -136,7 +127,7 @@ export default function Restaurants() {
                         ) : null}
                         <div 
                           className={`w-32 h-32 bg-gray-300 rounded-lg flex items-center justify-center fallback-logo ${
-                            restaurant.image || logoMap[restaurant.name] ? 'hidden' : ''
+                            restaurant.image ? 'hidden' : ''
                           }`}
                         >
                           <span className="text-gray-500 text-lg font-semibold">
