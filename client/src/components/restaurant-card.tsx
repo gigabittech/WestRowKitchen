@@ -30,13 +30,24 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
     return logoMap[restaurant.name] || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&w=400&h=250&fit=crop";
   };
 
-  // Check if restaurant is currently open based on is_open flag and operating hours
-  const isCurrentlyOpen = isRestaurantOpen(
-    restaurant.isOpen || false,
-    restaurant.operatingHours as OperatingHours,
-    restaurant.isTemporarilyClosed || false,
-    restaurant.timezone || "America/New_York"
-  );
+  // Simple restaurant status function  
+  function getRestaurantStatus(restaurantData: any) {
+    if (restaurantData.isTemporarilyClosed) return 'closed';
+    if (!restaurantData.isOpen) return 'closed';
+    
+    const now = new Date();
+    const currentDay = now.toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const currentTime = now.toTimeString().slice(0, 5);
+    
+    const todayHours = restaurantData.operatingHours?.[currentDay];
+    if (!todayHours || todayHours.closed) return 'closed';
+    
+    return (currentTime >= todayHours.open && currentTime <= todayHours.close) ? 'open' : 'closed';
+  }
+
+  // Check if restaurant is currently open
+  const status = getRestaurantStatus(restaurant);
+  const isCurrentlyOpen = status === 'open';
 
   return (
     <Link href={`/restaurant/${createSlug(restaurant.name)}`}>
