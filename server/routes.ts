@@ -468,6 +468,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete menu category
+  app.delete("/api/categories/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteMenuCategory(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      if (error instanceof Error && error.message.includes("Cannot delete category")) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to delete category" });
+    }
+  });
+
   app.get("/api/restaurants/:id/menu", async (req, res) => {
     try {
       const { categoryId } = req.query;

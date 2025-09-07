@@ -239,6 +239,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteRestaurant(id: string): Promise<void> {
+    // Check if there are orders for this restaurant
+    const ordersCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(orders)
+      .where(eq(orders.restaurantId, id));
+    
+    if (ordersCount[0]?.count > 0) {
+      throw new Error(`Cannot delete restaurant. It has ${ordersCount[0].count} order(s). Please delete the orders first or contact support.`);
+    }
+    
+    // Check if there are menu items (will cascade delete with categories)
+    const itemsCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(menuItems)
+      .where(eq(menuItems.restaurantId, id));
+    
+    if (itemsCount[0]?.count > 0) {
+      // This will cascade delete categories and items
+      console.log(`Deleting restaurant with ${itemsCount[0].count} menu items (cascade)`);
+    }
+    
     await db.delete(restaurants).where(eq(restaurants.id, id));
   }
 
@@ -465,7 +486,31 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async deleteMenuCategory(id: string): Promise<void> {
+    // Check if there are menu items in this category
+    const items = await db
+      .select()
+      .from(menuItems)
+      .where(eq(menuItems.categoryId, id));
+    
+    if (items.length > 0) {
+      throw new Error(`Cannot delete category. It contains ${items.length} menu item(s). Please delete or move the items first.`);
+    }
+    
+    await db.delete(menuCategories).where(eq(menuCategories.id, id));
+  }
+
   async deleteMenuItem(id: string): Promise<void> {
+    // Check if this menu item is referenced in any orders
+    const orderItemsCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(orderItems)
+      .where(eq(orderItems.menuItemId, id));
+    
+    if (orderItemsCount[0]?.count > 0) {
+      throw new Error(`Cannot delete menu item. It's referenced in ${orderItemsCount[0].count} order(s).`);
+    }
+    
     await db.delete(menuItems).where(eq(menuItems.id, id));
   }
 
@@ -797,6 +842,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCoupon(id: string): Promise<void> {
+    // Check if this coupon is used in any orders
+    const ordersWithCoupon = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(orders)
+      .where(eq(orders.couponCode, (await db.select({ code: coupons.code }).from(coupons).where(eq(coupons.id, id)))[0]?.code || ''));
+    
+    // We can still delete coupons that are used in orders since it's just a string reference
+    // The order will keep the coupon code for historical purposes
     await db.delete(coupons).where(eq(coupons.id, id));
   }
 
