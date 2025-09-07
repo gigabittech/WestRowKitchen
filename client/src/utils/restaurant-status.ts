@@ -54,7 +54,7 @@ export function getRestaurantStatus(restaurantData: any): RestaurantStatusResult
   }
 
   // Check if current time is within operating hours
-  const isWithinHours = currentTime >= todayHours.open && currentTime <= todayHours.close;
+  const isWithinHours = isTimeWithinRange(currentTime, todayHours.open, todayHours.close);
   
   if (isWithinHours) {
     return {
@@ -68,6 +68,31 @@ export function getRestaurantStatus(restaurantData: any): RestaurantStatusResult
       reason: 'outside_hours',
       nextOpeningTime: getNextOpeningTime(restaurantData.operatingHours)
     };
+  }
+}
+
+/**
+ * Helper function to check if current time is within operating hours
+ * Handles cases where closing time is after midnight
+ */
+function isTimeWithinRange(currentTime: string, openTime: string, closeTime: string): boolean {
+  // Convert time strings to minutes for easier comparison
+  const timeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const current = timeToMinutes(currentTime);
+  const open = timeToMinutes(openTime);
+  const close = timeToMinutes(closeTime);
+
+  // If close time is less than open time, restaurant closes after midnight
+  if (close < open) {
+    // Restaurant is open if current time is after opening OR before closing (next day)
+    return current >= open || current <= close;
+  } else {
+    // Normal case: restaurant closes on the same day
+    return current >= open && current <= close;
   }
 }
 

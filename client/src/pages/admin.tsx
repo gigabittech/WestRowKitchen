@@ -228,8 +228,7 @@ export default function Admin() {
 
   const updateRestaurantMutation = useMutation({
     mutationFn: async ({id, data}: {id: string, data: any}) => {
-      const response = await apiRequest("PUT", `/api/restaurants/${id}`, data);
-      return response.json();
+      await apiRequest("PUT", `/api/restaurants/${id}`, data);
     },
     onSuccess: () => {
       // Invalidate all restaurant-related queries
