@@ -132,7 +132,7 @@ function isTimeWithinRange(
     return current >= open || current <= close;
   } else {
     // Normal case: restaurant closes on the same day
-    return current >= open && current <= close;
+    return current >= open && current < close;
   }
 }
 
