@@ -1191,9 +1191,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Verify current password
-      const bcryptjs = await import('bcryptjs');
-      const isValidPassword = await bcryptjs.compare(currentPassword, user.password);
+      // Verify current password using the same scrypt method as the auth system
+      const { scrypt, timingSafeEqual } = await import('crypto');
+      const { promisify } = await import('util');
+      const scryptAsync = promisify(scrypt);
+      
+      const [hashed, salt] = user.password.split(".");
+      const hashedBuf = Buffer.from(hashed, "hex");
+      const suppliedBuf = (await scryptAsync(currentPassword, salt, 64)) as Buffer;
+      const isValidPassword = timingSafeEqual(hashedBuf, suppliedBuf);
+      
       if (!isValidPassword) {
         return res.status(400).json({ message: "Current password is incorrect" });
       }

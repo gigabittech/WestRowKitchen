@@ -152,9 +152,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async changeUserPassword(id: string, newPassword: string): Promise<void> {
-    // Hash the password before storing
-    const bcryptjs = await import('bcryptjs');
-    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+    // Hash the password using the same scrypt method as the auth system
+    const { scrypt, randomBytes } = await import('crypto');
+    const { promisify } = await import('util');
+    const scryptAsync = promisify(scrypt);
+    
+    const salt = randomBytes(16).toString("hex");
+    const buf = (await scryptAsync(newPassword, salt, 64)) as Buffer;
+    const hashedPassword = `${buf.toString("hex")}.${salt}`;
     
     await db
       .update(users)
