@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import NavigationHeader from "@/components/navigation-header";
 import { Settings, User, Bell, Shield, Trash2, Eye, EyeOff } from "lucide-react";
 
 export default function SettingsPage() {
@@ -197,290 +199,311 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Settings className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-          </div>
-          <p className="text-gray-600">Manage your account preferences and settings</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardContent className="p-4">
-                <nav className="space-y-2">
-                  <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg text-primary">
-                    <User className="w-4 h-4" />
-                    <span className="font-medium">Profile</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-gray-600">
-                    <Bell className="w-4 h-4" />
-                    <span>Notifications</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-gray-600">
-                    <Shield className="w-4 h-4" />
-                    <span>Privacy</span>
-                  </div>
-                </nav>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-gray-50">
+      <NavigationHeader />
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-orange-500 to-red-600 px-8 py-6">
+            <div className="flex items-center">
+              <Settings className="w-8 h-8 text-white mr-3" />
+              <div>
+                <h1 className="text-2xl font-bold text-white">Account Settings</h1>
+                <p className="text-orange-100">Manage your account preferences and settings</p>
+              </div>
+            </div>
           </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Profile Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Update your account details and personal information
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleProfileUpdate} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        value={profileSettings.firstName}
-                        onChange={(e) => setProfileSettings(prev => ({ ...prev, firstName: e.target.value }))}
-                        placeholder="Enter your first name"
-                        data-testid="input-first-name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        value={profileSettings.lastName}
-                        onChange={(e) => setProfileSettings(prev => ({ ...prev, lastName: e.target.value }))}
-                        placeholder="Enter your last name"
-                        data-testid="input-last-name"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profileSettings.email}
-                      readOnly
-                      className="bg-gray-50 cursor-not-allowed"
-                      placeholder="Email cannot be changed"
-                      data-testid="input-email"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      Email address cannot be changed for security reasons
-                    </p>
-                  </div>
-                  <Button 
-                    type="submit" 
-                    disabled={profileMutation.isPending}
-                    data-testid="button-save-profile"
-                  >
-                    {profileMutation.isPending ? "Saving..." : "Save Changes"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+          {/* Tab Navigation */}
+          <Tabs defaultValue="profile" className="w-full">
+            <div className="border-b border-gray-200">
+              <TabsList className="w-full justify-start h-auto p-0 bg-transparent">
+                <TabsTrigger 
+                  value="profile" 
+                  className="flex items-center px-6 py-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:text-orange-600 hover:bg-gray-50"
+                  data-testid="tab-profile"
+                >
+                  <User className="w-5 h-5 mr-2" />
+                  Profile
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="notifications" 
+                  className="flex items-center px-6 py-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:text-orange-600 hover:bg-gray-50"
+                  data-testid="tab-notifications"
+                >
+                  <Bell className="w-5 h-5 mr-2" />
+                  Notifications
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="privacy" 
+                  className="flex items-center px-6 py-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:text-orange-600 hover:bg-gray-50"
+                  data-testid="tab-privacy"
+                >
+                  <Shield className="w-5 h-5 mr-2" />
+                  Privacy & Security
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            {/* Password Change */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>
-                  Update your account password
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handlePasswordChange} className="space-y-4">
-                  <div>
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        type={showPassword ? "text" : "password"}
-                        value={passwordSettings.currentPassword}
-                        onChange={(e) => setPasswordSettings(prev => ({ ...prev, currentPassword: e.target.value }))}
-                        placeholder="Enter current password"
-                        required
-                        data-testid="input-current-password"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowPassword(!showPassword)}
+            {/* Tab Content */}
+            <div className="p-8">
+              {/* Profile Tab */}
+              <TabsContent value="profile" className="space-y-6 mt-0">
+                {/* Profile Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Profile Information</CardTitle>
+                    <CardDescription>
+                      Update your account details and personal information
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleProfileUpdate} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="firstName">First Name</Label>
+                          <Input
+                            id="firstName"
+                            value={profileSettings.firstName}
+                            onChange={(e) => setProfileSettings(prev => ({ ...prev, firstName: e.target.value }))}
+                            placeholder="Enter your first name"
+                            data-testid="input-first-name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="lastName">Last Name</Label>
+                          <Input
+                            id="lastName"
+                            value={profileSettings.lastName}
+                            onChange={(e) => setProfileSettings(prev => ({ ...prev, lastName: e.target.value }))}
+                            placeholder="Enter your last name"
+                            data-testid="input-last-name"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={profileSettings.email}
+                          readOnly
+                          className="bg-gray-50 cursor-not-allowed"
+                          placeholder="Email cannot be changed"
+                          data-testid="input-email"
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                          Email address cannot be changed for security reasons
+                        </p>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        disabled={profileMutation.isPending}
+                        data-testid="button-save-profile"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {profileMutation.isPending ? "Saving..." : "Save Changes"}
                       </Button>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="newPassword"
-                        type={showNewPassword ? "text" : "password"}
-                        value={passwordSettings.newPassword}
-                        onChange={(e) => setPasswordSettings(prev => ({ ...prev, newPassword: e.target.value }))}
-                        placeholder="Enter new password (min 6 characters)"
-                        required
-                        data-testid="input-new-password"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
+                    </form>
+                  </CardContent>
+                </Card>
+
+                {/* Password Change */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Change Password</CardTitle>
+                    <CardDescription>
+                      Update your account password
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                      <div>
+                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="currentPassword"
+                            type={showPassword ? "text" : "password"}
+                            value={passwordSettings.currentPassword}
+                            onChange={(e) => setPasswordSettings(prev => ({ ...prev, currentPassword: e.target.value }))}
+                            placeholder="Enter current password"
+                            required
+                            data-testid="input-current-password"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="newPassword">New Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            value={passwordSettings.newPassword}
+                            onChange={(e) => setPasswordSettings(prev => ({ ...prev, newPassword: e.target.value }))}
+                            placeholder="Enter new password (min 6 characters)"
+                            required
+                            data-testid="input-new-password"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                          >
+                            {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={passwordSettings.confirmPassword}
+                          onChange={(e) => setPasswordSettings(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          placeholder="Confirm new password"
+                          required
+                          data-testid="input-confirm-password"
+                        />
+                      </div>
+                      <Button 
+                        type="submit" 
+                        disabled={passwordMutation.isPending}
+                        data-testid="button-change-password"
                       >
-                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {passwordMutation.isPending ? "Changing..." : "Change Password"}
                       </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Notifications Tab */}
+              <TabsContent value="notifications" className="space-y-6 mt-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Notification Preferences</CardTitle>
+                    <CardDescription>
+                      Choose what notifications you'd like to receive
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="orderUpdates" className="text-sm font-medium">
+                          Order Updates
+                        </Label>
+                        <p className="text-sm text-gray-500">
+                          Receive notifications about your order status
+                        </p>
+                      </div>
+                      <Switch
+                        id="orderUpdates"
+                        checked={notificationSettings.orderUpdates}
+                        onCheckedChange={(checked) => handleNotificationUpdate({ ...notificationSettings, orderUpdates: checked })}
+                        disabled={notificationMutation.isPending}
+                        data-testid="switch-order-updates"
+                      />
                     </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={passwordSettings.confirmPassword}
-                      onChange={(e) => setPasswordSettings(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      placeholder="Confirm new password"
-                      required
-                      data-testid="input-confirm-password"
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    disabled={passwordMutation.isPending}
-                    data-testid="button-change-password"
-                  >
-                    {passwordMutation.isPending ? "Changing..." : "Change Password"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="promotions" className="text-sm font-medium">
+                          Promotions & Offers
+                        </Label>
+                        <p className="text-sm text-gray-500">
+                          Get notified about special deals and discounts
+                        </p>
+                      </div>
+                      <Switch
+                        id="promotions"
+                        checked={notificationSettings.promotions}
+                        onCheckedChange={(checked) => handleNotificationUpdate({ ...notificationSettings, promotions: checked })}
+                        disabled={notificationMutation.isPending}
+                        data-testid="switch-promotions"
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="newsletter" className="text-sm font-medium">
+                          Newsletter
+                        </Label>
+                        <p className="text-sm text-gray-500">
+                          Receive our weekly newsletter with food tips and recipes
+                        </p>
+                      </div>
+                      <Switch
+                        id="newsletter"
+                        checked={notificationSettings.newsletter}
+                        onCheckedChange={(checked) => handleNotificationUpdate({ ...notificationSettings, newsletter: checked })}
+                        disabled={notificationMutation.isPending}
+                        data-testid="switch-newsletter"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            {/* Notification Preferences */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Choose what notifications you'd like to receive
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="orderUpdates" className="text-sm font-medium">
-                      Order Updates
-                    </Label>
-                    <p className="text-sm text-gray-500">
-                      Receive notifications about your order status
-                    </p>
-                  </div>
-                  <Switch
-                    id="orderUpdates"
-                    checked={notificationSettings.orderUpdates}
-                    onCheckedChange={(checked) => handleNotificationUpdate({ ...notificationSettings, orderUpdates: checked })}
-                    disabled={notificationMutation.isPending}
-                    data-testid="switch-order-updates"
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="promotions" className="text-sm font-medium">
-                      Promotions & Offers
-                    </Label>
-                    <p className="text-sm text-gray-500">
-                      Get notified about special deals and discounts
-                    </p>
-                  </div>
-                  <Switch
-                    id="promotions"
-                    checked={notificationSettings.promotions}
-                    onCheckedChange={(checked) => handleNotificationUpdate({ ...notificationSettings, promotions: checked })}
-                    disabled={notificationMutation.isPending}
-                    data-testid="switch-promotions"
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="newsletter" className="text-sm font-medium">
-                      Newsletter
-                    </Label>
-                    <p className="text-sm text-gray-500">
-                      Receive our weekly newsletter with food tips and recipes
-                    </p>
-                  </div>
-                  <Switch
-                    id="newsletter"
-                    checked={notificationSettings.newsletter}
-                    onCheckedChange={(checked) => handleNotificationUpdate({ ...notificationSettings, newsletter: checked })}
-                    disabled={notificationMutation.isPending}
-                    data-testid="switch-newsletter"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Privacy & Security */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Privacy & Security</CardTitle>
-                <CardDescription>
-                  Manage your privacy settings and account security
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium mb-2 text-red-600">Danger Zone</h4>
-                  <p className="text-sm text-gray-500 mb-4">
-                    Permanently delete your account and all associated data. This action cannot be undone.
-                  </p>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm" data-testid="button-delete-account">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete Account
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete your account
-                          and remove all your data from our servers.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleDeleteAccount}
-                          className="bg-red-600 hover:bg-red-700"
-                          disabled={deleteMutation.isPending}
-                          data-testid="button-confirm-delete"
-                        >
-                          {deleteMutation.isPending ? "Deleting..." : "Yes, delete my account"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              {/* Privacy Tab */}
+              <TabsContent value="privacy" className="space-y-6 mt-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Privacy & Security</CardTitle>
+                    <CardDescription>
+                      Manage your privacy settings and account security
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-2 text-red-600">Danger Zone</h4>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                      </p>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm" data-testid="button-delete-account">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Account
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete your account
+                              and remove all your data from our servers.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteAccount}
+                              className="bg-red-600 hover:bg-red-700"
+                              disabled={deleteMutation.isPending}
+                              data-testid="button-confirm-delete"
+                            >
+                              {deleteMutation.isPending ? "Deleting..." : "Yes, delete my account"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
       </div>
     </div>
