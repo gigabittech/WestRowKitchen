@@ -24,6 +24,7 @@ import { getFoodImage } from "@/utils/food-images";
 import { MenuItemCardSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { isRestaurantOpen, type OperatingHours } from "@/utils/restaurant-hours";
+import { getRestaurantStatus, getStatusMessage } from "@/utils/restaurant-status";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -53,13 +54,9 @@ export default function RestaurantPage() {
 
   const restaurantLoading = restaurantsLoading;
 
-  // Check if restaurant is currently open based on is_open flag and operating hours
-  const isCurrentlyOpen = restaurant ? isRestaurantOpen(
-    restaurant.isOpen || false,
-    restaurant.operatingHours as OperatingHours,
-    restaurant.isTemporarilyClosed || false,
-    restaurant.timezone || "America/New_York"
-  ) : false;
+  // Get restaurant status using new utility
+  const restaurantStatus = restaurant ? getRestaurantStatus(restaurant) : { status: 'closed', isOpen: false };
+  const statusMessage = getStatusMessage(restaurantStatus);
   
   // Set document title based on restaurant
   useDocumentTitle(restaurant ? `${restaurant.name} - West Row Kitchen` : "Restaurant - West Row Kitchen");
@@ -192,15 +189,20 @@ export default function RestaurantPage() {
             <div className="text-white space-y-4 max-w-2xl">
               <div className="flex items-center space-x-3 mb-2">
                 <Badge
-                  variant={isCurrentlyOpen ? "default" : "destructive"}
+                  variant={restaurantStatus.isOpen ? "default" : "destructive"}
                   className={`text-sm font-medium px-3 py-1 ${
-                    isCurrentlyOpen
+                    restaurantStatus.isOpen
                       ? "bg-green-500 hover:bg-green-600 text-white"
                       : "bg-red-500 hover:bg-red-600 text-white"
                   }`}
                 >
-                  {isCurrentlyOpen ? "OPEN" : "CLOSED"}
+                  {restaurantStatus.isOpen ? "OPEN" : "CLOSED"}
                 </Badge>
+                {!restaurantStatus.isOpen && restaurantStatus.nextOpeningTime && (
+                  <div className="bg-black/30 backdrop-blur-sm rounded-full px-3 py-1 text-sm text-white">
+                    {restaurantStatus.nextOpeningTime}
+                  </div>
+                )}
                 <div className="flex items-center bg-black/30 backdrop-blur-sm rounded-full px-3 py-1">
                   <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
                   <span className="font-semibold text-sm">
@@ -383,19 +385,36 @@ export default function RestaurantPage() {
                             </div>
 
                             {item.isAvailable ? (
-                              <Button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  addToCart(item, restaurant?.name);
-                                }}
-                                size="lg"
-                                className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 z-10 relative"
-                                data-testid={`button-add-to-cart-${item.id}`}
-                              >
-                                <Plus className="w-5 h-5 mr-2" />
-                                Add to Cart
-                              </Button>
+                              restaurantStatus.isOpen ? (
+                                <Button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    addToCart(item, restaurant?.name);
+                                  }}
+                                  size="lg"
+                                  className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 z-10 relative"
+                                  data-testid={`button-add-to-cart-${item.id}`}
+                                >
+                                  <Plus className="w-5 h-5 mr-2" />
+                                  Add to Cart
+                                </Button>
+                              ) : (
+                                <div className="text-center space-y-2 z-10 relative">
+                                  <Button
+                                    disabled
+                                    size="lg"
+                                    className="bg-gray-400 text-gray-600 px-8 py-3 rounded-2xl font-semibold cursor-not-allowed"
+                                  >
+                                    Restaurant Closed
+                                  </Button>
+                                  {restaurantStatus.nextOpeningTime && (
+                                    <p className="text-xs text-gray-500">
+                                      {restaurantStatus.nextOpeningTime}
+                                    </p>
+                                  )}
+                                </div>
+                              )
                             ) : (
                               <Badge
                                 variant="secondary"

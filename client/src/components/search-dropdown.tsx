@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Restaurant, MenuItem } from "@shared/schema";
 import { createSlug } from "@/utils/slug";
 import { getFoodImage } from "@/utils/food-images";
+import { getRestaurantStatus, getStatusMessage } from "@/utils/restaurant-status";
 
 // Import restaurant logos
 import MyLaiLogo from "@assets/My Lai Kitchen Logo_1755170145363.png";
@@ -115,8 +116,18 @@ export default function SearchDropdown({
                         Restaurants
                       </p>
                     </div>
-                    {searchResults.restaurants.map((restaurant) => {
+                    {searchResults.restaurants
+                      .sort((a, b) => {
+                        // Sort open restaurants first
+                        const aStatus = getRestaurantStatus(a);
+                        const bStatus = getRestaurantStatus(b);
+                        if (aStatus.isOpen && !bStatus.isOpen) return -1;
+                        if (!aStatus.isOpen && bStatus.isOpen) return 1;
+                        return 0;
+                      })
+                      .map((restaurant) => {
                       const restaurantSlug = createSlug(restaurant.name);
+                      const statusResult = getRestaurantStatus(restaurant);
                       // Use actual restaurant image from database, fallback to logoMap if needed
                       const restaurantImage = restaurant.image 
                         ? (restaurant.image.startsWith('/assets/') || restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`)
@@ -125,7 +136,9 @@ export default function SearchDropdown({
                       return (
                         <div
                           key={restaurant.id}
-                          className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
+                          className={`flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0 ${
+                            !statusResult.isOpen ? 'opacity-70' : ''
+                          }`}
                           onMouseDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -171,6 +184,12 @@ export default function SearchDropdown({
                             <div className="flex items-center mt-1 space-x-3">
                               <Badge variant="secondary" className="text-xs">
                                 {restaurant.cuisine}
+                              </Badge>
+                              <Badge 
+                                variant={statusResult.isOpen ? "default" : "destructive"} 
+                                className="text-xs"
+                              >
+                                {statusResult.isOpen ? "OPEN" : "CLOSED"}
                               </Badge>
                               {restaurant.rating &&
                                 restaurant.rating !== "0.00" && (

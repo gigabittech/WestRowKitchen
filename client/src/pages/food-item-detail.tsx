@@ -14,6 +14,7 @@ import { getFoodImage } from "@/utils/food-images";
 import { useCart } from "@/contexts/CartContext";
 import { FoodDetailSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { getRestaurantStatus, getStatusMessage } from "@/utils/restaurant-status";
 
 export default function FoodItemDetailPage() {
   const { restaurantSlug, itemId } = useParams<{ restaurantSlug: string; itemId: string }>();
@@ -36,6 +37,10 @@ export default function FoodItemDetailPage() {
 
   const foodItem = menuItems.find((item: MenuItem) => item.id === itemId);
   const isLoading = restaurantsLoading || menuLoading;
+  
+  // Get restaurant status
+  const restaurantStatus = restaurant ? getRestaurantStatus(restaurant) : { status: 'closed', isOpen: false };
+  const statusMessage = getStatusMessage(restaurantStatus);
   
   // Set document title based on food item and restaurant
   useDocumentTitle(
@@ -164,8 +169,21 @@ export default function FoodItemDetailPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">From {restaurant.name}</h3>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold text-lg">From {restaurant.name}</h3>
+                      <Badge 
+                        variant={restaurantStatus.isOpen ? "default" : "destructive"}
+                        className="text-xs"
+                      >
+                        {restaurantStatus.isOpen ? "OPEN" : "CLOSED"}
+                      </Badge>
+                    </div>
                     <p className="text-gray-600 text-sm">{restaurant.description}</p>
+                    {!restaurantStatus.isOpen && restaurantStatus.nextOpeningTime && (
+                      <p className="text-xs text-red-600 mt-1">
+                        {restaurantStatus.nextOpeningTime}
+                      </p>
+                    )}
                   </div>
                   <Link href={`/restaurant/${restaurantSlug}`}>
                     <Button variant="outline" size="sm">
@@ -203,15 +221,32 @@ export default function FoodItemDetailPage() {
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => handleAddToCart(foodItem, quantity)}
-                  size="lg"
-                  className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
-                  data-testid={`button-add-to-cart-${foodItem.id}`}
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add {quantity} to Cart - ${(parseFloat(foodItem.price) * quantity).toFixed(2)}
-                </Button>
+                {restaurantStatus.isOpen ? (
+                  <Button
+                    onClick={() => handleAddToCart(foodItem, quantity)}
+                    size="lg"
+                    className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
+                    data-testid={`button-add-to-cart-${foodItem.id}`}
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add {quantity} to Cart - ${(parseFloat(foodItem.price) * quantity).toFixed(2)}
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <Button
+                      disabled
+                      size="lg"
+                      className="w-full h-14 text-lg font-semibold rounded-2xl bg-gray-400 text-gray-600 cursor-not-allowed"
+                    >
+                      Restaurant Currently Closed
+                    </Button>
+                    {restaurantStatus.nextOpeningTime && (
+                      <p className="text-center text-sm text-gray-500">
+                        {restaurantStatus.nextOpeningTime}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
