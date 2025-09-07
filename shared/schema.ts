@@ -63,6 +63,7 @@ export const restaurants = pgTable("restaurants", {
   address: text("address"),
   phone: varchar("phone", { length: 20 }),
   ownerId: varchar("owner_id").references(() => users.id),
+  isDeleted: boolean("is_deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -74,6 +75,7 @@ export const menuCategories = pgTable("menu_categories", {
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   sortOrder: integer("sort_order").default(0),
+  isDeleted: boolean("is_deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -89,6 +91,7 @@ export const menuItems = pgTable("menu_items", {
   isAvailable: boolean("is_available").default(true),
   preparationTime: integer("preparation_time"),
   sortOrder: integer("sort_order").default(0),
+  isDeleted: boolean("is_deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -160,6 +163,7 @@ export const coupons = pgTable("coupons", {
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   restaurantId: uuid("restaurant_id").references(() => restaurants.id), // null = platform-wide
+  isDeleted: boolean("is_deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
