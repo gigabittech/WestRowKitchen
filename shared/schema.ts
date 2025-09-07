@@ -35,6 +35,9 @@ export const users = pgTable("users", {
   lastName: varchar("last_name").notNull(),
   phone: varchar("phone", { length: 20 }),
   isAdmin: boolean("is_admin").default(false),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
+  notificationPreferences: jsonb("notification_preferences").default('{"orderUpdates": true, "promotions": false, "newsletter": false}'),
+  isDeleted: boolean("is_deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

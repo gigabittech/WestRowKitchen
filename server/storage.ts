@@ -35,6 +35,13 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, userData: Partial<User>): Promise<User>;
+  updateUserNotificationPreferences(id: string, preferences: any): Promise<User>;
+  changeUserPassword(id: string, newPassword: string): Promise<void>;
+  softDeleteUser(id: string): Promise<void>;
+  updateUserRole(id: string, isAdmin: boolean): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  getAllOrders(): Promise<Order[]>;
 
   // Restaurant operations
   getRestaurants(cuisine?: string): Promise<Restaurant[]>;
@@ -121,6 +128,71 @@ export class DatabaseStorage implements IStorage {
       .values(userData)
       .returning();
     return user;
+  }
+
+  async updateUser(id: string, userData: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...userData, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserNotificationPreferences(id: string, preferences: any): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        notificationPreferences: preferences,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async changeUserPassword(id: string, newPassword: string): Promise<void> {
+    // Hash the password before storing
+    const bcryptjs = await import('bcryptjs');
+    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+    
+    await db
+      .update(users)
+      .set({ 
+        password: hashedPassword,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id));
+  }
+
+  async softDeleteUser(id: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        isDeleted: true,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id));
+  }
+
+  async updateUserRole(id: string, isAdmin: boolean): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        isAdmin,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.isDeleted, false));
+  }
+
+  async getAllOrders(): Promise<Order[]> {
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
   }
 
   // Restaurant operations
