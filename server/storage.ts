@@ -840,6 +840,92 @@ export class DatabaseStorage implements IStorage {
       .where(eq(coupons.id, id));
   }
 
+  // Trash/Restore functions for soft-deleted items
+  async getDeletedRestaurants(): Promise<Restaurant[]> {
+    return await db
+      .select()
+      .from(restaurants)
+      .where(eq(restaurants.isDeleted, true))
+      .orderBy(desc(restaurants.updatedAt));
+  }
+
+  async getDeletedMenuCategories(): Promise<MenuCategory[]> {
+    return await db
+      .select()
+      .from(menuCategories)
+      .where(eq(menuCategories.isDeleted, true))
+      .orderBy(desc(menuCategories.createdAt));
+  }
+
+  async getDeletedMenuItems(): Promise<MenuItem[]> {
+    return await db
+      .select()
+      .from(menuItems)
+      .where(eq(menuItems.isDeleted, true))
+      .orderBy(desc(menuItems.updatedAt));
+  }
+
+  async getDeletedCoupons(): Promise<Coupon[]> {
+    return await db
+      .select()
+      .from(coupons)
+      .where(eq(coupons.isDeleted, true))
+      .orderBy(desc(coupons.createdAt));
+  }
+
+  async restoreRestaurant(id: string): Promise<Restaurant | undefined> {
+    const [restored] = await db
+      .update(restaurants)
+      .set({ isDeleted: false, updatedAt: new Date() })
+      .where(eq(restaurants.id, id))
+      .returning();
+    return restored;
+  }
+
+  async restoreMenuCategory(id: string): Promise<MenuCategory | undefined> {
+    const [restored] = await db
+      .update(menuCategories)
+      .set({ isDeleted: false })
+      .where(eq(menuCategories.id, id))
+      .returning();
+    return restored;
+  }
+
+  async restoreMenuItem(id: string): Promise<MenuItem | undefined> {
+    const [restored] = await db
+      .update(menuItems)
+      .set({ isDeleted: false, updatedAt: new Date() })
+      .where(eq(menuItems.id, id))
+      .returning();
+    return restored;
+  }
+
+  async restoreCoupon(id: string): Promise<Coupon | undefined> {
+    const [restored] = await db
+      .update(coupons)
+      .set({ isDeleted: false })
+      .where(eq(coupons.id, id))
+      .returning();
+    return restored;
+  }
+
+  // Permanent deletion functions (admin only)
+  async permanentlyDeleteRestaurant(id: string): Promise<void> {
+    await db.delete(restaurants).where(eq(restaurants.id, id));
+  }
+
+  async permanentlyDeleteMenuCategory(id: string): Promise<void> {
+    await db.delete(menuCategories).where(eq(menuCategories.id, id));
+  }
+
+  async permanentlyDeleteMenuItem(id: string): Promise<void> {
+    await db.delete(menuItems).where(eq(menuItems.id, id));
+  }
+
+  async permanentlyDeleteCoupon(id: string): Promise<void> {
+    await db.delete(coupons).where(eq(coupons.id, id));
+  }
+
   // User management (duplicate function removed - using the one with isDeleted filter above)
 
   async updateUserRole(id: string, isAdmin: boolean): Promise<User | undefined> {
