@@ -1146,6 +1146,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Trash/Recycle Bin API Routes
+  app.get("/api/admin/trash/restaurants", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const deletedRestaurants = await storage.getDeletedRestaurants();
+      res.json(deletedRestaurants);
+    } catch (error) {
+      console.error("Error fetching deleted restaurants:", error);
+      res.status(500).json({ message: "Failed to fetch deleted restaurants" });
+    }
+  });
+
+  app.get("/api/admin/trash/categories", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const deletedCategories = await storage.getDeletedMenuCategories();
+      res.json(deletedCategories);
+    } catch (error) {
+      console.error("Error fetching deleted categories:", error);
+      res.status(500).json({ message: "Failed to fetch deleted categories" });
+    }
+  });
+
+  app.get("/api/admin/trash/items", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const deletedItems = await storage.getDeletedMenuItems();
+      res.json(deletedItems);
+    } catch (error) {
+      console.error("Error fetching deleted menu items:", error);
+      res.status(500).json({ message: "Failed to fetch deleted menu items" });
+    }
+  });
+
+  app.get("/api/admin/trash/coupons", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const deletedCoupons = await storage.getDeletedCoupons();
+      res.json(deletedCoupons);
+    } catch (error) {
+      console.error("Error fetching deleted coupons:", error);
+      res.status(500).json({ message: "Failed to fetch deleted coupons" });
+    }
+  });
+
+  // Restore routes
+  app.put("/api/admin/trash/restaurants/:id/restore", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const restored = await storage.restoreRestaurant(req.params.id);
+      if (!restored) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+      res.json(restored);
+    } catch (error) {
+      console.error("Error restoring restaurant:", error);
+      res.status(500).json({ message: "Failed to restore restaurant" });
+    }
+  });
+
+  app.put("/api/admin/trash/categories/:id/restore", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const restored = await storage.restoreMenuCategory(req.params.id);
+      if (!restored) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.json(restored);
+    } catch (error) {
+      console.error("Error restoring category:", error);
+      res.status(500).json({ message: "Failed to restore category" });
+    }
+  });
+
+  app.put("/api/admin/trash/items/:id/restore", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const restored = await storage.restoreMenuItem(req.params.id);
+      if (!restored) {
+        return res.status(404).json({ message: "Menu item not found" });
+      }
+      res.json(restored);
+    } catch (error) {
+      console.error("Error restoring menu item:", error);
+      res.status(500).json({ message: "Failed to restore menu item" });
+    }
+  });
+
+  app.put("/api/admin/trash/coupons/:id/restore", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const restored = await storage.restoreCoupon(req.params.id);
+      if (!restored) {
+        return res.status(404).json({ message: "Coupon not found" });
+      }
+      res.json(restored);
+    } catch (error) {
+      console.error("Error restoring coupon:", error);
+      res.status(500).json({ message: "Failed to restore coupon" });
+    }
+  });
+
   app.put("/api/admin/users/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
