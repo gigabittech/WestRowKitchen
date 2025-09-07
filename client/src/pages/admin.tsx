@@ -194,7 +194,10 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all restaurant-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/search"] });
+      queryClient.refetchQueries({ queryKey: ["/api/restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
       setRestaurantForm(getDefaultRestaurantForm());
       toast({ title: "Success", description: "Restaurant created successfully!" });
@@ -208,7 +211,10 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all restaurant-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/search"] });
+      queryClient.refetchQueries({ queryKey: ["/api/restaurants"] });
       setRestaurantDialog({open: false, mode: "create", data: null});
       setRestaurantForm(getDefaultRestaurantForm());
       toast({ title: "Success", description: "Restaurant updated successfully!" });
@@ -222,7 +228,10 @@ export default function Admin() {
       return response;
     },
     onSuccess: () => {
+      // Invalidate all restaurant-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/search"] });
+      queryClient.refetchQueries({ queryKey: ["/api/restaurants"] });
       setDeleteDialog({open: false, id: "", type: "", name: ""});
       toast({ title: "Success", description: "Restaurant deleted successfully!" });
     },
@@ -235,7 +244,9 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate coupon queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
+      queryClient.refetchQueries({ queryKey: ["/api/admin/coupons"] });
       setCouponDialog({open: false, mode: "create", data: null});
       setCouponForm({code: "", title: "", description: "", discountType: "percentage", discountValue: "", minimumOrder: "", maxUsage: "", userLimit: "", startDate: "", endDate: "", restaurantId: "", isActive: true});
       toast({ title: "Success", description: "Coupon created successfully!" });
@@ -249,7 +260,9 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate coupon queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
+      queryClient.refetchQueries({ queryKey: ["/api/admin/coupons"] });
       setCouponDialog({open: false, mode: "create", data: null});
       setCouponForm({code: "", title: "", description: "", discountType: "percentage", discountValue: "", minimumOrder: "", maxUsage: "", userLimit: "", startDate: "", endDate: "", restaurantId: "", isActive: true});
       toast({ title: "Success", description: "Coupon updated successfully!" });
@@ -262,7 +275,9 @@ export default function Admin() {
       await apiRequest("DELETE", `/api/admin/coupons/${id}`);
     },
     onSuccess: () => {
+      // Invalidate coupon queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
+      queryClient.refetchQueries({ queryKey: ["/api/admin/coupons"] });
       setDeleteDialog({open: false, id: "", type: "", name: ""});
       toast({ title: "Success", description: "Coupon deleted successfully!" });
     },
@@ -275,7 +290,11 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all order-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.refetchQueries({ queryKey: ["/api/admin/orders"] });
+      queryClient.refetchQueries({ queryKey: ["/api/orders"] });
       toast({ title: "Success", description: "Order status updated!" });
     },
     onError: handleMutationError,
@@ -287,7 +306,10 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all user-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.refetchQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User role updated!" });
     },
     onError: handleMutationError,
@@ -300,7 +322,10 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all restaurant-related queries 
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/search"] });
+      queryClient.refetchQueries({ queryKey: ["/api/restaurants"] });
       toast({ title: "Success", description: "Restaurant status updated!" });
     },
     onError: handleMutationError,
@@ -317,7 +342,10 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate menu and search queries
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/search"] });
+      queryClient.refetchQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
       setMenuItemDialog({open: false, mode: "create", data: null});
       setMenuItemForm({name: "", description: "", price: "", categoryId: "", preparationTime: "", image: "", isAvailable: true});
       toast({ title: "Success", description: "Menu item created successfully!" });
@@ -331,7 +359,10 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate menu and search queries
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/search"] });
+      queryClient.refetchQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
       setMenuItemDialog({open: false, mode: "create", data: null});
       setMenuItemForm({name: "", description: "", price: "", categoryId: "", preparationTime: "", image: "", isAvailable: true});
       toast({ title: "Success", description: "Menu item updated successfully!" });
@@ -345,7 +376,10 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate categories and menu queries
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
+      queryClient.refetchQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
       setCategoryDialog({open: false, mode: "create", data: null});
       setCategoryForm({name: "", description: "", displayOrder: ""});
       toast({ title: "Success", description: "Category created successfully!" });
@@ -359,7 +393,10 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate categories and menu queries
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
+      queryClient.refetchQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
       setCategoryDialog({open: false, mode: "create", data: null});
       setCategoryForm({name: "", description: "", displayOrder: ""});
       toast({ title: "Success", description: "Category updated successfully!" });
@@ -372,7 +409,11 @@ export default function Admin() {
       await apiRequest("DELETE", `/api/categories/${id}`);
     },
     onSuccess: () => {
+      // Invalidate categories and menu queries
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
+      queryClient.refetchQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
+      setDeleteDialog({open: false, id: "", type: "", name: ""});
       toast({ title: "Success", description: "Category deleted successfully!" });
     },
     onError: handleMutationError,
@@ -383,7 +424,11 @@ export default function Admin() {
       await apiRequest("DELETE", `/api/menu-items/${id}`);
     },
     onSuccess: () => {
+      // Invalidate menu and search queries
       queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/search"] });
+      queryClient.refetchQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
+      setDeleteDialog({open: false, id: "", type: "", name: ""});
       toast({ title: "Success", description: "Menu item deleted successfully!" });
     },
     onError: handleMutationError,
