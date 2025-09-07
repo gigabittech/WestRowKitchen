@@ -318,10 +318,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "No file uploaded" });
         }
 
-        // Return just the filename (not the full path)
+        // Return the full path with /assets/ prefix for database storage
         res.json({
           success: true,
-          filename: req.file.filename,
+          filename: `/assets/${req.file.filename}`,
           originalName: req.file.originalname,
           size: req.file.size,
         });
