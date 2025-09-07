@@ -31,7 +31,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
     return logoMap[restaurant.name] || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&w=400&h=250&fit=crop";
   };
 
-  // Use real-time restaurant status hook
+  // Use real-time restaurant status hook - handle cases where restaurant data might be incomplete
   const restaurantStatus = useRestaurantStatus(restaurant);
   const isCurrentlyOpen = restaurantStatus.isOpen;
 

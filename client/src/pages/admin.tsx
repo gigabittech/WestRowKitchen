@@ -228,9 +228,11 @@ export default function Admin() {
 
   const updateRestaurantMutation = useMutation({
     mutationFn: async ({id, data}: {id: string, data: any}) => {
-      await apiRequest("PUT", `/api/restaurants/${id}`, data);
+      const response = await apiRequest("PUT", `/api/restaurants/${id}`, data);
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedRestaurant) => {
+      console.log("Restaurant updated successfully:", updatedRestaurant);
       // Invalidate all restaurant-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       queryClient.invalidateQueries({ queryKey: ["/api/search"] });

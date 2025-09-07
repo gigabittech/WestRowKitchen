@@ -1,72 +1,108 @@
 export interface RestaurantStatusResult {
-  status: 'open' | 'closed';
+  status: "open" | "closed";
   isOpen: boolean;
-  reason?: 'temporarily_closed' | 'manually_closed' | 'outside_hours' | 'no_hours';
+  reason?:
+    | "temporarily_closed"
+    | "manually_closed"
+    | "outside_hours"
+    | "no_hours";
   nextOpeningTime?: string;
 }
 
 /**
  * Get comprehensive restaurant status with detailed information
  */
-export function getRestaurantStatus(restaurantData: any): RestaurantStatusResult {
-  // Check temporary closure first
-  if (restaurantData.isTemporarilyClosed) {
+export function getRestaurantStatus(
+  restaurantData: any,
+): RestaurantStatusResult {
+  // Handle null/undefined restaurant data
+  if (!restaurantData) {
     return {
-      status: 'closed',
+      status: "closed",
       isOpen: false,
-      reason: 'temporarily_closed'
+      reason: "no_hours",
     };
   }
 
-  // Check manual closure
-  if (!restaurantData.isOpen) {
+  // Check temporary closure first
+  if (restaurantData.isTemporarilyClosed) {
     return {
-      status: 'closed',
+      status: "closed",
       isOpen: false,
-      reason: 'manually_closed'
+      reason: "temporarily_closed",
+    };
+  }
+
+  // Check manual closure - default to open if not specified
+  if (restaurantData.isOpen === false) {
+    return {
+      status: "closed",
+      isOpen: false,
+      reason: "manually_closed",
     };
   }
 
   // Check operating hours
   const now = new Date();
-  const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const currentDay = now
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
   const currentTime = now.toTimeString().slice(0, 5);
-  
-  const todayHours = restaurantData.operatingHours?.[currentDay];
 
-  // Closed today
-  if (todayHours.closed) {
+  // Handle missing or invalid operating hours
+  if (!restaurantData.operatingHours || typeof restaurantData.operatingHours !== 'object') {
     return {
-      status: 'closed',
-      isOpen: false,
-      reason: 'outside_hours',
-      nextOpeningTime: getNextOpeningTime(restaurantData.operatingHours)
+      status: "open", // Default to open if no hours specified
+      isOpen: true,
     };
   }
-  
+
+  const todayHours = restaurantData.operatingHours[currentDay];
+
   // No hours defined for today
   if (!todayHours) {
     return {
-      status: 'closed',
+      status: "open", // Default to open if today's hours not defined
+      isOpen: true,
+    };
+  }
+
+  // Closed today - check if closed property exists and is true
+  if (todayHours.closed === true) {
+    return {
+      status: "closed",
       isOpen: false,
-      reason: 'no_hours'
+      reason: "outside_hours",
+      nextOpeningTime: getNextOpeningTime(restaurantData.operatingHours),
+    };
+  }
+
+  // Check if we have valid open/close times
+  if (!todayHours.open || !todayHours.close) {
+    return {
+      status: "open", // Default to open if times not specified
+      isOpen: true,
     };
   }
 
   // Check if current time is within operating hours
-  const isWithinHours = isTimeWithinRange(currentTime, todayHours.open, todayHours.close);
-  
+  const isWithinHours = isTimeWithinRange(
+    currentTime,
+    todayHours.open,
+    todayHours.close,
+  );
+
   if (isWithinHours) {
     return {
-      status: 'open',
-      isOpen: true
+      status: "open",
+      isOpen: true,
     };
   } else {
     return {
-      status: 'closed',
+      status: "closed",
       isOpen: false,
-      reason: 'outside_hours',
-      nextOpeningTime: getNextOpeningTime(restaurantData.operatingHours)
+      reason: "outside_hours",
+      nextOpeningTime: getNextOpeningTime(restaurantData.operatingHours),
     };
   }
 }
@@ -75,10 +111,14 @@ export function getRestaurantStatus(restaurantData: any): RestaurantStatusResult
  * Helper function to check if current time is within operating hours
  * Handles cases where closing time is after midnight
  */
-function isTimeWithinRange(currentTime: string, openTime: string, closeTime: string): boolean {
+function isTimeWithinRange(
+  currentTime: string,
+  openTime: string,
+  closeTime: string,
+): boolean {
   // Convert time strings to minutes for easier comparison
   const timeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = time.split(":").map(Number);
     return hours * 60 + minutes;
   };
 
@@ -102,23 +142,39 @@ function isTimeWithinRange(currentTime: string, openTime: string, closeTime: str
 function getNextOpeningTime(operatingHours: any): string {
   if (!operatingHours) return "Check restaurant for hours";
 
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  
+  const days = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ];
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
   const now = new Date();
   const currentDayIndex = now.getDay();
-  
+
   // Check next 7 days for opening
   for (let i = 1; i <= 7; i++) {
     const dayIndex = (currentDayIndex + i) % 7;
     const dayHours = operatingHours[days[dayIndex]];
-    
+
     if (dayHours && !dayHours.closed) {
       const dayName = i === 1 ? "Tomorrow" : dayNames[dayIndex];
       return `Opens ${dayName} at ${dayHours.open}`;
     }
   }
-  
+
   return "Check restaurant for hours";
 }
 
@@ -131,13 +187,13 @@ export function getStatusMessage(result: RestaurantStatusResult): string {
   }
 
   switch (result.reason) {
-    case 'temporarily_closed':
+    case "temporarily_closed":
       return "Temporarily closed";
-    case 'manually_closed':
+    case "manually_closed":
       return "Closed";
-    case 'outside_hours':
+    case "outside_hours":
       return result.nextOpeningTime || "Closed";
-    case 'no_hours':
+    case "no_hours":
       return "Hours not available";
     default:
       return "Closed";
