@@ -6,6 +6,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useRestaurantsStatus } from "@/hooks/useRestaurantStatus";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,8 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { Restaurant } from "@shared/schema";
 
 export default function Checkout() {
   const { user, isAuthenticated } = useAuth();
@@ -66,6 +69,14 @@ export default function Checkout() {
   }>({ loading: false, error: null });
 
   useDocumentTitle("Checkout - West Row Kitchen");
+
+  // Fetch restaurants to check status
+  const { data: restaurants = [] } = useQuery<Restaurant[]>({
+    queryKey: ["/api/restaurants"],
+  });
+
+  // Get real-time restaurant statuses
+  const restaurantStatuses = useRestaurantsStatus(restaurants);
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -353,6 +364,19 @@ export default function Checkout() {
     const restaurantItems = cartItems.filter(
       (item) => item.restaurantId === restaurantId,
     );
+
+    // Check if restaurant is currently open
+    const restaurant = restaurants.find(r => r.id === restaurantId);
+    const restaurantStatus = restaurantStatuses.get(restaurantId);
+    
+    if (restaurant && !restaurantStatus?.isOpen) {
+      toast({
+        title: "Restaurant Closed",
+        description: `${restaurant.name} is currently closed and cannot accept new orders. You can save your cart items for later or remove them.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ", " + orderForm.apartment : ""}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
 
@@ -686,6 +710,50 @@ export default function Checkout() {
 
           {/* Order Summary */}
           <div className="space-y-6">
+            {/* Restaurant Status Warning */}
+            {(() => {
+              const restaurantIds = [...new Set(cartItems.map((item) => item.restaurantId))];
+              if (restaurantIds.length === 1) {
+                const restaurantId = restaurantIds[0];
+                const restaurant = restaurants.find(r => r.id === restaurantId);
+                const restaurantStatus = restaurantStatuses.get(restaurantId);
+                
+                if (restaurant && !restaurantStatus?.isOpen) {
+                  return (
+                    <Card className="border-red-200 bg-red-50">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                          <div>
+                            <h3 className="font-semibold text-red-900 mb-1">
+                              Restaurant Currently Closed
+                            </h3>
+                            <p className="text-sm text-red-700 mb-3">
+                              {restaurant.name} is currently closed and cannot accept new orders. 
+                              {restaurantStatus?.nextOpeningMessage && (
+                                <span className="block mt-1">{restaurantStatus.nextOpeningMessage}</span>
+                              )}
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => clearCart()}
+                                className="text-red-700 border-red-300 hover:bg-red-100"
+                              >
+                                Clear Cart
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+              }
+              return null;
+            })()}
+            
             <Card>
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
@@ -840,6 +908,17 @@ export default function Checkout() {
                         );
                         setLocation("/stripe-checkout");
                       }}
+                      disabled={
+                        (() => {
+                          const restaurantIds = [...new Set(cartItems.map((item) => item.restaurantId))];
+                          if (restaurantIds.length === 1) {
+                            const restaurantId = restaurantIds[0];
+                            const restaurantStatus = restaurantStatuses.get(restaurantId);
+                            return !restaurantStatus?.isOpen;
+                          }
+                          return false;
+                        })()
+                      }
                       className="w-full btn-primary py-3 text-lg"
                     >
                       Pay with Card - ${total.toFixed(2)}
@@ -852,7 +931,18 @@ export default function Checkout() {
                   <Button
                     onClick={handlePlaceOrder}
                     className="w-full btn-primary py-3 text-lg"
-                    disabled={placeOrderMutation.isPending}
+                    disabled={
+                      placeOrderMutation.isPending || 
+                      (() => {
+                        const restaurantIds = [...new Set(cartItems.map((item) => item.restaurantId))];
+                        if (restaurantIds.length === 1) {
+                          const restaurantId = restaurantIds[0];
+                          const restaurantStatus = restaurantStatuses.get(restaurantId);
+                          return !restaurantStatus?.isOpen;
+                        }
+                        return false;
+                      })()
+                    }
                   >
                     {placeOrderMutation.isPending ? (
                       "Placing Order..."
