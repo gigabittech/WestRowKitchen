@@ -177,6 +177,27 @@ export default function Admin() {
     enabled: !!selectedRestaurant && !!user?.isAdmin,
   });
 
+  // Trash data queries
+  const { data: deletedRestaurants = [] } = useQuery({
+    queryKey: ["/api/admin/trash/restaurants"],
+    enabled: !!user?.isAdmin && activeTab === "trash",
+  });
+
+  const { data: deletedCategories = [] } = useQuery({
+    queryKey: ["/api/admin/trash/categories"],
+    enabled: !!user?.isAdmin && activeTab === "trash",
+  });
+
+  const { data: deletedMenuItems = [] } = useQuery({
+    queryKey: ["/api/admin/trash/items"],
+    enabled: !!user?.isAdmin && activeTab === "trash",
+  });
+
+  const { data: deletedCoupons = [] } = useQuery({
+    queryKey: ["/api/admin/trash/coupons"],
+    enabled: !!user?.isAdmin && activeTab === "trash",
+  });
+
   // Statistics calculation
   const stats = {
     totalRestaurants: restaurants.length,
@@ -430,6 +451,55 @@ export default function Admin() {
       queryClient.refetchQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
       setDeleteDialog({open: false, id: "", type: "", name: ""});
       toast({ title: "Success", description: "Menu item deleted successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
+  // Restore mutations for trash functionality
+  const restoreRestaurantMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("PUT", `/api/admin/trash/restaurants/${id}/restore`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/trash/restaurants"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
+      toast({ title: "Success", description: "Restaurant restored successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
+  const restoreCategoryMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("PUT", `/api/admin/trash/categories/${id}/restore`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/trash/categories"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/categories`] });
+      toast({ title: "Success", description: "Category restored successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
+  const restoreMenuItemMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("PUT", `/api/admin/trash/items/${id}/restore`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/trash/items"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/restaurants/${selectedRestaurant}/menu`] });
+      toast({ title: "Success", description: "Menu item restored successfully!" });
+    },
+    onError: handleMutationError,
+  });
+
+  const restoreCouponMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("PUT", `/api/admin/trash/coupons/${id}/restore`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/trash/coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
+      toast({ title: "Success", description: "Coupon restored successfully!" });
     },
     onError: handleMutationError,
   });
@@ -770,6 +840,7 @@ export default function Admin() {
               <TabsTrigger value="coupons" data-testid="tab-coupons">Coupons</TabsTrigger>
               <TabsTrigger value="menu" data-testid="tab-menu">Menu Items</TabsTrigger>
               <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
+              <TabsTrigger value="trash" data-testid="tab-trash">🗑️ Trash</TabsTrigger>
             </TabsList>
           </div>
 
@@ -1540,6 +1611,280 @@ export default function Admin() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="trash">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">🗑️ Trash</h2>
+                  <p className="text-muted-foreground">
+                    View and restore deleted items
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Deleted Restaurants</p>
+                        <p className="text-2xl font-bold">{deletedRestaurants.length}</p>
+                      </div>
+                      <Store className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Deleted Categories</p>
+                        <p className="text-2xl font-bold">{deletedCategories.length}</p>
+                      </div>
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Deleted Menu Items</p>
+                        <p className="text-2xl font-bold">{deletedMenuItems.length}</p>
+                      </div>
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Deleted Coupons</p>
+                        <p className="text-2xl font-bold">{deletedCoupons.length}</p>
+                      </div>
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Tabs defaultValue="restaurants" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
+                  <TabsTrigger value="categories">Categories</TabsTrigger>
+                  <TabsTrigger value="items">Menu Items</TabsTrigger>
+                  <TabsTrigger value="coupons">Coupons</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="restaurants">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Deleted Restaurants</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {deletedRestaurants.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No deleted restaurants
+                        </div>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Name</TableHead>
+                              <TableHead>Cuisine</TableHead>
+                              <TableHead>Rating</TableHead>
+                              <TableHead>Deleted</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {deletedRestaurants.map((restaurant: Restaurant) => (
+                              <TableRow key={restaurant.id}>
+                                <TableCell className="font-medium">{restaurant.name}</TableCell>
+                                <TableCell>{restaurant.cuisine}</TableCell>
+                                <TableCell>⭐ {restaurant.rating}</TableCell>
+                                <TableCell>
+                                  {restaurant.updatedAt ? new Date(restaurant.updatedAt).toLocaleDateString() : 'N/A'}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => restoreRestaurantMutation.mutate(restaurant.id)}
+                                    disabled={restoreRestaurantMutation.isPending}
+                                    data-testid={`restore-restaurant-${restaurant.id}`}
+                                  >
+                                    Restore
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="categories">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Deleted Categories</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {deletedCategories.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No deleted categories
+                        </div>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Name</TableHead>
+                              <TableHead>Description</TableHead>
+                              <TableHead>Deleted</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {deletedCategories.map((category: MenuCategory) => (
+                              <TableRow key={category.id}>
+                                <TableCell className="font-medium">{category.name}</TableCell>
+                                <TableCell>{category.description || 'N/A'}</TableCell>
+                                <TableCell>
+                                  {category.createdAt ? new Date(category.createdAt).toLocaleDateString() : 'N/A'}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => restoreCategoryMutation.mutate(category.id)}
+                                    disabled={restoreCategoryMutation.isPending}
+                                    data-testid={`restore-category-${category.id}`}
+                                  >
+                                    Restore
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="items">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Deleted Menu Items</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {deletedMenuItems.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No deleted menu items
+                        </div>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Name</TableHead>
+                              <TableHead>Price</TableHead>
+                              <TableHead>Category</TableHead>
+                              <TableHead>Deleted</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {deletedMenuItems.map((item: MenuItem) => (
+                              <TableRow key={item.id}>
+                                <TableCell className="font-medium">{item.name}</TableCell>
+                                <TableCell>${item.price}</TableCell>
+                                <TableCell>{item.categoryId}</TableCell>
+                                <TableCell>
+                                  {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'N/A'}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => restoreMenuItemMutation.mutate(item.id)}
+                                    disabled={restoreMenuItemMutation.isPending}
+                                    data-testid={`restore-item-${item.id}`}
+                                  >
+                                    Restore
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="coupons">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Deleted Coupons</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {deletedCoupons.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No deleted coupons
+                        </div>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Code</TableHead>
+                              <TableHead>Title</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>Value</TableHead>
+                              <TableHead>Deleted</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {deletedCoupons.map((coupon: Coupon) => (
+                              <TableRow key={coupon.id}>
+                                <TableCell className="font-medium">{coupon.code}</TableCell>
+                                <TableCell>{coupon.title}</TableCell>
+                                <TableCell>{coupon.discountType}</TableCell>
+                                <TableCell>
+                                  {coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `$${coupon.discountValue}`}
+                                </TableCell>
+                                <TableCell>
+                                  {coupon.createdAt ? new Date(coupon.createdAt).toLocaleDateString() : 'N/A'}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => restoreCouponMutation.mutate(coupon.id)}
+                                    disabled={restoreCouponMutation.isPending}
+                                    data-testid={`restore-coupon-${coupon.id}`}
+                                  >
+                                    Restore
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
