@@ -12,6 +12,7 @@ import Restaurants from "@/pages/restaurants";
 import FoodItemDetail from "@/pages/food-item-detail";
 import AuthPage from "@/pages/auth-page";
 import Admin from "@/pages/admin";
+import Settings from "@/pages/settings";
 import Checkout from "@/pages/checkout";
 import StripeCheckout from "@/pages/stripe-checkout";
 import Orders from "@/pages/orders";
@@ -53,6 +54,7 @@ function Router() {
       {/* Conditional routes based on authentication */}
       <Route path="/" component={isAuthenticated ? Home : Landing} />
       {isAuthenticated && <Route path="/admin" component={Admin} />}
+      {isAuthenticated && <Route path="/settings" component={Settings} />}
       {isAuthenticated && <Route path="/orders" component={Orders} />}
       {isAuthenticated && <Route path="/orders/:id" component={OrderDetail} />}
       
