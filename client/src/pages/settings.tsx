@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import NavigationHeader from "@/components/navigation-header";
@@ -18,7 +17,7 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   
@@ -203,53 +202,67 @@ export default function SettingsPage() {
       <NavigationHeader />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-orange-500 to-red-600 px-8 py-6">
-            <div className="flex items-center">
-              <Settings className="w-8 h-8 text-white mr-3" />
-              <div>
-                <h1 className="text-2xl font-bold text-white">Account Settings</h1>
-                <p className="text-orange-100">Manage your account preferences and settings</p>
-              </div>
-            </div>
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Settings className="w-8 h-8 text-primary" />
+            <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
+          </div>
+          <p className="text-gray-600">Manage your account preferences and settings</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardContent className="p-4">
+                <nav className="space-y-2">
+                  <button
+                    onClick={() => setActiveTab("profile")}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
+                      activeTab === "profile" 
+                        ? "bg-primary/10 text-primary font-medium" 
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                    data-testid="nav-profile"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Profile</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("notifications")}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
+                      activeTab === "notifications" 
+                        ? "bg-primary/10 text-primary font-medium" 
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                    data-testid="nav-notifications"
+                  >
+                    <Bell className="w-4 h-4" />
+                    <span>Notifications</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("privacy")}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
+                      activeTab === "privacy" 
+                        ? "bg-primary/10 text-primary font-medium" 
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                    data-testid="nav-privacy"
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span>Privacy</span>
+                  </button>
+                </nav>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Tab Navigation */}
-          <Tabs defaultValue="profile" className="w-full">
-            <div className="border-b border-gray-200">
-              <TabsList className="w-full justify-start h-auto p-0 bg-transparent">
-                <TabsTrigger 
-                  value="profile" 
-                  className="flex items-center px-6 py-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:text-orange-600 hover:bg-gray-50"
-                  data-testid="tab-profile"
-                >
-                  <User className="w-5 h-5 mr-2" />
-                  Profile
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="notifications" 
-                  className="flex items-center px-6 py-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:text-orange-600 hover:bg-gray-50"
-                  data-testid="tab-notifications"
-                >
-                  <Bell className="w-5 h-5 mr-2" />
-                  Notifications
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="privacy" 
-                  className="flex items-center px-6 py-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-orange-500 data-[state=active]:text-orange-600 hover:bg-gray-50"
-                  data-testid="tab-privacy"
-                >
-                  <Shield className="w-5 h-5 mr-2" />
-                  Privacy & Security
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            {/* Tab Content */}
-            <div className="p-8">
-              {/* Profile Tab */}
-              <TabsContent value="profile" className="space-y-6 mt-0">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Profile Content */}
+            {activeTab === "profile" && (
+              <div className="space-y-6">
                 {/* Profile Information */}
                 <Card>
                   <CardHeader>
@@ -386,10 +399,12 @@ export default function SettingsPage() {
                     </form>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </div>
+            )}
 
-              {/* Notifications Tab */}
-              <TabsContent value="notifications" className="space-y-6 mt-0">
+            {/* Notifications Content */}
+            {activeTab === "notifications" && (
+              <div className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Notification Preferences</CardTitle>
@@ -453,10 +468,12 @@ export default function SettingsPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </div>
+            )}
 
-              {/* Privacy Tab */}
-              <TabsContent value="privacy" className="space-y-6 mt-0">
+            {/* Privacy Content */}
+            {activeTab === "privacy" && (
+              <div className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Privacy & Security</CardTitle>
@@ -501,9 +518,9 @@ export default function SettingsPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </div>
-          </Tabs>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
