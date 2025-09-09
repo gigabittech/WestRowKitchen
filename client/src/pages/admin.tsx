@@ -752,7 +752,10 @@ export default function Admin() {
           
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button 
-              onClick={() => setRestaurantDialog({open: true, mode: "create", data: null})}
+              onClick={() => {
+                setRestaurantForm(getDefaultRestaurantForm());
+                setRestaurantDialog({open: true, mode: "create", data: null});
+              }}
               className="bg-primary hover:bg-primary/90"
               data-testid="button-add-restaurant"
             >
@@ -919,7 +922,10 @@ export default function Admin() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
-                      onClick={() => setRestaurantDialog({open: true, mode: "create", data: null})}
+                      onClick={() => {
+                        setRestaurantForm(getDefaultRestaurantForm());
+                        setRestaurantDialog({open: true, mode: "create", data: null});
+                      }}
                       className="bg-primary hover:bg-primary/90"
                       data-testid="button-add-restaurant-main"
                     >
@@ -1894,7 +1900,13 @@ export default function Admin() {
       </div>
 
       {/* Restaurant Dialog */}
-      <Dialog open={restaurantDialog.open} onOpenChange={(open) => setRestaurantDialog({...restaurantDialog, open})}>
+      <Dialog open={restaurantDialog.open} onOpenChange={(open) => {
+        setRestaurantDialog({...restaurantDialog, open});
+        if (!open) {
+          // Reset form when dialog closes
+          setRestaurantForm(getDefaultRestaurantForm());
+        }
+      }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
