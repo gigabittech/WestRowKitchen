@@ -926,21 +926,11 @@ export class DatabaseStorage implements IStorage {
     await db.delete(coupons).where(eq(coupons.id, id));
   }
 
-  // User management (duplicate function removed - using the one with isDeleted filter above)
-
-  async updateUserRole(id: string, isAdmin: boolean): Promise<User | undefined> {
-    const [updatedUser] = await db
-      .update(users)
-      .set({ isAdmin })
-      .where(eq(users.id, id))
-      .returning();
-    return updatedUser;
-  }
 
   // Admin order management
-  async getAllOrders(): Promise<Order[]> {
-    return await db.select().from(orders).orderBy(desc(orders.createdAt));
-  }
+  // async getAllOrders(): Promise<Order[]> {
+  //   return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  // }
 }
 
 export const storage = new DatabaseStorage();

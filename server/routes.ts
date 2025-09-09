@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
