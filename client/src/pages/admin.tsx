@@ -575,6 +575,9 @@ export default function Admin() {
       rating: restaurantForm.rating ? parseFloat(restaurantForm.rating) : 0,
       reviewCount: restaurantForm.reviewCount ? parseInt(restaurantForm.reviewCount) : 0,
       operatingHours: restaurantForm.operatingHours,
+      isOpen: restaurantForm.isOpen,
+      isTemporarilyClosed: restaurantForm.isTemporarilyClosed,
+      timezone: restaurantForm.timezone,
     };
     
     if (restaurantDialog.mode === "edit" && restaurantDialog.data) {
