@@ -13,7 +13,7 @@ import NavigationHeader from "@/components/navigation-header";
 import { ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_51Rg0kFPo6yeGKLGBBYGai2RqQ5jaJ48XKEC8ymrcO01HvNVWnboLtSxdmUHPwtjRTs0pUVovHULqaN8AThWsakCu00KUydrsZh');
 
 const CheckoutForm = ({ total, orderData }: { total: number; orderData: any }) => {
   const stripe = useStripe();
