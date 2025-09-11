@@ -207,6 +207,12 @@ export const sendWelcomeEmail = async (user: User) => {
 
 // Test email function
 export const testEmailConnection = async () => {
+  // Skip email verification if credentials are not provided
+  if (!process.env.BREVO_SMTP_USER || !process.env.BREVO_SMTP_PASSWORD) {
+    console.log('Email credentials not configured - skipping email service verification');
+    return false;
+  }
+  
   try {
     await transporter.verify();
     console.log('Email service is ready');
