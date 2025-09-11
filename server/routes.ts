@@ -81,8 +81,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Test email connection on startup
-  testEmailConnection();
+  // Test email connection on startup (ignore errors in development)
+  testEmailConnection().catch(() => {
+    console.log('Email service not configured - continuing without email functionality');
+  });
 
   // Auth routes are now handled in auth.ts
 
