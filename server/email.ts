@@ -163,9 +163,11 @@ export const sendOrderConfirmationEmail = async (order: any, restaurant: Restaur
     const result = await transporter.sendMail(mailOptions);
     console.log('Order confirmation email sent:', result.messageId);
     return result;
-  } catch (error) {
-    console.error('Error sending order confirmation email:', error);
-    throw error;
+  } catch (error: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('⚠️ Error sending order confirmation email:', error.message);
+    }
+    return false; // Don’t throw — continue gracefully
   }
 };
 
@@ -181,9 +183,11 @@ export const sendOrderStatusEmail = async (order: any, restaurant: Restaurant, u
     const result = await transporter.sendMail(mailOptions);
     console.log('Order status email sent:', result.messageId);
     return result;
-  } catch (error) {
-    console.error('Error sending order status email:', error);
-    throw error;
+  } catch (error: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('⚠️ Error sending order status email:', error.message);
+    }
+    return false;
   }
 };
 
@@ -199,9 +203,11 @@ export const sendWelcomeEmail = async (user: User) => {
     const result = await transporter.sendMail(mailOptions);
     console.log('Welcome email sent:', result.messageId);
     return result;
-  } catch (error) {
-    console.error('Error sending welcome email:', error);
-    throw error;
+  } catch (error: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('⚠️ Error sending welcome email:', error.message);
+    }
+    return false;
   }
 };
 
