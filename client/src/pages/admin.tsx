@@ -716,6 +716,10 @@ export default function Admin() {
     return matchesSearch && matchesStatus;
   });
 
+  //console.log(allOrders)
+
+
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -735,6 +739,25 @@ export default function Admin() {
       </div>
     );
   }
+
+
+  // Uber Eats integration function
+    function handleConfirmed(order: Order) {
+      fetch("http://localhost:5001/api/uber/delivery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          customer: order.customerName,
+          restaurantId: order.restaurantId,
+          amount: order.totalAmount
+        }),
+      })
+        .then(res => res.json())
+        .then(data => console.log("Uber delivery response:", data))
+        .catch(err => console.error("Failed to trigger Uber delivery:", err));
+    }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -1259,26 +1282,42 @@ export default function Admin() {
                           <TableCell>{restaurant?.name || "Unknown"}</TableCell>
                           <TableCell>${parseFloat(order.totalAmount).toFixed(2)}</TableCell>
                           <TableCell>
-                            <Select 
-                              value={order.status}
-                              onValueChange={(status) => updateOrderStatusMutation.mutate({ orderId: order.id, status })}
-                            >
-                              <SelectTrigger className="w-32">
-                                <SelectValue>
-                                  <Badge variant={order.status === 'cancelled' ? 'destructive' : order.status === 'delivered' ? 'default' : 'secondary'}>
-                                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                                  </Badge>
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="confirmed">Confirmed</SelectItem>
-                                <SelectItem value="preparing">Preparing</SelectItem>
-                                <SelectItem value="ready">Ready</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <Select
+                                value={order.status}
+                                onValueChange={(status) => {
+                                  updateOrderStatusMutation.mutate({ orderId: order.id, status });
+
+                                  // Call handleConfirmed only if status is set to "confirmed"
+                                  if (status === "confirmed") {
+                                    handleConfirmed(order);
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue>
+                                    <Badge
+                                      variant={
+                                        order.status === "cancelled"
+                                          ? "destructive"
+                                          : order.status === "delivered"
+                                          ? "default"
+                                          : "secondary"
+                                      }
+                                    >
+                                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                    </Badge>
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                                  <SelectItem value="preparing">Preparing</SelectItem>
+                                  <SelectItem value="ready">Ready</SelectItem>
+                                  <SelectItem value="delivered">Delivered</SelectItem>
+                                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                              </Select>
+
                           </TableCell>
                           <TableCell>
                             {new Date(order.createdAt!).toLocaleDateString()}

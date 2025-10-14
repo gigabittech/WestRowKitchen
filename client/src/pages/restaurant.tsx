@@ -143,7 +143,7 @@ export default function RestaurantPage() {
         <Link href="/">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Restaurants
+            Back to Restaurants 
           </Button>
         </Link>
       </div>
@@ -155,14 +155,18 @@ export default function RestaurantPage() {
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
-          {/* Restaurant Logo Overlay */}
-          <div className="absolute top-6 left-6 z-10">
-            <div className="w-24 h-24 bg-white rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden border-4 border-white/20">
+
+
+
+          <div className="relative z-10 h-full max-w-7xl mx-auto px-4 flex items-end pb-8">
+            {/* Restaurant Logo Overlay */}
+          <div className="absolute right-5 top-28 z-10">
+            <div className=" bg-white rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden border-2 border-white/20">
               {restaurant && (restaurant.image || logoMap[restaurant.name]) ? (
                 <img
                   src={restaurant.image ? (restaurant.image.startsWith('/assets/') || restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`) : logoMap[restaurant.name]}
                   alt={restaurant.name}
-                  className="w-16 h-16 object-contain"
+                  className="w-16 h-16 object-cover"
                   onError={(e) => {
                     // If restaurant.image fails, try logoMap, then fallback to icon
                     const target = e.target as HTMLImageElement;
@@ -184,10 +188,8 @@ export default function RestaurantPage() {
               )}
             </div>
           </div>
-
           {/* Content Container */}
-          <div className="relative z-10 h-full max-w-7xl mx-auto px-4 flex items-end pb-8">
-            <div className="text-white space-y-4 max-w-2xl">
+            <div className="text-white space-y-4  max-w-2xl">
               <div className="flex items-center space-x-3 mb-2">
                 <Badge
                   variant={restaurantStatus.isOpen ? "default" : "destructive"}
