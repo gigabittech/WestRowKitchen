@@ -30,6 +30,7 @@ import {
   insertCouponSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import Delivery from './delivery/uberDelivery/delivery';
 
 // Initialize Stripe with test keys for now
 let stripe: Stripe | null = null;
@@ -87,6 +88,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes are now handled in auth.ts
+
+
+  //added routes for Uber Eats integration
+
+  // server/index.ts or wherever your routes are
+    app.post("/api/uber/delivery", async (req, res) => {
+      Delivery(req, res);
+    });
+
 
   // Restaurant routes
   app.get("/api/restaurants", async (req, res) => {

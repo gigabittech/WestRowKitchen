@@ -104,16 +104,12 @@ export default function FoodItemDetailPage() {
           {/* Food Image */}
           <div className="relative">
             <div className="aspect-square bg-gradient-to-br from-orange-100 to-red-100 rounded-3xl flex items-center justify-center overflow-hidden shadow-2xl">
-              {foodImageSrc ? (
-                <img 
-                  src={foodImageSrc} 
+              <img 
+                  src={foodItem?.image} 
                   alt={foodItem.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full bg-white object-fit"
                   data-testid={`img-food-${foodItem.id}`}
                 />
-              ) : (
-                <Utensils className="w-24 h-24 text-primary/60" />
-              )}
             </div>
             
             {/* Action Buttons */}
