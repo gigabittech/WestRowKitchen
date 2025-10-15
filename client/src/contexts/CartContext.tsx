@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           // Restore images for items loaded from localStorage
           const cartWithImages = parsedCart.map(item => ({
             ...item,
-            image: item.image || getFoodImage(item.name) || undefined
+            image: item.image 
           }));
           setCartItems(cartWithImages);
         }

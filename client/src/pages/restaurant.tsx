@@ -23,8 +23,14 @@ import { useCart } from "@/contexts/CartContext";
 import { getFoodImage } from "@/utils/food-images";
 import { MenuItemCardSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { isRestaurantOpen, type OperatingHours } from "@/utils/restaurant-hours";
-import { getRestaurantStatus, getStatusMessage } from "@/utils/restaurant-status";
+import {
+  isRestaurantOpen,
+  type OperatingHours,
+} from "@/utils/restaurant-hours";
+import {
+  getRestaurantStatus,
+  getStatusMessage,
+} from "@/utils/restaurant-status";
 import { useRestaurantStatus } from "@/hooks/useRestaurantStatus";
 
 // Import restaurant logos
@@ -35,7 +41,15 @@ import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png"
 export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { cartItems, addToCart, updateQuantity, removeFromCart, cartItemCount, isCartOpen, setIsCartOpen } = useCart();
+  const {
+    cartItems,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    cartItemCount,
+    isCartOpen,
+    setIsCartOpen,
+  } = useCart();
 
   // Restaurant logo mapping
   const logoMap: Record<string, string> = {
@@ -58,18 +72,31 @@ export default function RestaurantPage() {
   // Get real-time restaurant status using hook
   const restaurantStatus = useRestaurantStatus(restaurant);
   const statusMessage = getStatusMessage(restaurantStatus);
-  
+
   // Set document title based on restaurant
-  useDocumentTitle(restaurant ? `${restaurant.name} - West Row Kitchen` : "Restaurant - West Row Kitchen");
+  useDocumentTitle(
+    restaurant
+      ? `${restaurant.name} - West Row Kitchen`
+      : "Restaurant - West Row Kitchen"
+  );
 
   // Update document title and meta when restaurant loads
   useEffect(() => {
+    
+
+
     if (restaurant) {
       document.title = `${restaurant.name} - West Row Kitchen`;
-      const metaDescription = document.querySelector('meta[name="description"]');
+      const metaDescription = document.querySelector(
+        'meta[name="description"]'
+      );
       if (metaDescription) {
-        metaDescription.setAttribute('content', 
-          `Order from ${restaurant.name}. ${restaurant.description || `${restaurant.cuisine} cuisine with delivery and pickup options.`}`
+        metaDescription.setAttribute(
+          "content",
+          `Order from ${restaurant.name}. ${
+            restaurant.description ||
+            `${restaurant.cuisine} cuisine with delivery and pickup options.`
+          }`
         );
       }
     }
@@ -81,11 +108,18 @@ export default function RestaurantPage() {
     enabled: !!restaurant?.id,
   });
 
+
   // Fetch menu items
   const { data: menuItems = [] } = useQuery({
     queryKey: [`/api/restaurants/${restaurant?.id}/menu`],
     enabled: !!restaurant?.id,
   });
+
+
+  // useEffect(() => {
+  //     console.log("Data", menuItems);
+  
+  // }, [menuItems]);
 
   if (restaurantLoading) {
     return (
@@ -97,7 +131,10 @@ export default function RestaurantPage() {
             <div className="h-64 bg-gray-200 rounded-3xl"></div>
             <div className="flex flex-wrap gap-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-10 bg-gray-200 rounded-full w-24"></div>
+                <div
+                  key={i}
+                  className="h-10 bg-gray-200 rounded-full w-24"
+                ></div>
               ))}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
@@ -118,7 +155,10 @@ export default function RestaurantPage() {
           <h2 className="text-2xl font-bold mb-4">Restaurant Not Found</h2>
           <p className="text-gray-600 mb-4">
             {slug
-              ? `We couldn't find a restaurant matching "${slug.replace(/-/g, " ")}"`
+              ? `We couldn't find a restaurant matching "${slug.replace(
+                  /-/g,
+                  " "
+                )}"`
               : "The restaurant you're looking for doesn't exist."}
           </p>
           <div className="space-y-2">
@@ -143,7 +183,7 @@ export default function RestaurantPage() {
         <Link href="/">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Restaurants 
+            Back to Restaurants
           </Button>
         </Link>
       </div>
@@ -155,41 +195,52 @@ export default function RestaurantPage() {
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
-
-
-
           <div className="relative z-10 h-full max-w-7xl mx-auto px-4 flex items-end pb-8">
             {/* Restaurant Logo Overlay */}
-          <div className="absolute right-5 top-28 z-10">
-            <div className=" bg-white rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden border-2 border-white/20">
-              {restaurant && (restaurant.image || logoMap[restaurant.name]) ? (
-                <img
-                  src={restaurant.image ? (restaurant.image.startsWith('/assets/') || restaurant.image.startsWith('http') ? restaurant.image : `/assets/${restaurant.image}`) : logoMap[restaurant.name]}
-                  alt={restaurant.name}
-                  className="w-16 h-16 object-cover"
-                  onError={(e) => {
-                    // If restaurant.image fails, try logoMap, then fallback to icon
-                    const target = e.target as HTMLImageElement;
-                    const fallbackLogo = logoMap[restaurant.name];
-                    if (fallbackLogo && target.src !== fallbackLogo) {
-                      target.src = fallbackLogo;
-                    } else {
-                      target.style.display = 'none';
+            <div className="absolute right-5 top-3 z-10">
+              <div className="w-24 h-24 bg-white rounded-2xl shadow-2xl flex items-center justify-center overflow-hidden border-4 border-white/20">
+                {restaurant &&
+                (restaurant.image || logoMap[restaurant.name]) ? (
+                  <img
+                    src={
+                      restaurant.image
+                        ? restaurant.image.startsWith("/assets/") ||
+                          restaurant.image.startsWith("http")
+                          ? restaurant.image
+                          : `/assets/${restaurant.image}`
+                        : logoMap[restaurant.name]
+                    }
+                    alt={restaurant.name}
+                    className="w-16 h-16 object-cover"
+                    onError={(e) => {
+                      // If restaurant.image fails, try logoMap, then fallback to icon
+                      const target = e.target as HTMLImageElement;
+                      const fallbackLogo = logoMap[restaurant.name];
+                      if (fallbackLogo && target.src !== fallbackLogo) {
+                        target.src = fallbackLogo;
+                      } else {
+                        target.style.display = 'none';
                       target.parentElement!.innerHTML = `
                         <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l-3-9m3 9l3-9"></path>
                         </svg>
                       `;
-                    }
-                  }}
-                />
-              ) : (
-                <Utensils className="w-8 h-8 text-gray-600" />
-              )}
+                      }
+                    }}
+                  />
+                ) : (
+                  <Utensils className="w-8 h-8 text-gray-600" />
+                )}
+              </div>
             </div>
-          </div>
-          {/* Content Container */}
-            <div className="text-white space-y-4  max-w-2xl">
+            {/* Content Container */}
+            <div
+              className="text-white absolute top-3 pb-5 space-y-4 max-w-2xl overflow-y-auto pr-2"
+              style={{
+                maxHeight: "16rem", // or any height you want
+                scrollbarWidth: "none",
+              }}
+            >
               <div className="flex items-center space-x-3 mb-2">
                 <Badge
                   variant={restaurantStatus.isOpen ? "default" : "destructive"}
@@ -201,11 +252,14 @@ export default function RestaurantPage() {
                 >
                   {restaurantStatus.isOpen ? "OPEN" : "CLOSED"}
                 </Badge>
-                {!restaurantStatus.isOpen && restaurantStatus.nextOpeningTime && (
-                  <div className="bg-black/30 backdrop-blur-sm rounded-full px-3 py-1 text-sm text-white">
-                    {restaurantStatus.nextOpeningTime}
-                  </div>
-                )}
+
+                {!restaurantStatus.isOpen &&
+                  restaurantStatus.nextOpeningTime && (
+                    <div className="bg-black/30 backdrop-blur-sm rounded-full px-3 py-1 text-sm text-white">
+                      {restaurantStatus.nextOpeningTime}
+                    </div>
+                  )}
+
                 <div className="flex items-center bg-black/30 backdrop-blur-sm rounded-full px-3 py-1">
                   <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
                   <span className="font-semibold text-sm">
@@ -232,9 +286,9 @@ export default function RestaurantPage() {
                   </span>
                 </div>
                 <div className="flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2" />
+                  <DollarSign className="w-5 h-5 mr-1" />
                   <span className="font-medium">
-                    ${restaurant?.deliveryFee} delivery fee
+                    {restaurant?.deliveryFee} delivery fee
                   </span>
                 </div>
               </div>
@@ -277,14 +331,16 @@ export default function RestaurantPage() {
       {/* Modern Menu Section */}
       <section className="max-w-7xl mx-auto px-4 pb-16">
         <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Our Menu</h2>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Our Menu
+          </h2>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto px-4">
             Discover our carefully crafted dishes, made with the finest
             ingredients and delivered fresh to your door.
           </p>
         </div>
 
-        {categories.length > 0 ? (
+        {categories?.length > 0 ? (
           <div className="w-full">
             {/* Category Filter Buttons - Matching /restaurants layout */}
             <div className="flex gap-2 overflow-x-auto w-full mb-12">
@@ -297,16 +353,24 @@ export default function RestaurantPage() {
               >
                 All ({menuItems.length})
               </Button>
-              
+
               {/* Category Buttons */}
               {categories.map((category: MenuCategory) => {
-                const categoryItems = menuItems.filter((item: MenuItem) => item.categoryId === category.id);
+                const categoryItems = menuItems?.filter(
+                  (item: MenuItem) => item.categoryId === category.id
+                );
                 return (
                   <Button
                     key={category.id}
-                    variant={selectedCategory === category.id?.toString() ? "default" : "outline"}
+                    variant={
+                      selectedCategory === category.id?.toString()
+                        ? "default"
+                        : "outline"
+                    }
                     size="sm"
-                    onClick={() => setSelectedCategory(category.id?.toString() || "")}
+                    onClick={() =>
+                      setSelectedCategory(category.id?.toString() || "")
+                    }
                     className="whitespace-nowrap"
                   >
                     {category.name} ({categoryItems.length})
@@ -319,45 +383,62 @@ export default function RestaurantPage() {
             <div className="mb-8">
               <div className="text-center mb-8">
                 <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                  {selectedCategory === "all" ? "All Items" : categories.find((c: MenuCategory) => c.id?.toString() === selectedCategory)?.name}
+                  {selectedCategory === "all"
+                    ? "All Items"
+                    : categories?.find(
+                        (c: MenuCategory) =>
+                          c.id?.toString() === selectedCategory
+                      )?.name}
                 </h3>
                 <p className="text-gray-600">
-                  {selectedCategory === "all" 
-                    ? `${menuItems.length} ${menuItems.length === 1 ? "item" : "items"} available`
-                    : `${menuItems.filter((item: MenuItem) => item.categoryId?.toString() === selectedCategory).length} ${menuItems.filter((item: MenuItem) => item.categoryId?.toString() === selectedCategory).length === 1 ? "item" : "items"} available`
-                  }
+                  {selectedCategory === "all"
+                    ? `${menuItems.length} ${
+                        menuItems.length === 1 ? "item" : "items"
+                      } available`
+                    : `${
+                        menuItems.filter(
+                          (item: MenuItem) =>
+                            item.categoryId?.toString() === selectedCategory
+                        ).length
+                      } ${
+                        menuItems.filter(
+                          (item: MenuItem) =>
+                            item.categoryId?.toString() === selectedCategory
+                        ).length === 1
+                          ? "item"
+                          : "items"
+                      } available`}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-              {menuItems
-                .filter((item: MenuItem) => 
-                  selectedCategory === "all" || item.categoryId?.toString() === selectedCategory
+              {menuItems?.filter(
+                  (item: MenuItem) =>
+                    selectedCategory === "all" ||
+                    item.categoryId?.toString() === selectedCategory
                 )
                 .map((item: MenuItem) => (
                   <Card
-                    key={item.id}
+                    key={item?.id}
                     className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                   >
                     <CardContent className="p-0">
                       <div className="p-8 relative">
                         {/* Item Image - Clickable for details */}
                         <Link
-                          href={`/restaurant/${createSlug(restaurant?.name || "")}/item/${item.id}`}
+                          href={`/restaurant/${createSlug(
+                            restaurant?.name || ""
+                          )}/item/${item.id}`}
                           className="cursor-pointer"
                         >
                           <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 overflow-hidden">
-                            {getFoodImage(item.name) ? (
-                              <img 
-                                src={getFoodImage(item.name)!} 
+                            <img
+                                src={item.image!}
                                 alt={item.name}
-                                className="w-full h-full object-cover rounded-2xl"
+                                className="w-full h-full object-fit rounded-2xl"
                                 data-testid={`img-food-thumb-${item.id}`}
                               />
-                            ) : (
-                              <Utensils className="w-10 h-10 text-primary" />
-                            )}
                           </div>
                         </Link>
 
@@ -365,7 +446,9 @@ export default function RestaurantPage() {
                           <div>
                             {/* Title clickable for details */}
                             <Link
-                              href={`/restaurant/${createSlug(restaurant?.name || "")}/item/${item.id}`}
+                              href={`/restaurant/${createSlug(
+                                restaurant?.name || ""
+                              )}/item/${item.id}`}
                               className="cursor-pointer"
                             >
                               <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
@@ -382,9 +465,7 @@ export default function RestaurantPage() {
                               <span className="text-3xl font-bold text-gray-900">
                                 ${parseFloat(item.price).toFixed(2)}
                               </span>
-                              <p className="text-sm text-gray-500">
-                                per item
-                              </p>
+                              <p className="text-sm text-gray-500">per item</p>
                             </div>
 
                             {item.isAvailable ? (
@@ -419,10 +500,7 @@ export default function RestaurantPage() {
                                 </div>
                               )
                             ) : (
-                              <Badge
-                                variant="secondary"
-                                className="px-4 py-2"
-                              >
+                              <Badge variant="secondary" className="px-4 py-2">
                                 Unavailable
                               </Badge>
                             )}
