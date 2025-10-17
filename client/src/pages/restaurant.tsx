@@ -41,6 +41,8 @@ import CheekysBurgersLogo from "@assets/Cheeky's Burgers Logo_1755170145363.png"
 export default function RestaurantPage() {
   const { slug } = useParams<{ slug: string }>();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedPrices, setSelectedPrices] = useState({});
+
   const {
     cartItems,
     addToCart,
@@ -82,9 +84,6 @@ export default function RestaurantPage() {
 
   // Update document title and meta when restaurant loads
   useEffect(() => {
-    
-
-
     if (restaurant) {
       document.title = `${restaurant.name} - West Row Kitchen`;
       const metaDescription = document.querySelector(
@@ -108,17 +107,15 @@ export default function RestaurantPage() {
     enabled: !!restaurant?.id,
   });
 
-
   // Fetch menu items
   const { data: menuItems = [] } = useQuery({
     queryKey: [`/api/restaurants/${restaurant?.id}/menu`],
     enabled: !!restaurant?.id,
   });
 
-
   // useEffect(() => {
   //     console.log("Data", menuItems);
-  
+
   // }, [menuItems]);
 
   if (restaurantLoading) {
@@ -211,7 +208,7 @@ export default function RestaurantPage() {
                         : logoMap[restaurant.name]
                     }
                     alt={restaurant.name}
-                    className="w-16 h-16 object-cover"
+                    className="w-full h-full object-fit"
                     onError={(e) => {
                       // If restaurant.image fails, try logoMap, then fallback to icon
                       const target = e.target as HTMLImageElement;
@@ -219,8 +216,8 @@ export default function RestaurantPage() {
                       if (fallbackLogo && target.src !== fallbackLogo) {
                         target.src = fallbackLogo;
                       } else {
-                        target.style.display = 'none';
-                      target.parentElement!.innerHTML = `
+                        target.style.display = "none";
+                        target.parentElement!.innerHTML = `
                         <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l-3-9m3 9l3-9"></path>
                         </svg>
@@ -413,7 +410,8 @@ export default function RestaurantPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-              {menuItems?.filter(
+              {menuItems
+                ?.filter(
                   (item: MenuItem) =>
                     selectedCategory === "all" ||
                     item.categoryId?.toString() === selectedCategory
@@ -433,12 +431,18 @@ export default function RestaurantPage() {
                           className="cursor-pointer"
                         >
                           <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 overflow-hidden">
-                            <img
+                            {item.image ? (
+                              <img
                                 src={item.image!}
                                 alt={item.name}
                                 className="w-full h-full object-fit rounded-2xl"
                                 data-testid={`img-food-thumb-${item.id}`}
                               />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <Utensils className="w-8 h-8 text-gray-400" />
+                              </div>
+                            )}
                           </div>
                         </Link>
 
@@ -462,10 +466,51 @@ export default function RestaurantPage() {
 
                           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                             <div className="space-y-1">
-                              <span className="text-3xl font-bold text-gray-900">
-                                ${parseFloat(item.price).toFixed(2)}
+                              <span className=" font-bold text-gray-900">
+                                {item.attributes &&
+                                item.attributes.length > 0 ? (
+                                  <>
+                                    <select
+                                      className="border rounded px-2 py-1"
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        const selected = item.attributes.find(
+                                          (attr) => attr.size === value
+                                        );
+                                        if (selected) {
+                                          setSelectedPrices((prev) => ({
+                                            ...prev,
+                                            [item.id]: selected.price, // 👈 store price per item
+                                          }));
+                                        }
+                                      }}
+                                    >
+                                      <option value="">Select size</option>
+                                      {item.attributes.map((attr, index) => (
+                                        <option key={index} value={attr.size}>
+                                          {attr.size}
+                                        </option>
+                                      ))}
+                                    </select>
+
+                                    <div className="mt-2">
+                                      {parseFloat(
+                                        selectedPrices[item.id] ?? item.price
+                                      ).toFixed(2)}{" "}
+                                      <p className="text-sm text-gray-500">
+                                        per item
+                                      </p>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    {parseFloat(item.price).toFixed(2)}{" "}
+                                    <p className="text-sm text-gray-500">
+                                      per item
+                                    </p>
+                                  </>
+                                )}
                               </span>
-                              <p className="text-sm text-gray-500">per item</p>
                             </div>
 
                             {item.isAvailable ? (
@@ -474,7 +519,23 @@ export default function RestaurantPage() {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    addToCart(item, restaurant?.name);
+                                    if (
+                                      item.attributes?.length > 0 &&
+                                      !selectedPrices[item.id]
+                                    ) {
+                                      // 👇 show a message or toast
+                                      alert(
+                                        "Please select a size before adding to cart!"
+                                      );
+                                      return;
+                                    }
+
+                                    const selectedPrice = Number(selectedPrices[item.id]);
+                                    addToCart(
+                                      item,
+                                      restaurant?.name,
+                                      selectedPrice
+                                    );
                                   }}
                                   size="lg"
                                   className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 z-10 relative"
