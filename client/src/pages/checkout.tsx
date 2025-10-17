@@ -395,7 +395,7 @@ export default function Checkout() {
       deliveryInstructions: orderForm.deliveryInstructions,
       status: "pending",
       items: restaurantItems.map((item) => ({
-        menuItemId: item.id,
+        menuItemId: item.menu_item_id,
         quantity: item.quantity,
         unitPrice: item.price.toFixed(2),
         totalPrice: (item.price * item.quantity).toFixed(2),

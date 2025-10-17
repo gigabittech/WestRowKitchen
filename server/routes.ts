@@ -522,6 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId = req.user.id;
+
         const user = await storage.getUser(userId);
 
         if (!user?.isAdmin) {
@@ -622,6 +623,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId,
       });
+
+      console.log("this is order data",orderData,items);
 
       const order = await storage.createOrder(orderData);
 
@@ -895,6 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cartItems =
         orderItems?.map((item: any) => ({
           id: item.menuItem.id,
+          menu_item_id: item.menuItem.menu_item_id,
           name: item.menuItem.name,
           price: parseFloat(item.unitPrice),
           quantity: item.quantity,
@@ -903,6 +907,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: item.menuItem.description || "",
           category: item.menuItem.category || "Unknown",
         })) || [];
+
+        console.log("Reorder cart items:", cartItems);
 
       res.json({
         success: true,

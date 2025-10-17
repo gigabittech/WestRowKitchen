@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { MenuItem } from '@shared/schema';
 import { getFoodImage } from '@/utils/food-images';
+import { v4 as uuidv4 } from "uuid";
+
 
 export interface CartItem {
   id: string;
@@ -10,11 +12,12 @@ export interface CartItem {
   restaurantId: string;
   restaurantName?: string;
   image?: string;
+  menu_item_id: string;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (item: MenuItem, restaurantName?: string) => void;
+  addToCart: (item: MenuItem, restaurantName?: string, selectedPrices?: Record<string, number>  ) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -67,17 +70,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [cartItems, isInitialized]);
 
-  const addToCart = (item: MenuItem, restaurantName?: string) => {
+
+
+  const uniqueId = uuidv4();
+
+  const addToCart = (item: MenuItem, restaurantName?: string ,selectedPrices?: Record<string, number> ) => {
     const foodImage = getFoodImage(item.name);
     const cartItem: CartItem = {
-      id: item.id,
+      id:  uuidv4(),
+      menu_item_id: item.id,
       name: item.name,
-      price: parseFloat(item.price.toString()),
+      price: selectedPrices ? parseFloat(selectedPrices?.toString()): parseFloat(item.price.toString()) ,
       quantity: 1,
       restaurantId: item.restaurantId,
       restaurantName,
       image: foodImage || item.image || undefined,
     };
+
+    // console.log('Adding to cart:', cartItem);
 
     setCartItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);

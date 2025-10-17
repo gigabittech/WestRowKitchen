@@ -94,6 +94,7 @@ export const menuItems = pgTable("menu_items", {
   isDeleted: boolean("is_deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  attributes: jsonb("attributes").$type<{ size: string; price: string }[]>(),
 });
 
 // Orders table
