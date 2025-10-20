@@ -1102,7 +1102,8 @@ export default function Admin() {
 
   // Uber Eats integration function
   function handleConfirmed(order: Order) {
-    fetch("http://localhost:5001/api/uber/delivery", {
+    // console.log(order);
+    fetch("http://localhost:5001/api/doordash/delivery", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1110,11 +1111,14 @@ export default function Admin() {
         customer: order.customerName,
         restaurantId: order.restaurantId,
         amount: order.totalAmount,
+        dropoffAddress:order.deliveryAddress,
+        dropoffPhone:order.customerPhone,
+
       }),
     })
       .then((res) => res.json())
-      .then((data) => console.log("Uber delivery response:", data))
-      .catch((err) => console.error("Failed to trigger Uber delivery:", err));
+      .then((data) => console.log("DoorDash delivery response:", data))
+      .catch((err) => console.error("Failed to trigger DoorDash delivery:", err));
   }
 
   return (

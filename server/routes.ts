@@ -5,6 +5,8 @@ import Stripe from "stripe";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import dotenv from 'dotenv';
+dotenv.config();
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import {
@@ -12,6 +14,68 @@ import {
   sendOrderStatusEmail,
   testEmailConnection,
 } from "./email";
+
+
+
+//doordash start
+
+// import axios from "axios";
+// import jwt from "jsonwebtoken";
+
+// const accessKey = {
+//   developer_id: "a91ac3f8-9fcb-423d-a185-b6d475b5d061",
+//   key_id: "119a2890-6226-469f-94e4-164e4a0509d3",
+//   signing_secret: "mUJE007e0yW-5vUku0yX5TaVV6jKhN7bNYcDlcmzNAo",
+// };
+
+// const payload = {
+//   aud: "doordash",
+//   iss: accessKey.developer_id,
+//   iat: Math.floor(Date.now() / 1000),
+//   exp: Math.floor(Date.now() / 1000) + 300,
+// };
+
+// const header = {
+//   kid: accessKey.key_id,
+//   "dd-ver": "DD-JWT-V1",
+// };
+
+// const token = jwt.sign(payload, accessKey.signing_secret, {
+//   algorithm: "HS256",
+//   header,
+// });
+
+// console.log("✅ DoorDash JWT:", token);
+
+// const body = {
+//   external_delivery_id: "D-12345",
+//   pickup_address: "901 Market Street 6th Floor San Francisco, CA 94103",
+//   pickup_business_name: "Wells Fargo SF Downtown",
+//   pickup_phone_number: "+16505555555",
+//   pickup_instructions: "Enter gate code 1234 on the callbox.",
+//   dropoff_address: "901 Market Street 6th Floor San Francisco, CA 94103",
+//   dropoff_business_name: "Wells Fargo SF Downtown",
+//   dropoff_phone_number: "+16505555555",
+//   dropoff_instructions: "Enter gate code 1234 on the callbox.",
+//   order_value: 1999,
+// };
+
+// axios
+//   .post("https://openapi.doordash.com/drive/v2/deliveries/D-12345", body, {
+//     headers: {
+//       Authorization: 'Bearer ' + token,
+//       'Content-Type': 'application/json',
+//     },
+//   })
+//   .then((res) => console.log("🚀 Success:", res.data))
+//   .catch((err) => {
+//     console.log("❌ Error:", err.response?.status, err.response?.data);
+//   });
+
+
+
+
+//doordash end
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req: any, res: any, next: any) => {
@@ -30,7 +94,7 @@ import {
   insertCouponSchema,
 } from "@shared/schema";
 import { z } from "zod";
-import Delivery from './delivery/uberDelivery/delivery';
+import Delivery from './delivery/doordashDelivery/delivery';
 
 // Initialize Stripe with test keys for now
 let stripe: Stripe | null = null;
@@ -92,11 +156,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   //added routes for Uber Eats integration
 
-  // server/index.ts or wherever your routes are
-    app.post("/api/uber/delivery", async (req, res) => {
-      Delivery(req, res);
-    });
 
+// Register DoorDash delivery route
+app.post('/api/doordash/delivery', (req, res) => {
+  Delivery(req, res); // call the function
+});
 
   // Restaurant routes
   app.get("/api/restaurants", async (req, res) => {
