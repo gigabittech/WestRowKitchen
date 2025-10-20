@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,28 +7,59 @@ import { Badge } from "@/components/ui/badge";
 import NavigationHeader from "@/components/navigation-header";
 
 import Footer from "@/components/footer";
-import { ArrowLeft, Star, Clock, DollarSign, Plus, Minus, Heart, Share2, Utensils } from "lucide-react";
+import {
+  ArrowLeft,
+  Star,
+  Clock,
+  DollarSign,
+  Plus,
+  Minus,
+  Heart,
+  Share2,
+  Utensils,
+} from "lucide-react";
 import type { Restaurant, MenuItem } from "@shared/schema";
 import { slugMatches } from "@/utils/slug";
 import { getFoodImage } from "@/utils/food-images";
 import { useCart } from "@/contexts/CartContext";
 import { FoodDetailSkeleton } from "@/components/skeleton-loader";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { getRestaurantStatus, getStatusMessage } from "@/utils/restaurant-status";
+import {
+  getRestaurantStatus,
+  getStatusMessage,
+} from "@/utils/restaurant-status";
 import { useRestaurantStatus } from "@/hooks/useRestaurantStatus";
 
 export default function FoodItemDetailPage() {
-  const { restaurantSlug, itemId } = useParams<{ restaurantSlug: string; itemId: string }>();
+  const { restaurantSlug, itemId } = useParams<{
+    restaurantSlug: string;
+    itemId: string;
+  }>();
   const [quantity, setQuantity] = useState(1);
   const [isFavorited, setIsFavorited] = useState(false);
-  const { cartItems, addToCart, updateQuantity, removeFromCart, cartItemCount, isCartOpen, setIsCartOpen } = useCart();
+  const {
+    cartItems,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    cartItemCount,
+    isCartOpen,
+    setIsCartOpen,
+  } = useCart();
+
+  const [selectedPrices, setSelectedPrices] = useState({});
+  console.log(selectedPrices);
 
   // Fetch all restaurants to find the one by slug
-  const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
+  const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<
+    Restaurant[]
+  >({
     queryKey: ["/api/restaurants"],
   });
 
-  const restaurant = restaurants.find(r => slugMatches(restaurantSlug || '', r.name));
+  const restaurant = restaurants.find((r) =>
+    slugMatches(restaurantSlug || "", r.name)
+  );
 
   // Fetch menu items for the restaurant
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
@@ -38,14 +69,14 @@ export default function FoodItemDetailPage() {
 
   const foodItem = menuItems.find((item: MenuItem) => item.id === itemId);
   const isLoading = restaurantsLoading || menuLoading;
-  
+
   // Get real-time restaurant status using hook
   const restaurantStatus = useRestaurantStatus(restaurant);
   const statusMessage = getStatusMessage(restaurantStatus);
-  
+
   // Set document title based on food item and restaurant
   useDocumentTitle(
-    foodItem && restaurant 
+    foodItem && restaurant
       ? `${foodItem.name} - ${restaurant.name} - West Row Kitchen`
       : "Food Item - West Row Kitchen"
   );
@@ -56,6 +87,21 @@ export default function FoodItemDetailPage() {
       addToCart(item, restaurant?.name);
     }
   };
+
+  const [selectedSize, setSelectedSize] = useState("");
+
+  if(foodItem){
+    useEffect(() => {
+    if (foodItem?.attributes?.length > 0) {
+      const first = foodItem.attributes[0];
+      setSelectedSize(first.size); // auto-select first option
+      setSelectedPrices((prev) => ({
+        ...prev,
+        [foodItem.id]: first.price,
+      }));
+    }
+  }, [foodItem]);
+  }
 
   if (isLoading) {
     return <FoodDetailSkeleton />;
@@ -85,7 +131,6 @@ export default function FoodItemDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      
       <NavigationHeader />
 
       {/* Back Button */}
@@ -104,14 +149,14 @@ export default function FoodItemDetailPage() {
           {/* Food Image */}
           <div className="relative">
             <div className="aspect-square bg-gradient-to-br from-orange-100 to-red-100 rounded-3xl flex items-center justify-center overflow-hidden shadow-2xl">
-              <img 
-                  src={foodItem?.image} 
-                  alt={foodItem.name}
-                  className="w-full h-full bg-white object-fit"
-                  data-testid={`img-food-${foodItem.id}`}
-                />
+              <img
+                src={foodItem?.image}
+                alt={foodItem.name}
+                className="w-full h-full bg-white object-fit"
+                data-testid={`img-food-${foodItem.id}`}
+              />
             </div>
-            
+
             {/* Action Buttons */}
             <div className="absolute top-4 right-4 flex space-x-2">
               <Button
@@ -120,7 +165,11 @@ export default function FoodItemDetailPage() {
                 className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
                 onClick={() => setIsFavorited(!isFavorited)}
               >
-                <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+                <Heart
+                  className={`w-5 h-5 ${
+                    isFavorited ? "fill-red-500 text-red-500" : "text-gray-600"
+                  }`}
+                />
               </Button>
               <Button
                 variant="secondary"
@@ -144,19 +193,27 @@ export default function FoodItemDetailPage() {
                   <span>Ready in 15-20 min</span>
                 </div>
               </div>
-              
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">{foodItem.name}</h1>
+
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                {foodItem.name}
+              </h1>
               <p className="text-xl text-gray-600 leading-relaxed mb-6">
                 {foodItem.description}
               </p>
-              
+
               <div className="flex items-center space-x-4 mb-6">
                 <span className="text-4xl font-bold text-gray-900">
-                  ${parseFloat(foodItem.price).toFixed(2)}
+                  $
+                  {selectedPrices[foodItem.id] !== undefined
+                    ? Number(selectedPrices[foodItem.id]).toFixed(2)
+                    : parseFloat(foodItem.price).toFixed(2)}
                 </span>
+
                 <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
                   <Star className="w-4 h-4 text-yellow-500 fill-current mr-1" />
-                  <span className="text-sm font-medium">4.8 (127+ reviews)</span>
+                  <span className="text-sm font-medium">
+                    4.8 (127+ reviews)
+                  </span>
                 </div>
               </div>
             </div>
@@ -167,26 +224,33 @@ export default function FoodItemDetailPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">From {restaurant.name}</h3>
-                      <Badge 
-                        variant={restaurantStatus.isOpen ? "default" : "destructive"}
+                      <h3 className="font-semibold text-lg">
+                        From {restaurant.name}
+                      </h3>
+                      <Badge
+                        variant={
+                          restaurantStatus.isOpen ? "default" : "destructive"
+                        }
                         className="text-xs"
                       >
                         {restaurantStatus.isOpen ? "OPEN" : "CLOSED"}
                       </Badge>
                     </div>
-                    <p className="text-gray-600 text-sm">{restaurant.description}</p>
-                    {!restaurantStatus.isOpen && restaurantStatus.nextOpeningTime && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {restaurantStatus.nextOpeningTime}
-                      </p>
-                    )}
+                    <p className="text-gray-600 text-sm">
+                      {restaurant.description}
+                    </p>
+                    {!restaurantStatus.isOpen &&
+                      restaurantStatus.nextOpeningTime && (
+                        <p className="text-xs text-red-600 mt-1">
+                          {restaurantStatus.nextOpeningTime}
+                        </p>
+                      )}
                   </div>
-                  <Link href={`/restaurant/${restaurantSlug}`}>
+                  {/* <Link href={`/restaurant/${restaurantSlug}`}>
                     <Button variant="outline" size="sm">
                       View Restaurant
                     </Button>
-                  </Link>
+                  </Link> */}
                 </div>
               </CardContent>
             </Card>
@@ -194,7 +258,7 @@ export default function FoodItemDetailPage() {
             {/* Quantity & Add to Cart */}
             {foodItem.isAvailable && (
               <div className="space-y-4">
-                <div className="flex items-center space-x-4">
+                {/* <div className="flex items-center space-x-4">
                   <span className="font-medium text-gray-900">Quantity:</span>
                   <div className="flex items-center space-x-3">
                     <Button
@@ -206,7 +270,9 @@ export default function FoodItemDetailPage() {
                     >
                       <Minus className="w-4 h-4" />
                     </Button>
-                    <span className="text-xl font-semibold w-8 text-center">{quantity}</span>
+                    <span className="text-xl font-semibold w-8 text-center">
+                      {quantity}
+                    </span>
                     <Button
                       variant="outline"
                       size="icon"
@@ -216,18 +282,110 @@ export default function FoodItemDetailPage() {
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
-                </div>
+                </div> */}
 
                 {restaurantStatus.isOpen ? (
-                  <Button
-                    onClick={() => handleAddToCart(foodItem, quantity)}
-                    size="lg"
-                    className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200"
-                    data-testid={`button-add-to-cart-${foodItem.id}`}
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add {quantity} to Cart - ${(parseFloat(foodItem.price) * quantity).toFixed(2)}
-                  </Button>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div className="space-y-1">
+                      <span className=" font-bold text-gray-900">
+                        {foodItem.attributes &&
+                        foodItem.attributes.length > 0 ? (
+                          <>
+                            <select
+                              className="border rounded px-2 py-1"
+                              value={selectedSize}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setSelectedSize(value);
+
+                                const selected = foodItem.attributes.find(
+                                  (attr) => attr.size === value
+                                );
+
+                                if (selected) {
+                                  setSelectedPrices((prev) => ({
+                                    ...prev,
+                                    [foodItem.id]: selected.price,
+                                  }));
+                                }
+                              }}
+                            >
+                              {foodItem.attributes.map((attr, index) => (
+                                <option key={index} value={attr.size}>
+                                  {attr.size}''
+                                </option>
+                              ))}
+                            </select>
+                            Select size
+                            <div className="mt-2">
+                              {parseFloat(
+                                selectedPrices[foodItem.id] ?? foodItem.price
+                              ).toFixed(2)}{" "}
+                              <span className="text-sm text-gray-500">per item</span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {parseFloat(foodItem.price).toFixed(2)}{" "}
+                            <span className="text-sm text-gray-500">per item</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+
+                    {foodItem.isAvailable ? (
+                      restaurantStatus.isOpen ? (
+                        <Button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (
+                              foodItem.attributes?.length > 0 &&
+                              !selectedPrices[foodItem.id]
+                            ) {
+                              // 👇 show a message or toast
+                              alert(
+                                "Please select a size before adding to cart!"
+                              );
+                              return;
+                            }
+
+                            const selectedPrice = Number(
+                              selectedPrices[foodItem.id]
+                            ); // convert to number
+                            const updatedPrice = selectedPrice * quantity;
+
+                            addToCart(foodItem, restaurant?.name, updatedPrice);
+                          }}
+                          size="lg"
+                          className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 z-10 relative"
+                          data-testid={`button-add-to-cart-${foodItem.id}`}
+                        >
+                          <Plus className="w-5 h-5 mr-2" />
+                          Add to Cart
+                        </Button>
+                      ) : (
+                        <div className="text-center space-y-2 z-10 relative">
+                          <Button
+                            disabled
+                            size="lg"
+                            className="bg-gray-400 text-gray-600 px-8 py-3 rounded-2xl font-semibold cursor-not-allowed"
+                          >
+                            Restaurant Closed
+                          </Button>
+                          {restaurantStatus.nextOpeningTime && (
+                            <p className="text-xs text-gray-500">
+                              {restaurantStatus.nextOpeningTime}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    ) : (
+                      <Badge variant="secondary" className="px-4 py-2">
+                        Unavailable
+                      </Badge>
+                    )}
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     <Button
@@ -291,7 +449,8 @@ export default function FoodItemDetailPage() {
                     <span className="font-medium text-sm">Sarah M.</span>
                   </div>
                   <p className="text-gray-600 text-sm">
-                    "Absolutely delicious! Fresh ingredients and perfect portion size."
+                    "Absolutely delicious! Fresh ingredients and perfect portion
+                    size."
                   </p>
                 </div>
                 <div className="border-b border-gray-100 pb-4">

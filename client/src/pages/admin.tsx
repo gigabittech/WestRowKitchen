@@ -102,8 +102,16 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
+  //addribute related data
+
+  const [haveAttributes, setHaveAttributes] = useState(false);
+  const addAttribute = () => {
+    setHaveAttributes(!haveAttributes);
+  };
+
   // State management
   const [activeTab, setActiveTab] = useState("overview");
+
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -177,6 +185,7 @@ export default function Admin() {
     preparationTime: "",
     image: "",
     isAvailable: true,
+    attributes: [],
   });
 
   const [categoryForm, setCategoryForm] = useState({
@@ -330,7 +339,6 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: (updatedRestaurant) => {
-      console.log("Restaurant updated successfully:", updatedRestaurant);
       // Invalidate all restaurant-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/restaurants"] });
       queryClient.invalidateQueries({ queryKey: ["/api/search"] });
@@ -522,6 +530,7 @@ export default function Admin() {
 
   const createMenuItemMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("Creating menu item with data:", data);
       const response = await apiRequest(
         "POST",
         `/api/restaurants/${selectedRestaurant}/menu`,
@@ -547,6 +556,7 @@ export default function Admin() {
         preparationTime: "",
         image: "",
         isAvailable: true,
+        attributes: [],
       });
       toast({
         title: "Success",
@@ -579,6 +589,7 @@ export default function Admin() {
         preparationTime: "",
         image: "",
         isAvailable: true,
+        attributes: [],
       });
       toast({
         title: "Success",
@@ -587,6 +598,50 @@ export default function Admin() {
     },
     onError: handleMutationError,
   });
+
+  //add attribute related functions end
+
+  const toggleAttributes = () => {
+    setHaveAttributes((prev) => {
+      const next = !prev;
+      // If enabling attributes and no attributes yet, add one row
+      if (next && menuItemForm.attributes.length === 0) {
+        setMenuItemForm((p) => ({
+          ...p,
+          attributes: [{ size: "", price: "" }],
+        }));
+      }
+      return next;
+    });
+  };
+
+  const addAttributeRow = () => {
+    setMenuItemForm((prev) => ({
+      ...prev,
+      attributes: [...prev.attributes, { size: "", price: "" }],
+    }));
+  };
+
+  const updateAttributeRow = (
+    index: number,
+    field: "size" | "price",
+    value: string
+  ) => {
+    setMenuItemForm((prev) => {
+      const updated = [...prev.attributes];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, attributes: updated };
+    });
+  };
+
+  const removeAttributeRow = (index: number) => {
+    setMenuItemForm((prev) => ({
+      ...prev,
+      attributes: prev.attributes.filter((_, i) => i !== index),
+    }));
+  };
+
+  //add attribute related functions end
 
   const createCategoryMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -1411,7 +1466,7 @@ export default function Admin() {
                                         : `/assets/${restaurant.image}`
                                     }
                                     alt={`${restaurant.name} logo`}
-                                    className="w-full h-full object-cover rounded-lg"
+                                    className="w-full h-full object-contain rounded-lg"
                                     onError={(e) => {
                                       const target =
                                         e.target as HTMLImageElement;
@@ -2128,7 +2183,7 @@ export default function Admin() {
                                   </>
                                 ) : (
                                   // Placeholder if no image
-                                 <Pizza className="w-24 h-24 text-gray-400" />
+                                  <Pizza className="w-24 h-24 text-gray-400" />
                                 )}
                               </div>
 
@@ -2176,6 +2231,7 @@ export default function Admin() {
                                             "",
                                           image: item.image || "",
                                           isAvailable: item.isAvailable ?? true,
+                                          attributes: item.attributes || [],
                                         });
                                         setMenuItemDialog({
                                           open: true,
@@ -3643,7 +3699,7 @@ export default function Admin() {
                 data-testid="input-menu-item-name"
               />
             </div>
-            <div>
+            {/* <div>
               <Label htmlFor="price">Price</Label>
               <Input
                 id="price"
@@ -3659,7 +3715,114 @@ export default function Admin() {
                 required
                 data-testid="input-menu-item-price"
               />
+            </div> */}
+
+            {/* for adding attributes dynamically */}
+
+            {menuItemForm.attributes.length != 0 ? (
+              <></>
+            ) : (
+              <div>
+                <div>
+                  <Label htmlFor="price">Price</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={menuItemForm.price}
+                    onChange={(e) =>
+                      setMenuItemForm((prev) => ({
+                        ...prev,
+                        price: e.target.value,
+                      }))
+                    }
+                    required
+                    data-testid="input-menu-item-price"
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="border mt-2 text-sm p-2 rounded"
+                  onClick={addAttributeRow}
+                >
+                  Add Variable Price
+                </button>
+              </div>
+            )}
+
+            {/* Attribute toggle */}
+            <div className="flex gap-2 justify-between">
+              {menuItemForm.attributes.length == 0 ? (
+                <></>
+              ) : (
+                <button
+                  type="button"
+                  className="border mt-6 text-sm p-2 rounded"
+                  onClick={addAttributeRow}
+                >
+                  + Add Row
+                </button>
+              )}
             </div>
+
+            {/* Attribute rows */}
+
+            <div className="col-span-2 space-y-3">
+              {menuItemForm.attributes.map((attr, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-6 gap-2 items-end border rounded p-3"
+                >
+                  <div className="col-span-2">
+                    <Label htmlFor={`attr-size-${idx}`}>Size</Label>
+                    <Input
+                      id={`attr-size-${idx}`}
+                      value={attr.size}
+                      onChange={(e) =>
+                        updateAttributeRow(idx, "size", e.target.value)
+                      }
+                      placeholder={`e.g. 7`}
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label htmlFor={`attr-price-${idx}`}>Price</Label>
+                    <Input
+                      id={`attr-price-${idx}`}
+                      type="number"
+                      step="0.01"
+                      value={attr.price} // value from the attribute row
+                      placeholder="12.00"
+                      onChange={(e) => {
+                        const newPrice = e.target.value;
+
+                        // Update this attribute in the array
+                        updateAttributeRow(idx, "price", newPrice);
+
+                        // Optional: if this is the first attribute, also update the main price
+                        if (idx === 0) {
+                          setMenuItemForm((prev) => ({
+                            ...prev,
+                            price: newPrice,
+                          }));
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="col-span-2 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => removeAttributeRow(idx)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <div className="col-span-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
