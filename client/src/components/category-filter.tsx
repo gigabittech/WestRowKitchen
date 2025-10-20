@@ -15,7 +15,7 @@ export default function CategoryFilter({ categories, selectedCuisine, onCuisineC
   return (
     <section className="py-8 bg-neutral">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-center mb-8">Cuisines from all over the World</h2>
+        <h2 className="text-3xl font-bold text-center mb-8">Cuisine We have in our Kitchen</h2>
         
         {/* Filter Buttons */}
         <div className="flex flex-wrap justify-center gap-4 mb-8">

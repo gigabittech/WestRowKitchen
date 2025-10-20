@@ -12,7 +12,7 @@ export const queryKeys = {
   
   // Restaurants related queries
   restaurants: {
-    all: () => ["/api/restaurants"] as const,
+    all: (cuisine?: string) => cuisine ? ["/api/restaurants", cuisine] as const : ["/api/restaurants"] as const,
     byId: (restaurantId: string) => ["/api/restaurants", restaurantId] as const,
     menu: (restaurantId: string) => ["/api/restaurants", restaurantId, "menu"] as const,
     stats: (restaurantId: string) => ["/api/restaurants", restaurantId, "stats"] as const,

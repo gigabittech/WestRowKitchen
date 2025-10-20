@@ -127,6 +127,11 @@ export default function Admin() {
     name: "",
   });
 
+  // Delivery management state
+  const [deliveryFilter, setDeliveryFilter] = useState<string>("all");
+  const [deliverySearchTerm, setDeliverySearchTerm] = useState("");
+  const [selectedDeliveryProvider, setSelectedDeliveryProvider] = useState<string>("all");
+
   // Helper function to get default restaurant form
   const getDefaultRestaurantForm = () => ({
     name: "",
@@ -295,6 +300,17 @@ export default function Admin() {
   const { data: deletedCoupons = [] } = useQuery({
     queryKey: ["/api/admin/trash/coupons"],
     enabled: !!user?.isAdmin && activeTab === "trash",
+  });
+
+  // Delivery management data fetching
+  const { data: deliveryProviders = [] } = useQuery({
+    queryKey: ["/api/delivery/providers"],
+    enabled: !!user?.isAdmin && activeTab === "delivery",
+  });
+
+  const { data: deliveryData = [] } = useQuery({
+    queryKey: ["/api/delivery/status"],
+    enabled: !!user?.isAdmin && activeTab === "delivery",
   });
 
   // Statistics calculation
@@ -1100,21 +1116,10 @@ export default function Admin() {
     );
   }
 
-  // Uber Eats integration function
+  // Order confirmation handler - delivery is now handled automatically by the backend
   function handleConfirmed(order: Order) {
-    fetch("http://localhost:5001/api/uber/delivery", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: order.id,
-        customer: order.customerName,
-        restaurantId: order.restaurantId,
-        amount: order.totalAmount,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => console.log("Uber delivery response:", data))
-      .catch((err) => console.error("Failed to trigger Uber delivery:", err));
+    console.log("Order confirmed:", order.id);
+    // Delivery will be automatically triggered by the backend when order status is updated
   }
 
   return (
@@ -1266,6 +1271,9 @@ export default function Admin() {
               </TabsTrigger>
               <TabsTrigger value="orders" data-testid="tab-orders">
                 Orders
+              </TabsTrigger>
+              <TabsTrigger value="delivery" data-testid="tab-delivery">
+                Delivery
               </TabsTrigger>
               <TabsTrigger value="coupons" data-testid="tab-coupons">
                 Coupons
@@ -1900,6 +1908,182 @@ export default function Admin() {
                     })}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Delivery Management */}
+          <TabsContent value="delivery">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col gap-3">
+                  <CardTitle>Delivery Management</CardTitle>
+                  <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search deliveries..."
+                        value={deliverySearchTerm}
+                        onChange={(e) => setDeliverySearchTerm(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Select value={deliveryFilter} onValueChange={setDeliveryFilter}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="accepted">Accepted</SelectItem>
+                          <SelectItem value="picked_up">Picked Up</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={selectedDeliveryProvider} onValueChange={setSelectedDeliveryProvider}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Providers</SelectItem>
+                          <SelectItem value="doordash">DoorDash</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Delivery Providers Status */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Available Providers</p>
+                            <p className="text-2xl font-bold">{deliveryProviders.length}</p>
+                          </div>
+                          <Truck className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Active Deliveries</p>
+                            <p className="text-2xl font-bold">
+                              {deliveryData.filter((d: any) => d.status === 'pending' || d.status === 'accepted' || d.status === 'picked_up').length}
+                            </p>
+                          </div>
+                          <Package className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Completed Today</p>
+                            <p className="text-2xl font-bold">
+                              {deliveryData.filter((d: any) => d.status === 'delivered' && new Date(d.updatedAt).toDateString() === new Date().toDateString()).length}
+                            </p>
+                          </div>
+                          <CheckCircle className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Delivery Table */}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Provider</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Driver</TableHead>
+                        <TableHead>Estimated Delivery</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {deliveryData.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8">
+                            <div className="flex flex-col items-center gap-2">
+                              <Truck className="h-8 w-8 text-muted-foreground" />
+                              <p className="text-muted-foreground">No deliveries found</p>
+                              <p className="text-sm text-muted-foreground">
+                                Deliveries will appear here when orders are confirmed
+                              </p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        deliveryData.map((delivery: any) => (
+                          <TableRow key={delivery.id}>
+                            <TableCell className="font-medium">
+                              #{delivery.orderId?.slice(-8) || 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="capitalize">
+                                {delivery.provider || 'Unknown'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={
+                                  delivery.status === 'delivered' ? 'default' :
+                                  delivery.status === 'cancelled' ? 'destructive' :
+                                  delivery.status === 'pending' ? 'secondary' :
+                                  'outline'
+                                }
+                              >
+                                {delivery.status?.replace('_', ' ') || 'Unknown'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {delivery.driverInfo ? (
+                                <div className="text-sm">
+                                  <p className="font-medium">{delivery.driverInfo.name}</p>
+                                  <p className="text-muted-foreground">{delivery.driverInfo.phone}</p>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">Not assigned</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {delivery.estimatedDeliveryTime ? 
+                                new Date(delivery.estimatedDeliveryTime).toLocaleString() : 
+                                'N/A'
+                              }
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                {delivery.trackingUrl && (
+                                  <Button size="sm" variant="outline" asChild>
+                                    <a href={delivery.trackingUrl} target="_blank" rel="noopener noreferrer">
+                                      <MapPin className="h-3 w-3" />
+                                    </a>
+                                  </Button>
+                                )}
+                                {delivery.status === 'pending' && (
+                                  <Button size="sm" variant="destructive">
+                                    Cancel
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

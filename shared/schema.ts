@@ -177,6 +177,47 @@ export const couponUsage = pgTable("coupon_usage", {
   usedAt: timestamp("used_at").defaultNow(),
 });
 
+// Deliveries table for tracking DoorDash deliveries
+export const deliveries = pgTable("deliveries", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: uuid("order_id").references(() => orders.id, { onDelete: 'cascade' }).notNull(),
+  externalDeliveryId: varchar("external_delivery_id", { length: 255 }).notNull(), // Our order ID sent to DoorDash
+  doordashDeliveryId: varchar("doordash_delivery_id", { length: 255 }).notNull(), // DoorDash's internal delivery ID
+  status: varchar("status", { length: 50 }).notNull().default("pending"),
+  pickupAddress: text("pickup_address").notNull(),
+  dropoffAddress: text("dropoff_address").notNull(),
+  pickupBusinessName: varchar("pickup_business_name", { length: 255 }),
+  dropoffBusinessName: varchar("dropoff_business_name", { length: 255 }),
+  pickupPhoneNumber: varchar("pickup_phone_number", { length: 20 }),
+  dropoffPhoneNumber: varchar("dropoff_phone_number", { length: 20 }),
+  pickupInstructions: text("pickup_instructions"),
+  dropoffInstructions: text("dropoff_instructions"),
+  orderValue: integer("order_value").notNull(), // Value in cents
+  driverName: varchar("driver_name", { length: 255 }),
+  driverPhone: varchar("driver_phone", { length: 20 }),
+  driverVehicleInfo: text("driver_vehicle_info"),
+  trackingUrl: text("tracking_url"),
+  pickupTime: timestamp("pickup_time"), // Estimated pickup time
+  dropoffTime: timestamp("dropoff_time"), // Estimated delivery time
+  actualPickupTime: timestamp("actual_pickup_time"),
+  actualDeliveryTime: timestamp("actual_delivery_time"),
+  updatedAt: timestamp("updated_at"), // Last update from DoorDash
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAtSystem: timestamp("updated_at_system").defaultNow(),
+});
+
+// Delivery status history for tracking changes
+export const deliveryStatusHistory = pgTable("delivery_status_history", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  deliveryId: uuid("delivery_id").references(() => deliveries.id, { onDelete: 'cascade' }).notNull(),
+  status: varchar("status", { length: 50 }).notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
+  driverName: varchar("driver_name", { length: 255 }),
+  driverPhone: varchar("driver_phone", { length: 20 }),
+  notes: text("notes"),
+  source: varchar("source", { length: 20 }).default("system"), // 'system', 'doordash_webhook', 'manual'
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   restaurants: many(restaurants),
@@ -225,6 +266,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     references: [restaurants.id],
   }),
   orderItems: many(orderItems),
+  deliveries: many(deliveries),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -265,6 +307,21 @@ export const couponUsageRelations = relations(couponUsage, ({ one }) => ({
   order: one(orders, {
     fields: [couponUsage.orderId],
     references: [orders.id],
+  }),
+}));
+
+export const deliveriesRelations = relations(deliveries, ({ one, many }) => ({
+  order: one(orders, {
+    fields: [deliveries.orderId],
+    references: [orders.id],
+  }),
+  statusHistory: many(deliveryStatusHistory),
+}));
+
+export const deliveryStatusHistoryRelations = relations(deliveryStatusHistory, ({ one }) => ({
+  delivery: one(deliveries, {
+    fields: [deliveryStatusHistory.deliveryId],
+    references: [deliveries.id],
   }),
 }));
 
@@ -352,3 +409,7 @@ export type Coupon = typeof coupons.$inferSelect;
 export type InsertCoupon = z.infer<typeof insertCouponSchema>;
 export type CouponUsage = typeof couponUsage.$inferSelect;
 export type InsertCouponUsage = z.infer<typeof insertCouponUsageSchema>;
+export type Delivery = typeof deliveries.$inferSelect;
+export type InsertDelivery = typeof deliveries.$inferInsert;
+export type DeliveryStatusHistory = typeof deliveryStatusHistory.$inferSelect;
+export type InsertDeliveryStatusHistory = typeof deliveryStatusHistory.$inferInsert;

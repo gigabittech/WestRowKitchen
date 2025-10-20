@@ -8,6 +8,8 @@ import {
   promotions,
   coupons,
   couponUsage,
+  deliveries,
+  deliveryStatusHistory,
   type User,
   type InsertUser,
   type Restaurant,
@@ -26,6 +28,10 @@ import {
   type InsertCoupon,
   type CouponUsage,
   type InsertCouponUsage,
+  type Delivery,
+  type InsertDelivery,
+  type DeliveryStatusHistory,
+  type InsertDeliveryStatusHistory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, like, and, sql } from "drizzle-orm";
@@ -108,6 +114,14 @@ export interface IStorage {
     totalRevenue: string;
     averageOrderValue: string;
   }>;
+
+  // Delivery operations
+  createDelivery(delivery: InsertDelivery): Promise<Delivery>;
+  getAllDeliveries(): Promise<Delivery[]>;
+  getDeliveryById(id: string): Promise<Delivery | undefined>;
+  getDeliveriesByOrderId(orderId: string): Promise<Delivery[]>;
+  updateDeliveryStatus(id: string, status: string, driverInfo?: any): Promise<Delivery>;
+  addDeliveryStatusHistory(deliveryId: string, status: string, driverInfo?: any, notes?: string): Promise<DeliveryStatusHistory>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -203,14 +217,17 @@ export class DatabaseStorage implements IStorage {
   // Restaurant operations
   async getRestaurants(cuisine?: string): Promise<Restaurant[]> {
     if (cuisine && cuisine !== 'ALL') {
-      return await db
+      console.log(`Filtering restaurants by cuisine: ${cuisine}`);
+      const result = await db
         .select()
         .from(restaurants)
         .where(and(
-          like(restaurants.cuisine, `%${cuisine}%`),
+          eq(restaurants.cuisine, cuisine),
           eq(restaurants.isDeleted, false)
         ))
         .orderBy(desc(restaurants.rating));
+      console.log(`Found ${result.length} restaurants for cuisine: ${cuisine}`);
+      return result;
     }
     
     return await db
@@ -931,6 +948,77 @@ export class DatabaseStorage implements IStorage {
   // async getAllOrders(): Promise<Order[]> {
   //   return await db.select().from(orders).orderBy(desc(orders.createdAt));
   // }
+
+  // Delivery operations
+  async createDelivery(delivery: InsertDelivery): Promise<Delivery> {
+    const [newDelivery] = await db
+      .insert(deliveries)
+      .values(delivery)
+      .returning();
+    return newDelivery;
+  }
+
+  async getAllDeliveries(): Promise<Delivery[]> {
+    return await db
+      .select()
+      .from(deliveries)
+      .orderBy(desc(deliveries.createdAt));
+  }
+
+  async getDeliveryById(id: string): Promise<Delivery | undefined> {
+    const [delivery] = await db
+      .select()
+      .from(deliveries)
+      .where(eq(deliveries.id, id))
+      .limit(1);
+    return delivery;
+  }
+
+  async getDeliveriesByOrderId(orderId: string): Promise<Delivery[]> {
+    return await db
+      .select()
+      .from(deliveries)
+      .where(eq(deliveries.orderId, orderId))
+      .orderBy(desc(deliveries.createdAt));
+  }
+
+  async updateDeliveryStatus(id: string, status: string, driverInfo?: any): Promise<Delivery> {
+    const updateData: any = {
+      status,
+      updatedAt: new Date(),
+    };
+
+    if (driverInfo) {
+      updateData.driverName = driverInfo.name;
+      updateData.driverPhone = driverInfo.phone;
+      updateData.driverVehicleInfo = driverInfo.vehicleInfo;
+    }
+
+    const [updated] = await db
+      .update(deliveries)
+      .set(updateData)
+      .where(eq(deliveries.id, id))
+      .returning();
+
+    // Add status history
+    await this.addDeliveryStatusHistory(id, status, driverInfo);
+
+    return updated;
+  }
+
+  async addDeliveryStatusHistory(deliveryId: string, status: string, driverInfo?: any, notes?: string): Promise<DeliveryStatusHistory> {
+    const [history] = await db
+      .insert(deliveryStatusHistory)
+      .values({
+        deliveryId,
+        status,
+        driverName: driverInfo?.name,
+        driverPhone: driverInfo?.phone,
+        notes,
+      })
+      .returning();
+    return history;
+  }
 }
 
 export const storage = new DatabaseStorage();

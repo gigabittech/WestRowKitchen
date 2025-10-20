@@ -26,9 +26,17 @@ export default function Home() {
   
   useDocumentTitle("Welcome Home - West Row Kitchen");
 
-  // Fetch restaurants
+  // Fetch restaurants with cuisine filtering
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery<Restaurant[]>({
-    queryKey: queryKeys.restaurants.all(),
+    queryKey: queryKeys.restaurants.all(selectedCuisine !== "ALL" ? selectedCuisine : undefined),
+    queryFn: async () => {
+      const url = selectedCuisine !== "ALL" 
+        ? `/api/restaurants?cuisine=${encodeURIComponent(selectedCuisine)}`
+        : "/api/restaurants";
+      const response = await fetch(url, { credentials: "include" });
+      if (!response.ok) throw new Error('Failed to fetch restaurants');
+      return response.json();
+    },
   });
 
   // Fetch recent orders
@@ -160,7 +168,7 @@ export default function Home() {
               {selectedCuisine === "ALL" ? "All Restaurants" : `${selectedCuisine} Restaurants`}
             </h2>
             <div className="text-sm text-gray-500">
-              {restaurants.length} restaurants found
+              {restaurants.length} {selectedCuisine === "ALL" ? "restaurants" : selectedCuisine + " restaurants"} found
             </div>
           </div>
           

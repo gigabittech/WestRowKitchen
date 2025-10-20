@@ -82,7 +82,7 @@ const logoMap: Record<string, string> = {
 ## Best Practice Compliance
 
 ### Industry Standards Followed
-✅ **UberEats/DoorDash Pattern**: Dropdown with live suggestions  
+✅ **DoorDash Pattern**: Dropdown with live suggestions  
 ✅ **Amazon Pattern**: Limited results with "view all" option  
 ✅ **Google Pattern**: Instant search with rich previews  
 ✅ **Mobile-First**: Touch-friendly targets and responsive design  
@@ -150,7 +150,7 @@ const logoMap: Record<string, string> = {
 
 ## Conclusion
 
-The new search system transforms West Row Kitchen from a basic food delivery app to a professional-grade platform that matches industry leaders like UberEats and DoorDash. The implementation follows modern UX best practices and provides users with the instant, visual search experience they expect from premium food delivery platforms.
+The new search system transforms West Row Kitchen from a basic food delivery app to a professional-grade platform that matches industry leaders like DoorDash. The implementation follows modern UX best practices and provides users with the instant, visual search experience they expect from premium food delivery platforms.
 
 **Key Success Metrics:**
 - ✅ Real-time search with restaurant images
