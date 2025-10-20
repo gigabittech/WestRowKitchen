@@ -162,7 +162,7 @@ export default function Restaurants() {
                                 : getDefaultImage()
                             }
                             alt={restaurant.name}
-                            className="w-full h-full object-contained "
+                            className="w-full h-full object-contain "
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = getDefaultImage();

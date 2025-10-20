@@ -30,7 +30,8 @@ import {
   insertCouponSchema,
 } from "@shared/schema";
 import { z } from "zod";
-import Delivery from './delivery/uberDelivery/delivery';
+import { DeliveryService } from './packages/delivery/service.js';
+import { setupDeliveryRoutes } from './packages/delivery/routes.js';
 
 // Initialize Stripe with test keys for now
 let stripe: Stripe | null = null;
@@ -43,6 +44,15 @@ try {
   );
 } catch (error) {
   console.log("Stripe not configured, payment functionality disabled");
+}
+
+// Initialize delivery service
+let deliveryService: DeliveryService | null = null;
+try {
+  deliveryService = new DeliveryService();
+  console.log("Delivery service initialized");
+} catch (error) {
+  console.log("Delivery service initialization failed:", error);
 }
 
 // Configure multer for file uploads
@@ -90,12 +100,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes are now handled in auth.ts
 
 
-  //added routes for Uber Eats integration
+  // Additional delivery providers can be added through the delivery service package
 
-  // server/index.ts or wherever your routes are
-    app.post("/api/uber/delivery", async (req, res) => {
-      Delivery(req, res);
-    });
+  // Setup delivery routes (supports multiple providers)
+  if (deliveryService) {
+    setupDeliveryRoutes(app, deliveryService);
+  }
 
 
   // Restaurant routes
@@ -760,7 +770,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { status } = z.object({ status: z.string() }).parse(req.body);
-      const order = await storage.updateOrderStatus(req.params.id, status);
+      let order;
+      
+      // For confirmed orders, we need to ensure delivery creation succeeds before updating status
+      if (status === 'confirmed' && deliveryService) {
+        try {
+          // Get order details first (before updating status)
+          const currentOrder = await storage.getOrderById(req.params.id);
+          if (!currentOrder) {
+            return res.status(404).json({ message: "Order not found" });
+          }
+
+          const orderUser = await storage.getUser(currentOrder.userId);
+          const restaurant = await storage.getRestaurant(currentOrder.restaurantId);
+          const orderItems = await storage.getOrderItemsWithDetails(currentOrder.id);
+
+          if (!orderUser || !restaurant || !orderItems) {
+            return res.status(400).json({ message: "Missing order details for delivery creation" });
+          }
+
+          // Parse delivery address
+          const deliveryAddressParts = (currentOrder.deliveryAddress || '').split(',');
+          const restaurantAddressParts = (restaurant.address || '').split(',');
+          const pickupAddress = {
+            street: (restaurantAddressParts[0] || '').trim(),
+            city: (restaurantAddressParts[1] || '').trim(),
+            state: (restaurantAddressParts[2] || '').trim().split(' ')[0] || '',
+            zipCode: (restaurantAddressParts[2] || '').trim().split(' ')[1] || (restaurantAddressParts[3] || '').trim(),
+            country: 'US',
+            instructions: `Restaurant: ${restaurant.name}`,
+          };
+
+          const deliveryAddress = {
+            street: (deliveryAddressParts[0] || '').trim(),
+            city: (deliveryAddressParts[1] || '').trim(),
+            state: (deliveryAddressParts[2] || '').trim().split(' ')[0] || '',
+            zipCode: (deliveryAddressParts[2] || '').trim().split(' ')[1] || (deliveryAddressParts[3] || '').trim(),
+            country: 'US',
+            instructions: currentOrder.deliveryInstructions || '',
+          };
+
+          const deliveryRequest = {
+            orderId: currentOrder.id,
+            restaurantId: currentOrder.restaurantId,
+            customerId: currentOrder.userId,
+            pickupAddressLine: restaurant.address || undefined,
+            dropoffAddressLine: currentOrder.deliveryAddress || undefined,
+            pickupAddress,
+            deliveryAddress,
+            pickupPhone: restaurant.phone || undefined,
+            dropoffPhone: currentOrder.customerPhone || undefined,
+            pickupBusinessName: restaurant.name,
+            dropoffBusinessName: currentOrder.customerName || 'Customer',
+            items: orderItems.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: parseFloat(item.unitPrice),
+            })),
+            totalAmount: parseFloat(currentOrder.totalAmount),
+            estimatedPickupTime: '', // Will be set by service
+            estimatedDeliveryTime: '', // Will be set by service
+            specialInstructions: currentOrder.deliveryInstructions,
+          };
+
+          // Create delivery FIRST - if this fails, order status won't be updated
+          const deliveryResponse = await deliveryService.createDelivery(deliveryRequest, 'doordash');
+          console.log(`${deliveryResponse.provider} delivery created for order ${currentOrder.id}: ${deliveryResponse.deliveryId}`);
+          
+          // Only update order status AFTER delivery creation succeeds
+          order = await storage.updateOrderStatus(req.params.id, status);
+          
+        } catch (deliveryError) {
+          console.error("Failed to create DoorDash delivery:", deliveryError);
+          return res.status(500).json({ 
+            message: "Failed to create delivery. Order status not updated.",
+            error: deliveryError.message 
+          });
+        }
+      } else {
+        // For non-confirmed status updates, proceed normally
+        order = await storage.updateOrderStatus(req.params.id, status);
+      }
 
       // Send order status update email
       try {
