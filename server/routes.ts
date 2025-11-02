@@ -608,6 +608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Create a safer schema that explicitly includes all needed fields
+      // Note: paymentIntentId is allowed but not validated (used for transaction linking)
       const safeOrderSchema = z.object({
         userId: z.string(),
         restaurantId: z.string(),
@@ -627,14 +628,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         estimatedDeliveryTime: z.string().nullable().optional(),
         actualDeliveryTime: z.string().nullable().optional(),
         items: z.array(insertOrderItemSchema.omit({ orderId: true })),
+        paymentIntentId: z.string().optional(), // Allow paymentIntentId for transaction linking
       });
 
-      const { items, ...orderData } = safeOrderSchema.parse({
+      // Extract paymentIntentId before parsing (it's not part of order schema)
+      const { paymentIntentId, items, ...orderData } = safeOrderSchema.parse({
         ...req.body,
         userId,
       });
 
-      console.log("this is order data",orderData,items);
+      console.log("📦 Creating order:", { 
+        restaurantId: orderData.restaurantId, 
+        restaurantIdType: typeof orderData.restaurantId,
+        itemsCount: items.length,
+        totalAmount: orderData.totalAmount,
+        paymentIntentId: paymentIntentId || 'none',
+        userId: userId,
+        customerEmail: orderData.customerEmail,
+      });
+
+      // Validate restaurantId is a valid UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (orderData.restaurantId && !uuidRegex.test(orderData.restaurantId)) {
+        console.error("❌ Invalid restaurantId format:", orderData.restaurantId);
+        return res.status(400).json({ 
+          message: "Invalid restaurant ID format",
+          error: "restaurantId must be a valid UUID"
+        });
+      }
 
       const order = await storage.createOrder(orderData);
 
@@ -652,6 +673,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (couponError) {
           console.error("Failed to track coupon usage:", couponError);
           // Don't fail the order if coupon tracking fails
+        }
+      }
+
+      // Link transaction to order and update with payment details if paymentIntentId is provided
+      if (paymentIntentId && stripe) {
+        try {
+          // Fetch complete payment intent details from Stripe
+          const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          const charge = paymentIntent.charges?.data?.[0];
+          
+          // Update transaction with complete payment information
+          await storage.updateTransactionByPaymentIntentId(paymentIntentId, {
+            orderId: order.id,
+            status: paymentIntent.status === 'succeeded' ? 'succeeded' : paymentIntent.status,
+            stripeChargeId: charge?.id || undefined,
+            paymentMethodType: paymentIntent.payment_method_types?.[0] || undefined,
+            processedAt: charge?.created ? new Date(charge.created * 1000) : new Date(),
+            metadata: {
+              stripe_status: paymentIntent.status,
+              stripe_amount: paymentIntent.amount,
+              stripe_currency: paymentIntent.currency,
+              stripe_charges: paymentIntent.charges?.data?.map(c => ({
+                id: c.id,
+                amount: c.amount,
+                status: c.status,
+                paid: c.paid,
+                created: c.created,
+              })) || [],
+              payment_method_details: charge?.payment_method_details,
+            },
+          });
+          console.log(`✅ Transaction updated and linked to order: ${order.id}`);
+        } catch (transactionError: any) {
+          console.error("Failed to update transaction with order ID:", transactionError);
+          // Try to at least link the order even if Stripe fetch fails
+          try {
+            await storage.updateTransactionByPaymentIntentId(paymentIntentId, {
+              orderId: order.id,
+              status: "succeeded",
+              processedAt: new Date(),
+            });
+          } catch (linkError) {
+            console.error("Failed to link transaction to order:", linkError);
+          }
         }
       }
 
@@ -687,14 +752,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.status(201).json({ order, items: orderItems });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("❌ Error creating order:", error);
+      console.error("Error details:", {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        code: error?.code,
+      });
+      
       if (error instanceof z.ZodError) {
         return res
           .status(400)
-          .json({ message: "Invalid data", errors: error.errors });
+          .json({ 
+            message: "Invalid order data", 
+            error: "Validation failed",
+            errors: error.errors 
+          });
       }
-      console.error("Error creating order:", error);
-      res.status(500).json({ message: "Failed to create order" });
+      
+      // Provide detailed error information
+      const errorMessage = error?.message || error?.toString() || "Failed to create order";
+      res.status(500).json({ 
+        message: errorMessage,
+        error: error?.code || error?.name || "Unknown error",
+        details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+      });
     }
   });
 
@@ -1567,7 +1650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stripe payment routes
-  app.post("/api/create-payment-intent", async (req, res) => {
+  app.post("/api/create-payment-intent", isAuthenticated, async (req: any, res) => {
     try {
       if (!stripe) {
         return res
@@ -1578,13 +1661,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
       }
 
-      const { amount } = req.body;
+      const { amount, customerEmail, customerName, description } = req.body;
+      const userId = req.user.id;
+      
+      // Create payment intent in Stripe
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: "usd",
+        metadata: {
+          userId: userId,
+          customerEmail: customerEmail || req.user.email || '',
+          customerName: customerName || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || '',
+        },
       });
-      res.json({ clientSecret: paymentIntent.client_secret });
+
+      // Store transaction in our database
+      try {
+        await storage.createTransaction({
+          userId: userId,
+          stripePaymentIntentId: paymentIntent.id,
+          amount: Math.round(amount * 100),
+          currency: "usd",
+          status: "pending",
+          paymentMethod: "stripe",
+          customerEmail: customerEmail || req.user.email || '',
+          customerName: customerName || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || '',
+          description: description || "Order payment",
+          metadata: {
+            amount: amount,
+            currency: "usd",
+            created_at: new Date().toISOString(),
+          },
+        });
+        console.log(`💳 Transaction created for payment intent: ${paymentIntent.id}`);
+      } catch (transactionError: any) {
+        console.error("Failed to create transaction record:", transactionError);
+        // Don't fail the payment intent creation if transaction storage fails
+      }
+
+      res.json({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id });
     } catch (error: any) {
+      console.error("Error creating payment intent:", error);
       res
         .status(500)
         .json({ message: "Error creating payment intent: " + error.message });
