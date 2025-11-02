@@ -32,6 +32,9 @@ import {
   type InsertDelivery,
   type DeliveryStatusHistory,
   type InsertDeliveryStatusHistory,
+  type Transaction,
+  type InsertTransaction,
+  transactions,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, like, and, sql } from "drizzle-orm";
@@ -122,6 +125,16 @@ export interface IStorage {
   getDeliveriesByOrderId(orderId: string): Promise<Delivery[]>;
   updateDeliveryStatus(id: string, status: string, driverInfo?: any): Promise<Delivery>;
   addDeliveryStatusHistory(deliveryId: string, status: string, driverInfo?: any, notes?: string): Promise<DeliveryStatusHistory>;
+
+  // Transaction operations
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getTransactionById(id: string): Promise<Transaction | undefined>;
+  getTransactionByPaymentIntentId(paymentIntentId: string): Promise<Transaction | undefined>;
+  getTransactionsByOrderId(orderId: string): Promise<Transaction[]>;
+  getTransactionsByUserId(userId: string): Promise<Transaction[]>;
+  getAllTransactions(): Promise<Transaction[]>;
+  updateTransaction(id: string, updates: Partial<InsertTransaction>): Promise<Transaction>;
+  updateTransactionByPaymentIntentId(paymentIntentId: string, updates: Partial<InsertTransaction>): Promise<Transaction>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1018,6 +1031,81 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return history;
+  }
+
+  // Transaction operations
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    const [newTransaction] = await db
+      .insert(transactions)
+      .values({
+        ...transaction,
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newTransaction;
+  }
+
+  async getTransactionById(id: string): Promise<Transaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.id, id));
+    return transaction;
+  }
+
+  async getTransactionByPaymentIntentId(paymentIntentId: string): Promise<Transaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.stripePaymentIntentId, paymentIntentId));
+    return transaction;
+  }
+
+  async getTransactionsByOrderId(orderId: string): Promise<Transaction[]> {
+    return await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.orderId, orderId))
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async getTransactionsByUserId(userId: string): Promise<Transaction[]> {
+    return await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async getAllTransactions(): Promise<Transaction[]> {
+    return await db
+      .select()
+      .from(transactions)
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async updateTransaction(id: string, updates: Partial<InsertTransaction>): Promise<Transaction> {
+    const [updated] = await db
+      .update(transactions)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(transactions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateTransactionByPaymentIntentId(paymentIntentId: string, updates: Partial<InsertTransaction>): Promise<Transaction> {
+    const [updated] = await db
+      .update(transactions)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(transactions.stripePaymentIntentId, paymentIntentId))
+      .returning();
+    return updated;
   }
 }
 

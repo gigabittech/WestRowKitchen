@@ -7,3 +7,4 @@ vite.config.ts.*
 client/public/assets
 .env
 client/.env
+.cursor/

@@ -19,7 +19,6 @@ import {
   MapPin,
   Clock,
   User,
-  Phone,
   Banknote,
   Tag,
   Check,
@@ -57,7 +56,7 @@ export default function Checkout() {
     state: "",
     postalCode: "",
     deliveryInstructions: "",
-    paymentMethod: "card",
+    paymentMethod: "stripe", // Default to Stripe
   });
 
   // Coupon state
@@ -668,10 +667,10 @@ export default function Checkout() {
                   <div className="flex items-center space-x-2">
                     <input
                       type="radio"
-                      id="card"
+                      id="stripe"
                       name="payment"
-                      value="card"
-                      checked={orderForm.paymentMethod === "card"}
+                      value="stripe"
+                      checked={orderForm.paymentMethod === "stripe"}
                       onChange={(e) =>
                         setOrderForm((prev) => ({
                           ...prev,
@@ -679,12 +678,12 @@ export default function Checkout() {
                         }))
                       }
                     />
-                    <label htmlFor="card" className="flex items-center">
+                    <label htmlFor="stripe" className="flex items-center">
                       <CreditCard className="w-4 h-4 mr-2" />
                       Credit/Debit Card
                     </label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <input
                       type="radio"
                       id="cash"
@@ -702,7 +701,7 @@ export default function Checkout() {
                       <Banknote className="w-4 h-4 mr-2" />
                       Cash on Delivery
                     </label>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>
@@ -990,82 +989,147 @@ export default function Checkout() {
                   <Clock className="w-4 h-4 mr-2" />
                   <span>Estimated delivery: 25-35 minutes</span>
                 </div>
-                {orderForm.paymentMethod === "card" ? (
+                {orderForm.paymentMethod === "stripe" ? (
                   <div className="space-y-3">
-                    <Button
-                      onClick={() => {
-                        if (!validateForm()) {
-                          return;
-                        }
-
-                        // Store order form data temporarily for stripe checkout
-                        const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ", " + orderForm.apartment : ""}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
-                        localStorage.setItem(
-                          "checkout-form-data",
-                          JSON.stringify({
-                            ...orderForm,
-                            deliveryAddress: fullDeliveryAddress,
-                            appliedCoupon: appliedCoupon,
-                            couponDiscount: {
-                              itemDiscount: itemDiscount,
-                              deliveryDiscount: baseDeliveryFee - deliveryFee,
-                            },
-                            totals: {
-                              subtotal: subtotal,
-                              deliveryFee: deliveryFee,
-                              serviceFee: serviceFee,
-                              tax: tax,
-                              total: total,
-                            },
-                          }),
-                        );
-                        setLocation("/stripe-checkout");
-                      }}
-                      disabled={
-                        (() => {
-                          const restaurantIds = [...new Set(cartItems.map((item) => item.restaurantId))];
-                          if (restaurantIds.length === 1) {
-                            const restaurantId = restaurantIds[0];
-                            const restaurantStatus = restaurantStatuses.get(restaurantId);
-                            return !restaurantStatus?.isOpen;
+                    {(() => {
+                      const restaurantIds = [...new Set(cartItems.map((item) => item.restaurantId))];
+                      let isRestaurantClosed = false;
+                      let restaurantName = "";
+                      
+                      if (restaurantIds.length === 1) {
+                        const restaurantId = restaurantIds[0];
+                        const restaurant = restaurants.find(r => r.id === restaurantId);
+                        const restaurantStatus = restaurantStatuses.get(restaurantId);
+                        
+                        // If restaurant is found in restaurants array, check its status
+                        // If status is not found, default to open (allow orders)
+                        if (restaurant) {
+                          restaurantName = restaurant.name || "";
+                          // Only consider closed if status exists and explicitly says closed
+                          isRestaurantClosed = restaurantStatus ? !restaurantStatus.isOpen : false;
+                          
+                          // Debug logging (can be removed later)
+                          if (!restaurantStatus) {
+                            console.log(`⚠️ Restaurant status not found for ${restaurantName} (${restaurantId}), defaulting to open`);
+                          } else {
+                            console.log(`✅ Restaurant ${restaurantName} status: ${restaurantStatus.isOpen ? 'OPEN' : 'CLOSED'}`);
                           }
-                          return false;
-                        })()
+                        } else {
+                          // Restaurant not found in restaurants array - allow orders but show warning
+                          console.warn(`Restaurant ${restaurantId} not found in restaurants array`);
+                          isRestaurantClosed = false;
+                        }
                       }
-                      className="w-full btn-primary py-3 text-lg"
-                    >
-                      Pay with Card - ${total.toFixed(2)}
-                    </Button>
-                    <p className="text-xs text-gray-500 text-center">
-                      Secure payment processing by Stripe
-                    </p>
+                      
+                      return (
+                        <>
+                          <Button
+                            onClick={() => {
+                              if (!validateForm()) {
+                                return;
+                              }
+
+                              // Store order form data temporarily for stripe checkout
+                              const fullDeliveryAddress = `${orderForm.streetAddress}${orderForm.apartment ? ", " + orderForm.apartment : ""}, ${orderForm.city}, ${orderForm.state} ${orderForm.postalCode}`;
+                              localStorage.setItem(
+                                "checkout-form-data",
+                                JSON.stringify({
+                                  ...orderForm,
+                                  deliveryAddress: fullDeliveryAddress,
+                                  appliedCoupon: appliedCoupon,
+                                  couponDiscount: {
+                                    itemDiscount: itemDiscount,
+                                    deliveryDiscount: baseDeliveryFee - deliveryFee,
+                                  },
+                                  totals: {
+                                    subtotal: subtotal,
+                                    deliveryFee: deliveryFee,
+                                    serviceFee: serviceFee,
+                                    tax: tax,
+                                    total: total,
+                                  },
+                                }),
+                              );
+                              setLocation("/stripe-checkout");
+                            }}
+                            disabled={isRestaurantClosed}
+                            className="w-full btn-primary py-3 text-lg"
+                          >
+                            Pay & Order - ${total.toFixed(2)}
+                          </Button>
+                          {isRestaurantClosed && (
+                            <p className="text-xs text-red-600 text-center">
+                              ⚠️ {restaurantName} is currently closed. Orders cannot be placed.
+                            </p>
+                          )}
+                          {!isRestaurantClosed && (
+                            <p className="text-xs text-gray-500 text-center">
+                              Secure payment processing by Stripe
+                            </p>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 ) : (
-                  <Button
-                    onClick={handlePlaceOrder}
-                    className="w-full btn-primary py-3 text-lg"
-                    disabled={
-                      placeOrderMutation.isPending || 
-                      (() => {
-                        const restaurantIds = [...new Set(cartItems.map((item) => item.restaurantId))];
-                        if (restaurantIds.length === 1) {
-                          const restaurantId = restaurantIds[0];
-                          const restaurantStatus = restaurantStatuses.get(restaurantId);
-                          return !restaurantStatus?.isOpen;
+                  <>
+                    {(() => {
+                      const restaurantIds = [...new Set(cartItems.map((item) => item.restaurantId))];
+                      let isRestaurantClosed = false;
+                      let restaurantName = "";
+                      
+                      if (restaurantIds.length === 1) {
+                        const restaurantId = restaurantIds[0];
+                        const restaurant = restaurants.find(r => r.id === restaurantId);
+                        const restaurantStatus = restaurantStatuses.get(restaurantId);
+                        
+                        // If restaurant is found in restaurants array, check its status
+                        // If status is not found, default to open (allow orders)
+                        if (restaurant) {
+                          restaurantName = restaurant.name || "";
+                          // Only consider closed if status exists and explicitly says closed
+                          isRestaurantClosed = restaurantStatus ? !restaurantStatus.isOpen : false;
+                          
+                          // Debug logging (can be removed later)
+                          if (!restaurantStatus) {
+                            console.log(`⚠️ Restaurant status not found for ${restaurantName} (${restaurantId}), defaulting to open`);
+                          } else {
+                            console.log(`✅ Restaurant ${restaurantName} status: ${restaurantStatus.isOpen ? 'OPEN' : 'CLOSED'}`);
+                          }
+                        } else {
+                          // Restaurant not found in restaurants array - allow orders but show warning
+                          console.warn(`Restaurant ${restaurantId} not found in restaurants array`);
+                          isRestaurantClosed = false;
                         }
-                        return false;
-                      })()
-                    }
-                  >
-                    {placeOrderMutation.isPending ? (
-                      "Placing Order..."
-                    ) : (
-                      <>
-                        Place Order - ${total.toFixed(2)}
-                        <br />
-                      </>
-                    )}
-                  </Button>
+                      }
+                      
+                      return (
+                        <>
+                          <Button
+                            onClick={handlePlaceOrder}
+                            className="w-full btn-primary py-3 text-lg"
+                            disabled={
+                              placeOrderMutation.isPending || isRestaurantClosed
+                            }
+                          >
+                            {placeOrderMutation.isPending ? (
+                              "Placing Order..."
+                            ) : (
+                              <>
+                                Place Order - ${total.toFixed(2)}
+                                <br />
+                              </>
+                            )}
+                          </Button>
+                          {isRestaurantClosed && (
+                            <p className="text-xs text-red-600 text-center mt-2">
+                              ⚠️ {restaurantName} is currently closed. Orders cannot be placed.
+                            </p>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </>
                 )}
                 <p className="text-xs text-gray-500 text-center mt-2">
                   By placing this order, you agree to our Terms of Service and

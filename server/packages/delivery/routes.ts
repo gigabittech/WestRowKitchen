@@ -1,7 +1,12 @@
 import { Express, Request, Response } from 'express';
 import { DeliveryService } from './service.js';
+// DoorDash checkout routes removed - DoorDash doesn't provide payment APIs for external use
+// Payment is handled by Stripe, DoorDash Drive API is used only for delivery
+// import { setupDoorDashCheckoutRoutes } from './doordash/checkout-routes.js';
 
 export function setupDeliveryRoutes(app: Express, deliveryService: DeliveryService) {
+  // DoorDash checkout routes removed - not applicable for external payment processing
+  // setupDoorDashCheckoutRoutes(app);
   
   /**
    * Create delivery request for an order

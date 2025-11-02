@@ -15,7 +15,7 @@ import { Link, useLocation } from "wouter";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_51Rg0kFPo6yeGKLGBBYGai2RqQ5jaJ48XKEC8ymrcO01HvNVWnboLtSxdmUHPwtjRTs0pUVovHULqaN8AThWsakCu00KUydrsZh');
 
-const CheckoutForm = ({ total, orderData }: { total: number; orderData: any }) => {
+const CheckoutForm = ({ total, orderData, paymentIntentId }: { total: number; orderData: any; paymentIntentId?: string }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -51,10 +51,16 @@ const CheckoutForm = ({ total, orderData }: { total: number; orderData: any }) =
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         // Payment successful, now create the order
         try {
-          const response = await apiRequest("POST", "/api/orders", orderData);
+          // Include paymentIntentId to link transaction to order and fetch payment details
+          const orderDataWithPayment = {
+            ...orderData,
+            paymentIntentId: paymentIntent.id, // Use the paymentIntent.id directly since payment succeeded
+          };
+          const response = await apiRequest("POST", "/api/orders", orderDataWithPayment);
           const result = await response.json();
           
           if (response.ok) {
+            console.log("✅ Order created successfully:", result);
             clearCart();
             
             // Smart invalidation for related data after successful order
@@ -70,12 +76,20 @@ const CheckoutForm = ({ total, orderData }: { total: number; orderData: any }) =
             });
             setLocation("/orders");
           } else {
-            throw new Error(result.message || "Failed to create order");
+            console.error("❌ Order creation failed:", {
+              status: response.status,
+              statusText: response.statusText,
+              result: result
+            });
+            throw new Error(result.message || result.error || "Failed to create order");
           }
         } catch (orderError: any) {
+          console.error("❌ Order creation error:", orderError);
+          const errorMessage = orderError.message || "Your payment was processed but there was an issue creating the order. Please contact support.";
+          
           toast({
             title: "Payment Successful, Order Issue",
-            description: "Your payment was processed but there was an issue creating the order. Please contact support.",
+            description: errorMessage,
             variant: "destructive",
           });
         }
@@ -109,6 +123,7 @@ export default function StripeCheckout() {
   const [clientSecret, setClientSecret] = useState("");
   const { cartItems, cartTotal } = useCart();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   
   useDocumentTitle("Complete Payment - West Row Kitchen");
   
@@ -145,10 +160,32 @@ export default function StripeCheckout() {
   const tax = checkoutFormData.totals?.tax || (subtotal + deliveryFee + serviceFee) * 0.0875;
   const total = checkoutFormData.totals?.total || subtotal + deliveryFee + serviceFee + tax;
 
-
   // Prepare order data for after payment
+  // Ensure cart has items with valid restaurantId
+  if (cartItems.length === 0 || !cartItems[0].restaurantId) {
+    return (
+      <div className="min-h-screen bg-background">
+        <NavigationHeader />
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-center text-gray-600">
+                {cartItems.length === 0 
+                  ? "Your cart is empty. Please add items before checkout." 
+                  : "Invalid cart data. Please try again."}
+              </p>
+              <Link href="/restaurants">
+                <Button className="w-full mt-4">Browse Restaurants</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   const orderData = {
-    restaurantId: cartItems.length > 0 ? cartItems[0].restaurantId : "unknown",
+    restaurantId: cartItems[0].restaurantId,
     totalAmount: total.toFixed(2),
     deliveryFee: deliveryFee.toFixed(2),
     serviceFee: serviceFee.toFixed(2),
@@ -169,26 +206,56 @@ export default function StripeCheckout() {
     })),
   };
 
+  const [paymentIntentId, setPaymentIntentId] = useState<string>("");
+
   useEffect(() => {
     // Redirect back to checkout if cart is empty or no delivery address
     if (cartItems.length === 0) {
+      toast({
+        title: "Cart Empty",
+        description: "Your cart is empty. Please add items before checkout.",
+        variant: "destructive",
+      });
       setLocation("/restaurants");
       return;
     }
 
     if (!checkoutFormData.streetAddress || !checkoutFormData.streetAddress.trim()) {
+      toast({
+        title: "Delivery Address Required",
+        description: "Please provide a delivery address before proceeding to payment.",
+        variant: "destructive",
+      });
       setLocation("/checkout");
+      return;
+    }
+
+    // Validate restaurantId before creating payment intent
+    if (cartItems.length === 0 || !cartItems[0].restaurantId) {
+      console.error("❌ Invalid restaurantId: cart empty or no restaurant");
+      toast({
+        title: "Invalid Restaurant",
+        description: "Unable to determine restaurant. Please try again.",
+        variant: "destructive",
+      });
+      setLocation("/restaurants");
       return;
     }
 
     // Create PaymentIntent as soon as the page loads
     apiRequest("POST", "/api/create-payment-intent", { 
-      amount: total
+      amount: total,
+      customerEmail: checkoutFormData.email,
+      customerName: checkoutFormData.customerName || `${checkoutFormData.firstName || ''} ${checkoutFormData.lastName || ''}`.trim(),
+      description: `Order from ${cartItems.length > 0 ? cartItems[0].restaurantId : 'restaurant'}`,
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
+          if (data.paymentIntentId) {
+            setPaymentIntentId(data.paymentIntentId);
+          }
         } else {
           throw new Error(data.message || "Failed to create payment intent");
         }
@@ -269,7 +336,7 @@ export default function StripeCheckout() {
               </div>
             </div>
             <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <CheckoutForm total={total} orderData={orderData} />
+              <CheckoutForm total={total} orderData={orderData} paymentIntentId={paymentIntentId} />
             </Elements>
           </CardContent>
         </Card>

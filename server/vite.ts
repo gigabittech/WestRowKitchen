@@ -40,6 +40,10 @@ export async function setupVite(app: Express, server: Server) {
     appType: "custom",
   });
 
+  // Serve static files from client/public (including /assets/)
+  const publicPath = path.resolve(import.meta.dirname, "..", "client", "public");
+  app.use(express.static(publicPath));
+
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;

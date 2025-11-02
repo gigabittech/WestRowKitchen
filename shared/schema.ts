@@ -218,6 +218,32 @@ export const deliveryStatusHistory = pgTable("delivery_status_history", {
   source: varchar("source", { length: 20 }).default("system"), // 'system', 'doordash_webhook', 'manual'
 });
 
+// Transactions table for tracking Stripe payments
+export const transactions = pgTable("transactions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: uuid("order_id").references(() => orders.id, { onDelete: 'set null' }), // Can be null if payment fails before order creation
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 255 }).notNull().unique(),
+  stripeChargeId: varchar("stripe_charge_id", { length: 255 }), // Set when payment succeeds
+  amount: integer("amount").notNull(), // Amount in cents
+  currency: varchar("currency", { length: 3 }).default("usd"),
+  status: varchar("status", { length: 50 }).notNull().default("pending"), // 'pending', 'succeeded', 'failed', 'canceled', 'refunded'
+  paymentMethod: varchar("payment_method", { length: 50 }).default("stripe"), // 'stripe', 'cash', 'doordash'
+  paymentMethodType: varchar("payment_method_type", { length: 50 }), // 'card', 'cash', etc.
+  customerEmail: varchar("customer_email", { length: 255 }),
+  customerName: varchar("customer_name", { length: 255 }),
+  description: text("description"),
+  metadata: jsonb("metadata").$type<Record<string, any>>(), // Store additional Stripe metadata
+  failureCode: varchar("failure_code", { length: 50 }), // Stripe error codes
+  failureMessage: text("failure_message"), // Stripe error messages
+  refundId: varchar("refund_id", { length: 255 }), // If refunded
+  refundAmount: integer("refund_amount"), // Refund amount in cents
+  refundReason: varchar("refund_reason", { length: 255 }),
+  processedAt: timestamp("processed_at"), // When payment was actually processed
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   restaurants: many(restaurants),
@@ -267,6 +293,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   }),
   orderItems: many(orderItems),
   deliveries: many(deliveries),
+  transactions: many(transactions),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -322,6 +349,17 @@ export const deliveryStatusHistoryRelations = relations(deliveryStatusHistory, (
   delivery: one(deliveries, {
     fields: [deliveryStatusHistory.deliveryId],
     references: [deliveries.id],
+  }),
+}));
+
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+  order: one(orders, {
+    fields: [transactions.orderId],
+    references: [orders.id],
+  }),
+  user: one(users, {
+    fields: [transactions.userId],
+    references: [users.id],
   }),
 }));
 
@@ -390,6 +428,12 @@ export const insertCouponUsageSchema = createInsertSchema(couponUsage).omit({
   usedAt: true,
 });
 
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type InsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -413,3 +457,5 @@ export type Delivery = typeof deliveries.$inferSelect;
 export type InsertDelivery = typeof deliveries.$inferInsert;
 export type DeliveryStatusHistory = typeof deliveryStatusHistory.$inferSelect;
 export type InsertDeliveryStatusHistory = typeof deliveryStatusHistory.$inferInsert;
+export type Transaction = typeof transactions.$inferSelect;
+export type InsertTransaction = typeof transactions.$inferInsert;

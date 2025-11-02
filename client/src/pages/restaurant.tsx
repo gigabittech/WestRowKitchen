@@ -431,18 +431,46 @@ export default function RestaurantPage() {
                           className="cursor-pointer"
                         >
                           <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 overflow-hidden">
-                            {item.image ? (
-                              <img
-                                src={item.image!}
-                                alt={item.name}
-                                className="w-full h-full object-fit rounded-2xl"
-                                data-testid={`img-food-thumb-${item.id}`}
-                              />
-                            ) : (
-                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                <Utensils className="w-8 h-8 text-gray-400" />
-                              </div>
-                            )}
+                            {(() => {
+                              // Try database image first, then fallback to food image mapping
+                              let itemImage: string | null = null;
+                              
+                              if (item.image) {
+                                // Handle database image path - ensure it starts with /assets/
+                                itemImage = item.image.startsWith("/assets/") || item.image.startsWith("http")
+                                  ? item.image
+                                  : `/assets/${item.image}`;
+                              } else {
+                                // Fallback to food image mapping
+                                itemImage = getFoodImage(item.name);
+                              }
+                              
+                              return itemImage ? (
+                                <img
+                                  src={itemImage}
+                                  alt={item.name}
+                                  className="w-full h-full object-fit rounded-2xl"
+                                  data-testid={`img-food-thumb-${item.id}`}
+                                  onError={(e) => {
+                                    // If database image fails, try getFoodImage fallback
+                                    const target = e.currentTarget as HTMLImageElement;
+                                    if (item.image) {
+                                      const fallbackImage = getFoodImage(item.name);
+                                      if (fallbackImage && target.src !== fallbackImage) {
+                                        target.src = fallbackImage;
+                                        return;
+                                      }
+                                    }
+                                    // Show placeholder if both failed
+                                    target.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                  <Utensils className="w-8 h-8 text-gray-400" />
+                                </div>
+                              );
+                            })()}
                           </div>
                         </Link>
 

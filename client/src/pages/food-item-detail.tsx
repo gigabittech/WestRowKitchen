@@ -149,12 +149,18 @@ export default function FoodItemDetailPage() {
           {/* Food Image */}
           <div className="relative">
             <div className="aspect-square bg-gradient-to-br from-orange-100 to-red-100 rounded-3xl flex items-center justify-center overflow-hidden shadow-2xl">
-              <img
-                src={foodItem?.image}
-                alt={foodItem.name}
-                className="w-full h-full bg-white object-fit"
-                data-testid={`img-food-${foodItem.id}`}
-              />
+              {foodImageSrc || foodItem?.image ? (
+                <img
+                  src={foodImageSrc || foodItem?.image}
+                  alt={foodItem.name}
+                  className="w-full h-full bg-white object-fit"
+                  data-testid={`img-food-${foodItem.id}`}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Utensils className="w-24 h-24 text-gray-400" />
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
