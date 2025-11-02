@@ -87,6 +87,7 @@ import {
 import { LogoUploader } from "@/components/LogoUploader";
 import { MenuItemImageUploader } from "@/components/MenuItemImageUploader";
 import { useRestaurantsStatus } from "@/hooks/useRestaurantStatus";
+import { getFoodImage } from "@/utils/food-images";
 import type {
   Restaurant,
   MenuItem,
@@ -2352,23 +2353,48 @@ export default function Admin() {
                             <CardContent className="p-0 flex flex-col bg-white h-full">
                               {/* Image Section (fixed height — works with or without image) */}
                               <div className="relative w-full h-64 bg-white flex items-center justify-center overflow-hidden rounded-t-md">
-                                {item.image ? (
-                                  <>
-                                    <div className="absolute inset-0 bg-white" />
-                                    <img
-                                      src={item.image}
-                                      alt={item.name}
-                                      className="relative z-10 w-full h-full object-fit p-2"
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = "none";
-                                      }}
-                                      data-testid={`img-menu-item-${item.id}`}
-                                    />
-                                  </>
-                                ) : (
-                                  // Placeholder if no image
-                                  <Pizza className="w-24 h-24 text-gray-400" />
-                                )}
+                                {(() => {
+                                  // Try database image first, then fallback to food image mapping
+                                  let itemImage: string | null = null;
+                                  
+                                  if (item.image) {
+                                    // Handle database image path - ensure it starts with /assets/
+                                    itemImage = item.image.startsWith("/assets/") || item.image.startsWith("http")
+                                      ? item.image
+                                      : `/assets/${item.image}`;
+                                  } else {
+                                    // Fallback to food image mapping
+                                    itemImage = getFoodImage(item.name);
+                                  }
+                                  
+                                  return itemImage ? (
+                                    <>
+                                      <div className="absolute inset-0 bg-white" />
+                                      <img
+                                        src={itemImage}
+                                        alt={item.name}
+                                        className="relative z-10 w-full h-full object-fit p-2"
+                                        onError={(e) => {
+                                          // If database image fails, try getFoodImage fallback
+                                          const target = e.currentTarget as HTMLImageElement;
+                                          if (item.image) {
+                                            const fallbackImage = getFoodImage(item.name);
+                                            if (fallbackImage && target.src !== fallbackImage) {
+                                              target.src = fallbackImage;
+                                              return;
+                                            }
+                                          }
+                                          // Show placeholder if both failed
+                                          target.style.display = "none";
+                                        }}
+                                        data-testid={`img-menu-item-${item.id}`}
+                                      />
+                                    </>
+                                  ) : (
+                                    // Placeholder if no image
+                                    <Pizza className="w-24 h-24 text-gray-400" />
+                                  );
+                                })()}
                               </div>
 
                               {/* Content Section */}
