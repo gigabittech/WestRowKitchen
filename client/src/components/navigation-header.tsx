@@ -10,11 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import LocationPicker from "@/components/location-picker";
 import SearchDropdown from "@/components/search-dropdown";
-import { 
-  MapPin, 
-  Search, 
-  ShoppingCart, 
-  User, 
+import {
+  MapPin,
+  Search,
+  ShoppingCart,
+  User,
   Menu,
   Utensils,
   LogOut,
@@ -48,7 +48,9 @@ export default function NavigationHeader() {
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="shadow-md bg-[#FFFFFFE0] absolute top-0 w-full z-50">
+
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
@@ -61,27 +63,27 @@ export default function NavigationHeader() {
               </div>
             </div>
           </Link>
-          
+
           {/* Location Selector */}
-          <LocationPicker 
+          {/* <LocationPicker
             currentLocation={location}
             onLocationChange={updateLocation}
-          />
-          
+          /> */}
+
           {/* Search Bar */}
-          <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Input 
-                type="text" 
-                placeholder="Search restaurants, cuisines, or dishes..." 
+          <div className="hidden lg:flex items-center flex-1 max-w-md mx-8 pl-[210px]">
+            <div className="relative w-full ">
+              <Input
+                type="text"
+                placeholder="Search restaurants, cuisines, or dishes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchDropdownOpen(true)}
-                className="w-full pl-10 pr-4 py-2"
+                className="w-[396px] h-[50px] pl-[40px] pr-[29px]  mt-[8px] mb-[8px] py-[13px] rounded-[40px] border border-[#00231F] bg-[#F4F4F433] gap-[10px] font-['Inter'] font-normal text-[14px] leading-[100%] tracking-[0] uppercase text-[#737373] placeholder:text-[#737373]"
                 data-testid="input-search-desktop"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-              
+              <img src="/assets/SearchIcon.png" alt="Search" className="ml-[4px] mt-[2px] absolute left-3 top-1/2 transform -translate-y-1/2 w-[20px] h-[20px] pointer-events-none " />
+
               <SearchDropdown
                 query={searchQuery}
                 isVisible={isSearchDropdownOpen}
@@ -93,12 +95,12 @@ export default function NavigationHeader() {
               />
             </div>
           </div>
-          
+
           {/* User Actions */}
           <div className="flex items-center space-x-4">
             {/* Cart Button */}
-            <CartIcon />
-            
+            {/* <CartIcon /> */}
+
             {/* User Menu */}
             {isAuthenticated && user ? (
               <DropdownMenu>
@@ -130,7 +132,7 @@ export default function NavigationHeader() {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => {
                       fetch('/api/logout', { method: 'POST', credentials: 'include' })
                         .then(() => {
@@ -147,14 +149,19 @@ export default function NavigationHeader() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button 
+              <Button
                 onClick={() => setLocation('/auth')}
-                className="btn-primary"
+                className="w-[149px] h-[50px] gap-[10px] pt-[13px] pr-[29px] pb-[13px] pl-[30px] rounded-[40px] bg-[#00231F] hover:bg-[#00231F]/90"
               >
-                Sign In
+
+
+                <img src="/SignInIcon.png" alt="Sign In" />
+                <span className="font-['Inter'] font-medium text-[16px] leading-[24px] tracking-[0.5px] uppercase text-[#E8E8E8]">
+                  Sign In
+                </span>
               </Button>
             )}
-            
+
             {/* Mobile Menu */}
             <Button
               variant="ghost"
@@ -170,9 +177,9 @@ export default function NavigationHeader() {
         {/* Mobile Search */}
         <div className="lg:hidden pb-4">
           <div className="relative">
-            <Input 
-              type="text" 
-              placeholder="Search restaurants..." 
+            <Input
+              type="text"
+              placeholder="Search restaurants..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchDropdownOpen(true)}
@@ -180,7 +187,7 @@ export default function NavigationHeader() {
               data-testid="input-search-mobile"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-            
+
             <SearchDropdown
               query={searchQuery}
               isVisible={isSearchDropdownOpen}

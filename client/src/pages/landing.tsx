@@ -10,13 +10,13 @@ import RestaurantCard from "@/components/restaurant-card";
 
 import CartSidebar from "@/components/ui/cart-sidebar";
 import Footer from "@/components/footer";
-import { 
-  MapPin, 
-  Search, 
-  Clock, 
-  Star, 
-  Utensils, 
-  Smartphone, 
+import {
+  MapPin,
+  Search,
+  Clock,
+  Star,
+  Utensils,
+  Smartphone,
   CheckCircle,
   Gift,
   ChevronDown
@@ -48,48 +48,63 @@ export default function Landing() {
       {/* SEO Meta Tags */}
       <title>West Row Kitchen - Food Delivery from Local Restaurants</title>
       <meta name="description" content="Order food delivery from the best local restaurants in your area. Fast delivery, fresh food, and amazing flavors at West Row Kitchen." />
-      
+
       <NavigationHeader
         cartItemCount={cartItems.length}
       />
 
       {/* Hero Section */}
-      <section className="gradient-hero relative py-20 overflow-hidden">
+      <section className="relative h-[950px] flex items-center overflow-hidden bg-white">
+        <div className="absolute inset-0 z-0">
+          <img src="/assets/Home.jpg" alt="Hero Background" className="w-full h-full object-cover " />
+          <div className="absolute inset-0" style={{ background: 'conic-gradient(from -88.67deg at 50.7% 60.73%, #00231F -88.54deg, rgba(0, 217, 146, 0.05) 95.6deg, #00231F 271.46deg, rgba(0, 217, 146, 0.05) 455.6deg)' }} />
+        </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-6xl font-bold text-black mb-6 leading-tight">
-              Craving Something<br />
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Delicious?</span>
-            </h1>
-            <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+            <div className="flex justify-center">
+              <h1 className="w-full max-w-[1216px] pt-16 font-['Helixa'] font-black text-[60px] md:text-[80px] leading-[100%] md:leading-[82px] text-center text-[#F8F8F8] mb-6">
+                Craving Something<br />
+                Delicious?
+              </h1>
+            </div>
+            <p className="text-xl  mb-8 max-w-2xl mx-auto h-[60px] w-[598px] text-[#FCFCFC]">
+
+
               From local favorites to hidden gems, get the food you love delivered hot and fresh to your door
             </p>
-            
+
             {/* Primary CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Link href="/restaurants">
-                <Button 
-                  size="lg" 
-                  className="btn-primary text-lg px-8 py-4 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                <Button
+                  size="lg"
+                  className="btn-primary w-[288px] h-[56px] rounded-[100px] bg-[#00BB7DD1] text-lg px-8 py-4 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
                   data-testid="button-browse-restaurants"
                 >
-                  Browse Restaurants
+                  <span className="block pt-[3px] w-[196px] h-[20px] font-['Inter'] font-medium text-[16.5px] leading-[100%] tracking-[0] uppercase text-[#F1F1F1]">
+                    Browse Restaurants
+                  </span>
+                  <img src="/BrowseIcon.png" alt="" className="ml-0 pt-[2px] w-5 h-5 object-contain" />
+
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
+              <Button
+                // variant="outline"
                 size="lg"
-                className="text-lg px-8 py-4 border-2 border-primary hover:bg-primary hover:text-white transition-all duration-300"
+                className="text-lg w-[215px] h-[56px] rounded-[100px] pt-[18px] pr-[32px] pl-[32px] pb-[18px] bg-[#CDCDCD4D] hover:scale-105 border-[#CDCDCD4D] hover:text-white transition-all duration-300"
                 onClick={() => document.getElementById('featured-restaurants')?.scrollIntoView({ behavior: 'smooth' })}
                 data-testid="button-see-featured"
               >
-                See Featured
+                <span className="block pt-[3px] w-[121px] h-[20px] font-['Inter'] font-medium text-[16.5px] leading-[100%] tracking-[0] uppercase text-[#F1F1F1]">
+                  See Featured
+                </span>
+                <img src="assets/FeatureIcon.png" alt="" className="ml-0 pt-[2px] w-5 h-5 object-contain" />
               </Button>
             </div>
-            
+
             {/* Delivery Options */}
             <div className="flex justify-center items-center space-x-8 mb-12">
-              <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl hover:scale-105 transition-all duration-300">
+              {/* <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl hover:scale-105 transition-all duration-300">
                 <CardContent className="pt-6 pb-6 px-10">
                   <div className="text-sm text-primary font-semibold mb-1">🚚 Delivery</div>
                   <div className="font-bold text-black text-lg">ASAP (25-40 min)</div>
@@ -101,7 +116,7 @@ export default function Landing() {
                   <div className="text-sm text-secondary font-semibold mb-1">🏃 Pickup</div>
                   <div className="font-bold text-black text-lg">ASAP (15-20 min)</div>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
           </div>
         </div>
@@ -122,7 +137,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-6">
               {promotions.slice(0, 3).map((promo: Promotion) => (
                 <Card key={promo.id} className="shadow-lg hover:shadow-xl transition-shadow">
@@ -153,8 +168,8 @@ export default function Landing() {
             <h2 className="text-3xl font-bold mb-4">Featured Restaurants</h2>
             <p className="text-gray-600 mb-6">Discover amazing local flavors</p>
             <Link href="/restaurants">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="hover:bg-primary hover:text-white transition-all mb-8"
                 data-testid="button-browse-all-featured"
               >
@@ -162,7 +177,7 @@ export default function Landing() {
               </Button>
             </Link>
           </div>
-          
+
           {restaurantsLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(6)].map((_, i) => (
@@ -172,18 +187,18 @@ export default function Landing() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredRestaurants.map((restaurant: Restaurant) => (
-                <RestaurantCard 
-                  key={restaurant.id} 
+                <RestaurantCard
+                  key={restaurant.id}
                   restaurant={restaurant}
                   onAddToCart={(item) => setCartItems(prev => [...prev, item])}
                 />
               ))}
             </div>
           )}
-          
+
           <div className="text-center mt-12">
             <Link href="/restaurants">
-              <Button 
+              <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                 data-testid="button-view-all-bottom"
@@ -206,7 +221,7 @@ export default function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/restaurants">
-              <Button 
+              <Button
                 size="lg"
                 variant="secondary"
                 className="bg-white text-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-xl"
@@ -215,7 +230,7 @@ export default function Landing() {
                 Start Ordering
               </Button>
             </Link>
-            <Button 
+            <Button
               size="lg"
               className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold transition-all duration-200"
               onClick={() => document.getElementById('featured-restaurants')?.scrollIntoView({ behavior: 'smooth' })}
@@ -285,12 +300,12 @@ export default function Landing() {
 
       <Footer />
 
-      <CartSidebar 
+      <CartSidebar
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
         onUpdateQuantity={(id, quantity) => {
-          setCartItems(prev => prev.map(item => 
+          setCartItems(prev => prev.map(item =>
             item.id === id ? { ...item, quantity } : item
           ));
         }}
