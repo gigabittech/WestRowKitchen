@@ -3,13 +3,13 @@ import { Link } from "wouter";
 export default function Footer() {
   return (
     <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-slate-900 text-white py-12 mt-auto relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[#00231F] via-transparent to-secondary/5 pointer-events-none"></div>
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="md:col-span-1">
-            <h3 className="text-xl font-bold mb-4">West Row Kitchen</h3>
-            <p className="text-gray-300 text-sm mb-4">
+            <h3 className="text-xl font-bold mb-4 w-[280px] h-[28px]">West Row Kitchen</h3>
+            <p className="text-gray-300 text-[14px] mb-4">
               Connecting you with the best local restaurants for fast, fresh delivery and pickup.
             </p>
             <p className="text-gray-400 text-xs">
@@ -91,8 +91,8 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 mt-8 pt-8 text-center">
-          <p className="text-gray-400 text-sm">
-            Made with ❤️ for food lovers everywhere
+          <p className=" text-[#00D992] text-[14px]">
+            Made with ❤️ for food lovers everywhere 
           </p>
         </div>
       </div>

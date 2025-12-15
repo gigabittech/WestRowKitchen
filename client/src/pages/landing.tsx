@@ -44,7 +44,7 @@ export default function Landing() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#F7F7F7]">
       {/* SEO Meta Tags */}
       <title>West Row Kitchen - Food Delivery from Local Restaurants</title>
       <meta name="description" content="Order food delivery from the best local restaurants in your area. Fast delivery, fresh food, and amazing flavors at West Row Kitchen." />
@@ -162,12 +162,12 @@ export default function Landing() {
       )}
 
       {/* Featured Restaurants */}
-      <section id="featured-restaurants" className="py-12 bg-white">
+      <section id="featured-restaurants" className="py-12 bg-[#F7F7F7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4">Featured Restaurants</h2>
+            <h2 className="text-4xl pt-[30px] font-bold mb-4">Featured Restaurants</h2>
             <p className="text-gray-600 mb-6">Discover amazing local flavors</p>
-            <Link href="/restaurants">
+            {/* <Link href="/restaurants">
               <Button
                 variant="outline"
                 className="hover:bg-primary hover:text-white transition-all mb-8"
@@ -175,7 +175,37 @@ export default function Landing() {
               >
                 Browse All Restaurants
               </Button>
-            </Link>
+            </Link> */}
+          </div>
+
+          {/* Waiter Image */}
+          <div className="flex justify-center mb-8 ">
+            <img 
+              src="/assets/Waiter.png" 
+              alt="Waiter" 
+              className="object-contain ml-[-1450px] mt-[-190px]"
+              style={{
+                width: '674px',
+                height: '486.7386779785156px',
+                opacity: 1,
+                // border: '2px solid #00231F1A',
+                transform: 'rotate(0deg)'
+              }}
+            />
+          </div>
+
+          <div className="flex justify-center mb-8 ">
+            <img
+              src="/assets/glasses.png"
+              alt="Glass"
+              className="object-contain ml-[-1000px] mt-[-155px] ml-[1240px]"
+              style={{
+                width: '747px',
+                height: '567px',
+                opacity: 1,
+                transform: 'rotate(0deg)'
+              }}
+            />
           </div>
 
           {restaurantsLoading ? (
@@ -185,7 +215,8 @@ export default function Landing() {
               ))}
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 ml-[50px] mt-[-695px]">
+              
               {featuredRestaurants.map((restaurant: Restaurant) => (
                 <RestaurantCard
                   key={restaurant.id}
@@ -196,14 +227,15 @@ export default function Landing() {
             </div>
           )}
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-12 ml-[500px]">
             <Link href="/restaurants">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="w-[275px] h-[56px] bg-[#00231F] uppercase rounded-[100px] pt-[18px] pr-[28px] pl-[28px] pb-[18px] hover:bg-primary/90 text-[16.5px] text-white  shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-between"
                 data-testid="button-view-all-bottom"
               >
-                View All Restaurants
+                <span>View All Restaurants</span>
+                <img src="/assets/Icon.png" alt="Arrow Right" className="w-[20px] h-[20px]  object-contain -mt-[2px]" />
               </Button>
             </Link>
           </div>
@@ -211,12 +243,20 @@ export default function Landing() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary to-secondary text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+      <section 
+        className="w-[1150px] h-[355px] rounded-[24px] ml-[398px] py-16 text-white relative overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, #00D08C 48.31%, #005237 170.56%)' }}
+      >
+        <img 
+          src="/assets/ReadyToOrder.png" 
+          alt="Ready to Order" 
+          className="absolute left-0 top-0 h-full object-contain"
+        />
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h2 className="text-[60px] font-['Helixa'] font-black text-[#F8F8F8] mb-4">
             Ready to Order?
           </h2>
-          <p className="text-xl mb-8 opacity-90">
+          <p className="text-xl mb-8 opacity-90"> 
             Join thousands of satisfied customers. Get your favorite food delivered in minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -224,28 +264,35 @@ export default function Landing() {
               <Button
                 size="lg"
                 variant="secondary"
-                className="bg-white text-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-xl"
+                className="bg-[#00231FD1] w-[233px] h-[56px]  uppercase rounded-[100px] pt-[18px] pr-[32px] pl-[28px] pb-[18px] gap-10 text-[#00D992] hover:scale-105 transition-all duration-300 px-8 py-4 text-lg font-semibold shadow-xl"
                 data-testid="button-start-ordering"
+
               >
-                Start Ordering
+                <span className="text-[16.5px] ml-[8px]  text-[#00D992]">Start Ordering</span>
+                <img src="/assets/StartOrderingIcon.png" alt="Arrow Right" className="w-[20px] h-[20px] -ml-[30px]  object-contain -mt-[2px]" />
               </Button>
             </Link>
             <Button
               size="lg"
-              className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold transition-all duration-200"
+              className="w-[215px] h-[55px] rounded-[100px] border-[1.03px] border-[#FFFFFF] bg-transparent text-white hover:scale-105 uppercase px-8 py-4 text-lg font-semibold transition-all duration-200"
               onClick={() => document.getElementById('featured-restaurants')?.scrollIntoView({ behavior: 'smooth' })}
               data-testid="button-browse-featured"
             >
-              See Featured
+                See Featured
+                <img src="/assets/FeatureIcon.png" alt="Arrow Right" className="w-[20px] h-[20px] ml-[2px]  object-contain -mt-[2px]" />
+
             </Button>
+
           </div>
         </div>
       </section>
 
       {/* App Download Section */}
-      <section className="py-16 bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      <section className="w-[1905px] h-[636px] py-16 bg-gray-900 text-white mt-[70px]  bg-[#014538]">
+      {/* <img src="/assets/AppMap.png" alt="Arrow Right" className="" /> */}
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
+          <div className="grid md:grid-cols-2 gap-12 pl-11 items-center ">
             <div>
               <h2 className="text-4xl font-bold mb-4">Get the West Row Kitchen App</h2>
               <p className="text-xl mb-6 text-white/90">Order faster, track your delivery, and get exclusive app-only deals</p>
@@ -267,18 +314,17 @@ export default function Landing() {
                   <span>Push notifications for order updates</span>
                 </li>
               </ul>
-              <div className="flex space-x-4">
-                <Button className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-                  <div className="flex items-center space-x-2">
-                    <Smartphone />
-                    <div className="text-left">
-                      <div className="text-xs">Download on the</div>
-                      <div className="font-semibold">App Store</div>
-                    </div>
-                  </div>
-                </Button>
-                <Button className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-                  <div className="flex items-center space-x-2">
+
+
+
+
+
+              <h1 className="text-3xl font-bold pb-6" >Download App From</h1>
+
+              <div className="flex space-x-4 ">
+
+              <Button className="w-[227px] h-[78px] rounded-[11.31px] bg-black bg-[#00D9921A] border-[1px] border-[#FFFFFF] text-white px-6 py-3  hover:scale-105 transition-colors">
+              <div className="flex items-center space-x-2">
                     <Smartphone />
                     <div className="text-left">
                       <div className="text-xs">Get it on</div>
@@ -286,6 +332,20 @@ export default function Landing() {
                     </div>
                   </div>
                 </Button>
+
+
+
+
+                <Button className="w-[227px] h-[78px] rounded-[11.31px] bg-black bg-[#00D9921A] border-[1px] border-[#FFFFFF] text-white px-6 py-3  hover:scale-105 transition-colors">
+                  <div className="flex items-center space-x-2 ">
+                    <Smartphone />
+                    <div className="text-left">
+                      <div className="text-xs">Download on the</div>
+                      <div className="font-semibold">App Store</div>
+                    </div>
+                  </div>
+                </Button>
+             
               </div>
             </div>
             <div className="text-center">

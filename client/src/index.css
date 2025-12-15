@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Helixa Font */
+@font-face {
+  font-family: 'Helixa';
+  src: url('/fonts/Helixa-Regular.woff2') format('woff2'),
+       url('/fonts/Helixa-Regular.woff') format('woff'),
+       url('/fonts/Helixa-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Helixa';
+  src: url('/fonts/Helixa-Black.woff2') format('woff2'),
+       url('/fonts/Helixa-Black.woff') format('woff'),
+       url('/fonts/Helixa-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(0, 0%, 9%);
@@ -65,9 +86,10 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  /* Removed global h1-h6 font rule to allow specific font classes like font-['Helixa'] to work */
+  /* h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
-  }
+  } */
 }
 
 @layer components {
