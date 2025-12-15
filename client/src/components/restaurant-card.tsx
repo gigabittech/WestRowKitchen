@@ -44,9 +44,9 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
   return (
     <Link href={`/restaurant/${createSlug(restaurant.name)}`}>
-      <Card className="restaurant-card bg-white rounded-2xl shadow-lg overflow-hidden border-0 cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+      <Card className="restaurant-card  w-[354px] h-[370px] rounded-[20px] p-[14px]  overflow-hidden border-0 cursor-pointer hover:shadow-xl hover:scale-[1.0.8] transition-all duration-300">
         <div className="relative bg-white">
-          <div className="w-full h-48 flex items-center  justify-center bg-gray-50">
+          <div className="w-full h-48 flex items-center justify-center bg-[#F7F7F7] ">
             <img
               src={
                 restaurant.image
@@ -57,14 +57,14 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
                   : getDefaultImage()
               }
               alt={restaurant.name}
-              className="w-full h-full object-contain "
+              className="w-full h-full rounded-[15px] object-contain"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = getDefaultImage();
               }}
             />
           </div>
-          <div className="absolute top-4 right-4">
+          {/* <div className="absolute top-4 right-4">
             <Badge
               variant={isCurrentlyOpen ? "default" : "destructive"}
               className={
@@ -75,18 +75,18 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
             >
               {isCurrentlyOpen ? "OPEN" : "CLOSED"}
             </Badge>
-          </div>
+          </div> */}
         </div>
 
-        <CardContent className="p-6 flex flex-col h-72 justify-between">
+        <CardContent className="p-6 -ml-[25px] -mr-[25px] flex flex-col justify-between">
           {/* Top Section */}
           <div className="flex flex-col flex-grow overflow-hidden">
             {/* Title + Rating */}
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="text-xl font-bold font-playfair text-black">
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <h3 className="text-[24px] font-bold text-black truncate flex-shrink">
                 {restaurant.name}
               </h3>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-1 flex-shrink-0">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
                 <span className="font-semibold">{restaurant.rating}</span>
                 <span className="text-gray-500 text-sm">
@@ -95,52 +95,52 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
               </div>
             </div>
 
-            {/* Cuisine */}
-            <p className="text-gray-500 text-sm mb-1 truncate">
-              {restaurant.cuisine}
-            </p>
-
-            {/* Description */}
-            {restaurant.description && (
-              <p className="text-gray-500 text-xs mb-3 line-clamp-2 overflow-hidden">
-                {restaurant.description}
+            <div className="flex items-center justify-between text-gray-500">
+              {/* Cuisine (left) */}
+              <p className="text-sm truncate max-w-[50%] font-bold text-black">
+                {restaurant.cuisine}
               </p>
-            )}
+
+              {/* Description (right) */}
+              {restaurant.description && (
+                <p className="text-xs truncate max-w-[70%] text-right w-[215px] h-[20px]">
+                  {restaurant.description}
+                </p>
+              )}
+            </div>
+
 
             {/* Info Row */}
-            <div className="flex items-center justify-between text-sm text-gray-500 mt-auto">
+            <div className="flex items-center justify-between text-sm text-gray-500 mt-[10px]">
               <div className="flex items-center space-x-4">
-                <div className="flex items-center">
+                {/* <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
                   <span>{restaurant.deliveryTime || "25-35 min"}</span>
                 </div>
                 <div className="flex items-center">
                   <DollarSign className="w-4 h-4 mr-1" />
                   <span>${restaurant.deliveryFee || "2.99"}</span>
-                </div>
+                </div> */}
               </div>
             </div>
 
             {/* Minimum Order */}
-            {restaurant.minimumOrder && (
-              <div className="mt-2 text-xs text-gray-500">
-                Min. order: ${restaurant.minimumOrder}
-              </div>
-            )}
+     
           </div>
 
           {/* CTA Button (Bottom Fixed) */}
-          <div className="mt-4 pt-3 border-t border-gray-100">
+          <div className="mt-[10px]">
             <Button
-              className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
+              className="w-[326px] h-[47px] bg-[#E8E8E8] rounded-[40px]  text-white font-medium pt-[8px] pb-[8px] pl-[12px] pr-[12px] opacity-1 flex items-center justify-between" 
               size="sm"
               data-testid={`button-order-now-${restaurant.name
                 .toLowerCase()
                 .replace(/\s+/g, "-")}`}
             >
-              Order Now
+              <span className="text-black text-sm font-bold">Order Now</span>
+              <img src="/assets/ResBag.png" alt="Bag Icon" className="w-[32px] h-[31px] object-contain " />
             </Button>
-          </div>
+          </div>  
         </CardContent>
       </Card>
     </Link>
